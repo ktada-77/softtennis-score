@@ -1272,8 +1272,7 @@ function commitPoint(winner, f) {
   if (M.isFinal) {
     M.finalPts[winner]++;
     if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) {
-      M.gamesWon[winner]++; // ファイナルゲーム勝利でゲームカウントを進める
-      finishMatch(winner);
+      winGame(winner); // ★修正：履歴を残し、正しいゲームカウント（3-2など）にしてから終了させる
     }
   } else {
     M.pts[winner]++;
