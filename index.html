@@ -1359,7 +1359,8 @@ function simpleTap(winner) {
   if (M.isFinal) {
     M.finalPts[winner]++;
     const loser = winner==='a'?'b':'a';
-    if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) finishMatch(winner);
+    // ★修正箇所：finishMatch を winGame に変更
+    if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) winGame(winner);
   } else {
     M.pts[winner]++;
     const loser = winner==='a'?'b':'a';
@@ -1368,7 +1369,6 @@ function simpleTap(winner) {
   window.fbSave(currentCourt, M);
   renderScore();
 }
-
 function toggleServe() {
   if (!M) return;
   stk.push(JSON.parse(JSON.stringify(M)));
