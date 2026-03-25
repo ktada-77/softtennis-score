@@ -1487,8 +1487,73 @@ function deleteCourt(id) {
 }
 
 async function loadDashboard() {
-  const all = await window.fbGetAll();
-  renderDash(all);
+  const eid = currentEventId || 'default';
+  const listEl = document.getElementById('coach-list');
+  const rankEl = document.getElementById('coach-ranks');
+  if (!listEl || !rankEl) return;
+
+  listEl.innerHTML = '<div style="padding:20px;color:var(--muted)">読み込み中...</div>';
+
+  // 【論理的修正】「今のコート」ではなく、蓄積された「履歴(history)」を取得する
+  const history = await xhrRequest('GET', `events/${eid}/history`);
+  
+  if (!history || Object.keys(history).length === 0) {
+    listEl.innerHTML = '<div style="padding:20px;color:var(--muted)">終了した試合はまだありません</div>';
+    rankEl.innerHTML = '';
+    return;
+  }
+
+  const matches = Object.values(history);
+
+  // 1. 試合結果リストの表示（新しい順）
+  const matchIds = Object.keys(history).sort((a, b) => b - a);
+  listEl.innerHTML = matchIds.map(mid => {
+    const m = history[mid];
+    const isA = m.winner === 'a';
+    const timeStr = m.endTime ? new Date(m.endTime).toLocaleString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    return `
+      <div class="match-res-card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px;color:var(--muted)">
+          <span>試合終了: ${timeStr}</span>
+          <span>${m.winGames}Gマッチ</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:15px">
+          <div style="text-align:right;flex:1">
+            <div style="font-weight:${isA?'700':'400'};font-size:16px">${m.p.a1}・${m.p.a2}</div>
+            <div style="font-size:24px;font-weight:700;color:${isA?'var(--b)':'inherit'}">${m.gamesWon.a}</div>
+          </div>
+          <div style="font-size:18px;color:var(--border)">-</div>
+          <div style="text-align:left;flex:1">
+            <div style="font-weight:${!isA?'700':'400'};font-size:16px">${m.p.b1}・${m.p.b2}</div>
+            <div style="font-size:24px;font-weight:700;color:${!isA?'var(--b)':'inherit'}">${m.gamesWon.b}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // 2. ランキングの集計（履歴にある全試合から計算）
+  let statsP = {};
+  matches.forEach(m => {
+    ['a1','a2','b1','b2'].forEach(k => {
+      const name = m.p[k]; if (!name) return;
+      if (!statsP[name]) statsP[name] = { name, pts:0, srv1in:0, srv1tot:0 };
+      const s = m.stats?.[k];
+      if (s) {
+        statsP[name].pts += (s.point || 0);
+        statsP[name].srv1in += (s.serve1_in || 0);
+        statsP[name].srv1tot += ((s.serve1_in||0) + (s.serve1_out||0));
+      }
+    });
+  });
+
+  const byPtsP = Object.values(statsP).sort((a,b) => b.pts - a.pts).slice(0,5);
+  const bySrv = Object.values(statsP).filter(x=>x.srv1tot>0).sort((a,b) => (b.srv1in/b.srv1tot) - (a.srv1in/a.srv1tot)).slice(0,5);
+
+  const pct = (a,b) => b===0?0:Math.round(a/b*100);
+  rankEl.innerHTML = `
+    ${buildRankSection('🏆 通算ポイント数', byPtsP, x => ({val:x.pts, unit:'pt', sub:''}), byPtsP[0]?.pts||1)}
+    ${buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100)}
+  `;
 }
 
 function renderDash(all) {
