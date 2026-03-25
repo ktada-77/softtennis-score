@@ -1297,10 +1297,25 @@ function winGame(winner) {
   }
 }
 
-function finishMatch(winner) {
-  M.finished = true; M.winner = winner;
+async function finishMatch(winner) {
+  M.finished = true; 
+  M.winner = winner;
   M.endTime = new Date().toISOString();
-  window.fbSave(currentCourt, M);
+
+  // 1. 現在のコート状態を「終了」に更新（これまで通りの処理）
+  await window.fbSave(currentCourt, M);
+
+  // 2. 【重要】「履歴（history）」として別枠で保存（上書きされないように現在時刻をIDにする）
+  if (navigator.onLine && currentEventId) {
+    const historyId = Date.now(); // 171135xxxx のような重ならない数字をIDにする
+    try {
+      // events/イベントID/history/時間ID という場所に保存します
+      await xhrRequest('PUT', `events/${currentEventId}/history/${historyId}`, M);
+    } catch (e) {
+      console.error("履歴の保存に失敗:", e);
+    }
+  }
+
   // 試合結果タブへ遷移
   const coachTab = document.querySelectorAll('.nav-tab')[1];
   showPage('coach', coachTab);
