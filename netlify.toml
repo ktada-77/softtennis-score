@@ -1,4 +1,9 @@
 [[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+ 
+[[redirects]]
   from = "/api/firebase/*"
   to = "https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app/:splat"
   status = 200
