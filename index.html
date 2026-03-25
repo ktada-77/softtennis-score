@@ -690,23 +690,38 @@ async function loadEventList() {
 
 async function deleteEvent(e, eid) {
   e.stopPropagation();
-  const local = getLocalEvents();
-  const name = local[eid] ? local[eid].name : 'このイベント';
-  // ローカルから削除
-  delete local[eid]; saveLocalEvents(local);
-  // Firebaseから削除
-  if (navigator.onLine && db) {
-    db.ref('events/'+eid).remove().catch(e=>console.warn(e));
+
+  // 【重要】誤操作を防ぐための確認ダイアログ
+  if (!confirm('本当にこのイベントを削除しますか？\n（サーバーからも完全に消去されます）')) {
+    return; // キャンセルした場合はここで処理を止める
   }
+
+  const local = getLocalEvents();
+  // ローカルから削除
+  delete local[eid]; 
+  saveLocalEvents(local);
+
+  // Firebaseから削除（正しいREST API通信に変更）
+  if (navigator.onLine) {
+    try {
+      // 削除のHTTPメソッドは 'DELETE' を使います
+      await xhrRequest('DELETE', `events/${eid}`);
+    } catch (error) {
+      console.error(error);
+      alert('サーバー上のデータの削除に失敗しました。通信環境を確認してください。');
+    }
+  }
+
   // 選択中のイベントだったらリセット
   if (currentEventId === eid) {
     currentEventId = null;
     document.getElementById('current-event-bar').style.display = 'none';
     document.getElementById('main-nav-tabs').style.display = 'none';
   }
+  
+  // 画面を更新して最新の状態にする
   loadEventList();
 }
-
 function selectEvent(eid, eventData) {
   currentEventId = eid;
   document.getElementById('current-event-name').textContent = `${eventData.date||''} ${eventData.name}`;
