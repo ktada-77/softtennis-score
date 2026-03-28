@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/firebase/:path*",
-      "destination": "https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app/:path*.json"
+      "destination": "https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app/:path*"
     },
     {
       "source": "/(.*)",
