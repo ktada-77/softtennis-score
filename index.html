@@ -8,13 +8,13 @@
 <script>
 let db = null;
 
-// Netlifyプロキシ経由でFirebase REST APIにアクセス（CORS・WebSocket問題を回避）
+// Netlifyプロキシ経由でFirebase REST APIにアクセス
 const FB_PROXY = '/api/firebase';
 
 function xhrRequest(method, path, data) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const url = `${FB_PROXY}/${path}.json?t=${Date.now()}`;
+    const url = `${FB_PROXY}/${path}?t=${Date.now()}`;
     xhr.open(method, url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.timeout = 10000;
@@ -37,8 +37,9 @@ function xhrRequest(method, path, data) {
     xhr.send(data !== undefined ? JSON.stringify(data) : null);
   });
 }
+
 function loadFirebase() {
-  db = true; // REST APIなのでSDK不要
+  db = true;
   showSync(navigator.onLine ? 'synced' : 'offline');
   return Promise.resolve();
 }
@@ -53,7 +54,7 @@ function saveLocal(d) { localStorage.setItem(LOCAL_KEY,JSON.stringify(d)); }
 function getLocalEvents() { return JSON.parse(localStorage.getItem(EVENTS_KEY)||'{}'); }
 function saveLocalEvents(d) { localStorage.setItem(EVENTS_KEY,JSON.stringify(d)); }
 
-let currentEventId = null; // 選択中のイベントID
+let currentEventId = null;
 
 function showSync(s) {
   const el = document.getElementById('sync-status');
@@ -259,30 +260,19 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .score-divider{border-right:1px solid var(--border)}
 .deuce-strip{grid-column:1/-1;padding:6px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;border-top:1px solid var(--border);background:var(--s2);display:none}
 
-/* ========== POINT FLOW ========== */
+/* POINT FLOW */
 .point-flow{padding:14px;border-top:1px solid var(--border)}
-
 .flow-step{margin-bottom:14px;animation:stepIn .2s ease}
 @keyframes stepIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
 .step-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .step-num{background:var(--ink);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
 .step-num.done{background:var(--green)}
-
 .choice-grid{display:flex;flex-wrap:wrap;gap:6px}
-
-.choice-btn{
-  font-family:'DM Mono',monospace;font-size:13px;font-weight:500;
-  padding:10px 14px;border-radius:8px;border:2px solid var(--border);
-  background:var(--s2);color:var(--ink);cursor:pointer;
-  transition:all .12s;-webkit-tap-highlight-color:transparent;
-  min-width:52px;text-align:center;
-}
+.choice-btn{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;padding:10px 14px;border-radius:8px;border:2px solid var(--border);background:var(--s2);color:var(--ink);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;min-width:52px;text-align:center;}
 .choice-btn:active{transform:scale(.93)}
 .choice-btn.selected{border-color:var(--green);background:#e8f5e9;color:var(--green);font-weight:700}
 .choice-btn.selected-a{border-color:var(--a);background:rgba(26,79,138,.1);color:var(--a);font-weight:700}
 .choice-btn.selected-b{border-color:var(--b);background:rgba(155,32,32,.1);color:var(--b);font-weight:700}
-.choice-btn.hidden{display:none}
 .choice-btn.fault{border-color:var(--amber);color:var(--amber)}
 .choice-btn.fault.selected{background:rgba(184,122,0,.1)}
 .choice-btn.choice-a{border-color:rgba(26,79,138,.3);color:var(--a)}
@@ -296,26 +286,13 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .choice-btn.choice-ace{border-color:rgba(184,122,0,.4);color:var(--amber)}
 .choice-btn.choice-ace.selected{border-color:var(--amber);background:rgba(184,122,0,.1);font-weight:700}
 
-.flow-summary{
-  background:var(--s2);border:1px solid var(--border);border-radius:8px;
-  padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--muted);
-  font-family:'DM Mono',monospace;line-height:1.8;
-}
+.flow-summary{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.8;}
 .flow-summary span{color:var(--ink);font-weight:600}
-
-.confirm-btn{
-  width:100%;padding:14px;font-family:'Zen Kaku Gothic New',sans-serif;
-  font-size:16px;font-weight:700;background:var(--ink);color:#fff;
-  border:none;border-radius:8px;cursor:pointer;transition:all .15s;
-  -webkit-tap-highlight-color:transparent;
-}
+.confirm-btn{width:100%;padding:14px;font-family:'Zen Kaku Gothic New',sans-serif;font-size:16px;font-weight:700;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
 .confirm-btn:active{transform:scale(.97)}
-.confirm-btn.disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
 
 /* ACTION BAR */
 .action-bar{display:flex;gap:7px;padding:10px 14px;background:var(--s2);border-top:1px solid var(--border)}
-
-/* FINAL CHIP */
 .final-chip{font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(107,63,160,.1);color:var(--purple);font-family:'DM Mono',monospace;border:1px solid rgba(107,63,160,.25)}
 
 /* REFLECT */
@@ -339,47 +316,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .sl-a{color:var(--a)} .sl-b{color:var(--b);text-align:right}
 .sl-score{font-family:'DM Mono',monospace;font-size:28px;font-weight:700;white-space:nowrap}
 
-/* STAT BARS */
-.stat-bars{padding:10px 14px}
-.bar-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);text-align:center;margin:6px 0 3px}
-.bar-row{display:grid;grid-template-columns:44px 1fr 1fr 44px;align-items:center;gap:6px;margin-bottom:5px}
-.bv{font-family:'DM Mono',monospace;font-size:12px;font-weight:600}
-.bv-a{color:var(--a);text-align:right} .bv-b{color:var(--b)}
-.bw{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
-.bf-a{height:100%;background:var(--a);border-radius:4px;float:right;transition:width .5s}
-.bf-b{height:100%;background:var(--b);border-radius:4px;transition:width .5s}
-
-/* POINT LOG */
-.point-log{padding:10px 14px;border-top:1px solid var(--border);max-height:200px;overflow-y:auto}
-.point-log::-webkit-scrollbar{width:3px}
-.point-log::-webkit-scrollbar-thumb{background:var(--border)}
-.log-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;font-family:'DM Mono',monospace}
-.log-item:last-child{border-bottom:none}
-.log-pt{font-weight:700;min-width:24px}
-.log-a .log-pt{color:var(--a)} .log-b .log-pt{color:var(--b)}
-.log-detail{color:var(--muted);flex:1}
-.log-score{color:var(--muted);font-size:10px}
-
-/* AI */
-.ai-section{padding:13px 14px;border-top:1px solid var(--border)}
-.ai-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-.ai-badge{font-family:'DM Mono',monospace;font-size:10px;background:var(--ink);color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:.1em}
-.ai-body{font-size:13px;line-height:1.85}
-.thinking{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
-.dp span{width:5px;height:5px;border-radius:50%;background:var(--muted);display:inline-block;animation:dp 1.2s infinite;margin:0 2px}
-.dp span:nth-child(2){animation-delay:.2s} .dp span:nth-child(3){animation-delay:.4s}
-@keyframes dp{0%,80%,100%{transform:scale(.5);opacity:.3}40%{transform:scale(1);opacity:1}}
-
-.rv{padding:12px 14px;border-top:1px solid var(--border)}
-.rv-stars{font-size:18px;margin-bottom:7px}
-.rv-block{font-size:12px;line-height:1.7;background:var(--s2);border-radius:6px;padding:8px 11px;border:1px solid var(--border);margin-bottom:6px}
-
-.empty{padding:48px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.sec-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding:0 2px}
-.chart-wrap{padding:14px}
-
-/* PLAYER BLOCKS (coach dashboard) */
+/* PLAYER BLOCKS */
 .player-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
 .player-block{border-radius:9px;padding:11px 12px;border:1.5px solid var(--border)}
 .pb-team-a{border-color:rgba(26,79,138,.3);background:rgba(26,79,138,.04)}
@@ -393,6 +330,8 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .pb-lbl{color:var(--muted);font-family:'DM Mono',monospace;font-size:10px}
 .pb-val{font-weight:600;font-family:'DM Mono',monospace;font-size:12px}
 .pb-val small{font-weight:400;color:var(--muted);font-size:10px}
+
+/* RANKING */
 .rank-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
 .rank-section-head{padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
 .rank-medal{font-size:18px}
@@ -413,6 +352,21 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .rank-tab{flex:1;padding:11px 8px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;font-family:'DM Mono',monospace}
 .rank-tab.active{color:var(--green);border-bottom-color:var(--green);background:#f5fdf5}
 .rank-date-label{text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px}
+
+/* AI */
+.ai-section{padding:13px 14px;border-top:1px solid var(--border)}
+.ai-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.ai-badge{font-family:'DM Mono',monospace;font-size:10px;background:var(--ink);color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:.1em}
+.ai-body{font-size:13px;line-height:1.85}
+.rv{padding:12px 14px;border-top:1px solid var(--border)}
+.rv-stars{font-size:18px;margin-bottom:7px}
+.rv-block{font-size:12px;line-height:1.7;background:var(--s2);border-radius:6px;padding:8px 11px;border:1px solid var(--border);margin-bottom:6px}
+
+/* OTHERS */
+.empty{padding:48px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.sec-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding:0 2px}
+
 /* EVENT LIST */
 .event-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;margin-bottom:10px}
 .event-card:active{transform:scale(.98)}
@@ -421,11 +375,11 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .event-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
 .event-new-btn{width:100%;padding:14px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;margin-bottom:14px;-webkit-tap-highlight-color:transparent}
 .event-new-btn:active{transform:scale(.98)}
-.event-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;display:none}
 .current-event-bar{background:var(--green);color:#fff;padding:8px 14px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .current-event-name{font-weight:700;font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .change-event-btn{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace}
 </style>
+</head>
 <body>
 
 <nav class="top-nav">
@@ -438,14 +392,12 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
   <div class="nav-right"><span id="sync-status">確認中...</span></div>
 </nav>
 
-<!-- イベント選択バー（イベント選択後に表示） -->
 <div class="current-event-bar" id="current-event-bar" style="display:none">
   <span style="font-size:11px;opacity:.7">📅 イベント：</span>
   <span class="current-event-name" id="current-event-name"></span>
   <button class="change-event-btn" onclick="showEventPage()">変更</button>
 </div>
 
-<!-- ===== EVENTS ===== -->
 <div class="page active" id="page-events">
   <div style="padding:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -453,8 +405,8 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <button class="btn sm" onclick="loadEventList()">🔄 更新</button>
     </div>
     <button class="event-new-btn" onclick="toggleEventForm()">＋ 新しいイベントを作成</button>
-    <div class="event-form" id="event-form">
-      <div style="display:flex;flex-direction:column;gap:10px">
+    <div id="event-form" style="display:none; margin-bottom:14px;">
+      <div style="display:flex;flex-direction:column;gap:10px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px;">
         <div><label>大会・練習名</label><input type="text" id="ev-name" placeholder="例：春季練習試合、○○大会"></div>
         <div><label>日付</label><input type="text" id="ev-date" placeholder="例：2026/03/24"></div>
         <button class="btn green" style="width:100%;padding:12px;font-size:14px;font-weight:700" onclick="createNewEvent()">作成してこのイベントで開始</button>
@@ -464,10 +416,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
   </div>
 </div>
 
-<!-- ===== PLAYER ===== -->
-<div class="page active" id="page-player">
-
-  <!-- コート選択 -->
+<div class="page" id="page-player">
   <div id="step-court">
     <div class="card">
       <div class="card-head">
@@ -478,7 +427,6 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
     </div>
   </div>
 
-  <!-- 設定 -->
   <div id="step-setup" style="display:none">
     <div class="card">
       <div class="card-head">
@@ -514,7 +462,6 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
     </div>
   </div>
 
-  <!-- スコア -->
   <div id="step-score" style="display:none">
     <div class="card">
       <div class="card-head">
@@ -525,10 +472,8 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
         </div>
       </div>
 
-      <!-- ゲームドット -->
       <div class="game-track" id="game-track"></div>
 
-      <!-- スコア表示 -->
       <div class="score-display" id="score-display-wrap">
         <div class="score-side score-divider" id="tap-a-side">
           <div class="score-side-label ssl-a" id="lbl-a">A</div>
@@ -543,10 +488,8 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
         <div class="deuce-strip" id="deuce-strip">DEUCE</div>
       </div>
 
-      <!-- ポイント入力フロー -->
       <div class="point-flow" id="point-flow"></div>
 
-      <!-- アクション -->
       <div class="action-bar">
         <button class="btn sm" onclick="undoPt()">↩ 戻す</button>
         <button class="btn sm" onclick="toggleServe()">🔄 サーブ</button>
@@ -555,7 +498,6 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       </div>
     </div>
 
-    <!-- 振り返り -->
     <div class="card" id="reflect-card" style="display:none">
       <div class="card-head"><span class="card-title">振り返り</span></div>
       <div class="reflect-body">
@@ -576,16 +518,15 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
   </div>
 </div>
 
-<!-- ===== COACH ===== -->
 <div class="page" id="page-coach">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
     <div class="sec-title">全コート サマリー</div>
     <button class="btn sm green" onclick="loadDashboard()">🔄 更新</button>
   </div>
-  <div id="dash"></div>
+  <div id="coach-list"></div>
+  <div id="coach-ranks"></div>
 </div>
 
-<!-- ===== RANKING ===== -->
 <div class="page" id="page-ranking">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
     <div class="sec-title">🏆 本日のランキング</div>
@@ -603,22 +544,15 @@ let cfg = { match: 7, serve: 'a', servePlayer: 'a1', servePlayerB: 'b1' };
 let M = null;
 let stk = [];
 let starVal = 0;
-let chartMap = {};
-let simpleMode = true; // デフォルトは簡易入力
+let simpleMode = true;
 window._coachOpen = false;
 
-// ポイント入力の状態
 let flow = {
-  serve: null,    // '1st'|'2nd'|'fault'
-  rally: null,    // 'SR'|'LL'|null
-  shot: null,     // 'F'|'B'|'Re'|'Sm'|'V'
-  course: null,   // 'C'|'Co'|'M'
-  result: null,   // 'ACE'|'UE'|'DF'|'NET'|'OUT'|'SO'|'BO'|'Nin'|'t'
-  winner: null    // 'a'|'b'
+  serve: null, rally: null, shot: null, course: null, result: null, winner: null
 };
 
 // ============================================================
-// EVENTS
+// EVENTS PAGE
 // ============================================================
 function showEventPage() {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
@@ -630,12 +564,13 @@ function showEventPage() {
 
 function toggleEventForm() {
   const f = document.getElementById('event-form');
-  const isHidden = f.style.display === 'none' || f.style.display === '';
-  f.style.display = isHidden ? 'block' : 'none';
-  if (isHidden) {
-    const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-    document.getElementById('ev-date').value = today;
-    setTimeout(() => document.getElementById('ev-name').focus(), 100);
+  if (!f) return;
+  if (f.style.display === 'none' || f.style.display === '') {
+    f.style.display = 'block';
+    const d = document.getElementById('ev-date');
+    if (d) d.value = new Date().toLocaleDateString('ja-JP');
+  } else {
+    f.style.display = 'none';
   }
 }
 
@@ -654,92 +589,78 @@ async function loadEventList() {
   if (!el) return;
   el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">読み込み中...</div>';
 
-  // dbが準備できるまで最大5秒待つ
   if (!db) {
-    await Promise.race([
-      loadFirebase(),
-      new Promise(r => setTimeout(r, 5000))
-    ]);
+    await Promise.race([loadFirebase(), new Promise(r => setTimeout(r, 5000))]);
   }
 
   let events = {};
-  try {
-    events = await window.fbGetEvents();
-  } catch(e) {
-    events = getLocalEvents();
-  }
+  try { events = await window.fbGetEvents(); } catch(e) { events = getLocalEvents(); }
 
   const keys = Object.keys(events).sort((a,b) => (events[b].createdAt||'') > (events[a].createdAt||'') ? 1 : -1);
   if (!keys.length) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div>まだイベントがありません<br>上のボタンから作成してください</div>';
     return;
   }
+  
   el.innerHTML = keys.map(eid => {
     const ev = events[eid];
     const isActive = eid === currentEventId;
-    const evJson = JSON.stringify(ev).replace(/"/g,'&quot;');
     return `<div class="event-card ${isActive?'active-event':''}" style="position:relative">
-      <div onclick="selectEvent('${eid}', ${evJson})" style="flex:1;cursor:pointer">
+      <div onclick="selectEventById('${eid}')" style="flex:1;cursor:pointer">
         <div class="event-name">${ev.name}${isActive?' ✓':''}</div>
         <div class="event-meta">📅 ${ev.date||''}</div>
       </div>
-      <button onclick="deleteEvent(event,'${eid}')" style="position:absolute;top:10px;right:10px;font-size:11px;padding:4px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace" onmouseover="this.style.borderColor='var(--b)';this.style.color='var(--b)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🗑</button>
+      <button onclick="deleteEvent(event,'${eid}')" style="position:absolute;top:10px;right:10px;font-size:11px;padding:4px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace">🗑</button>
     </div>`;
   }).join('');
 }
 
+async function selectEventById(eid) {
+  const events = await window.fbGetEvents();
+  const eventData = events[eid];
+  if (eventData) {
+    selectEvent(eid, eventData);
+  } else {
+    alert('イベントデータの取得に失敗しました');
+  }
+}
+
 async function deleteEvent(e, eid) {
   e.stopPropagation();
-
-  // 【重要】誤操作を防ぐための確認ダイアログ
-  if (!confirm('本当にこのイベントを削除しますか？\n（サーバーからも完全に消去されます）')) {
-    return; // キャンセルした場合はここで処理を止める
-  }
-
+  if (!confirm('本当にこのイベントを削除しますか？\n（サーバーからも完全に消去されます）')) return;
   const local = getLocalEvents();
-  // ローカルから削除
   delete local[eid]; 
   saveLocalEvents(local);
-
-  // Firebaseから削除（正しいREST API通信に変更）
   if (navigator.onLine) {
-    try {
-      // 削除のHTTPメソッドは 'DELETE' を使います
-      await xhrRequest('DELETE', `events/${eid}`);
-    } catch (error) {
-      console.error(error);
-      alert('サーバー上のデータの削除に失敗しました。通信環境を確認してください。');
-    }
+    try { await xhrRequest('DELETE', `events/${eid}`); } catch (error) { console.error(error); }
   }
-
-  // 選択中のイベントだったらリセット
   if (currentEventId === eid) {
     currentEventId = null;
     document.getElementById('current-event-bar').style.display = 'none';
     document.getElementById('main-nav-tabs').style.display = 'none';
   }
-  
-  // 画面を更新して最新の状態にする
   loadEventList();
 }
+
 function selectEvent(eid, eventData) {
   currentEventId = eid;
   document.getElementById('current-event-name').textContent = `${eventData.date||''} ${eventData.name}`;
-  document.getElementById('current-event-bar').style.display = '';
-  document.getElementById('main-nav-tabs').style.display = '';
+  document.getElementById('current-event-bar').style.display = 'flex';
+  document.getElementById('main-nav-tabs').style.display = 'flex';
   document.getElementById('event-form').style.display = 'none';
-  // スコア入力タブへ
+  
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
   document.getElementById('page-player').classList.add('active');
   document.querySelectorAll('#main-nav-tabs .nav-tab')[0].classList.add('active');
+  
   window._coachOpen = false;
   loadCourts();
   goStep('court');
 }
 
 // ============================================================
-// NAV
+// NAV & PAGES
 // ============================================================
 function showPage(p, el) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
@@ -747,6 +668,7 @@ function showPage(p, el) {
   document.getElementById('page-' + p).classList.add('active');
   if (el) el.classList.add('active');
   window._coachOpen = p === 'coach';
+  
   if (p === 'coach') loadDashboard();
   if (p === 'player') { loadCourts(); goStep('court'); }
   if (p === 'ranking') loadRanking();
@@ -796,7 +718,6 @@ function selectCourt(id, d) {
     return;
   }
   if (d && d.finished) {
-    // confirmの代わりにインライン確認を表示
     showCourtConfirm(id);
     return;
   }
@@ -818,7 +739,6 @@ function resetCfg() {
 
 function showCourtConfirm(id) {
   const grid = document.getElementById('court-grid');
-  // 既存の確認ダイアログを削除
   const old = document.getElementById('court-confirm-box');
   if (old) old.remove();
 
@@ -869,8 +789,8 @@ function startMatch() {
     },
     matchGames: cfg.match,
     winGames: Math.ceil(cfg.match / 2),
-    serving: cfg.serve,         // サーブ権のあるペア 'a'|'b'
-    servePointCount: 0,         // 現ゲームの総ポイント数（サーブ担当自動計算用）
+    serving: cfg.serve,         
+    servePointCount: 0,         
     gamesWon: { a: 0, b: 0 },
     gameLog: [],
     pts: { a: 0, b: 0 },
@@ -913,27 +833,16 @@ function startMatch() {
 // ============================================================
 function resetFlow() {
   flow = {
-    serverKey: getCurrentServer(), // リセット時点のサーバーキーを固定記録
-    serve: null,
-    rally: null,
-    player: null,
-    type: null,
-    base: null,
-    shotType: null,
-    course: null,
-    isWinner: null,
-    miss: null,
-    winner: null
+    serverKey: getCurrentServer(),
+    serve: null, rally: null, player: null, type: null, base: null,
+    shotType: null, course: null, isWinner: null, miss: null, winner: null
   };
 }
 
-// 現在のサーブ担当プレーヤーを返す
-// 1・2ポイント目→後衛、3・4ポイント目→前衛（4の倍数でリセット）
 function getCurrentServer() {
   if (!M) return null;
-  const t = M.serving; // 'a'|'b'
+  const t = M.serving; 
   const count = (M.servePointCount || 0) % 4;
-  // 0,1 → 後衛（t+'1'）、2,3 → 前衛（t+'2'）
   return count < 2 ? t + '1' : t + '2';
 }
 
@@ -951,7 +860,7 @@ function setFlow(key, val) {
   if (idx >= 0) {
     order.slice(idx+1).forEach(k => flow[k] = null);
   }
-  flow.winner = null; // 常にリセット（commitCurrentFlow内で再計算）
+  flow.winner = null; 
   flow[key] = val;
   renderFlow();
 }
@@ -960,7 +869,6 @@ function renderFlow() {
   const el = document.getElementById('point-flow');
   if (!M || M.finished) { el.innerHTML = ''; return; }
 
-  // 簡易モードの場合は入力フォームを非表示
   if (simpleMode) {
     el.innerHTML = `<div style="padding:10px 0 4px;text-align:center;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em">簡易入力モード：スコア数字をタップ</div>`;
     return;
@@ -980,13 +888,11 @@ function renderFlow() {
   let html = '';
   let step = 1;
 
-  // 現在のサーブ担当者を表示（flow開始時点のserverKeyを優先）
   const currentServerKey = flow.serverKey || getCurrentServer();
   const serverName = pName(currentServerKey);
   const serverTeam = currentServerKey.startsWith('a') ? tA : tB;
   html += `<div style="background:rgba(26,79,138,.06);border:1px solid rgba(26,79,138,.15);border-radius:7px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-family:'DM Mono',monospace;color:var(--a)">🎾 サーバー：<strong>${serverName}</strong>（${serverTeam}）</div>`;
 
-  // ── STEP 1: サーブ ──
   html += buildStep(step++, 'サーブ', flow.serve !== null, [
     { val:'1st', label:'1st' },
     { val:'2nd', label:'2nd' },
@@ -1001,14 +907,12 @@ function renderFlow() {
   }
   if (!flow.serve) { el.innerHTML = html; return; }
 
-  // ── STEP 2: ラリー本数 ──
   html += buildStep(step++, 'ラリー本数', flow.rally !== null, [
     { val:'1', label:'1' }, { val:'2', label:'2' }, { val:'3', label:'3' },
     { val:'4', label:'4' }, { val:'5', label:'5' }, { val:'6+', label:'6以上' }
   ], 'rally', flow.rally);
   if (!flow.rally) { el.innerHTML = html; return; }
 
-  // ── 1stサーブ・1球 → SAかレシーブ返球かで分岐 ──
   if (flow.serve === '1st' && flow.rally === '1') {
     html += buildStep(step++, '結果', flow.base !== null, [
       { val:'SA', label:'SA サービスエース', cls:'choice-ace' },
@@ -1031,16 +935,13 @@ function renderFlow() {
       html += `<button class="confirm-btn" onclick="commitCurrentFlow()">✔ 確定してポイント追加</button>`;
       el.innerHTML = html; return;
     }
-    // Re → プレーヤー選択へ続く（baseはReで固定済み）
   }
 
-  // ── 2ndサーブ・1球 → Re固定 ──
   if (flow.serve === '2nd' && flow.rally === '1' && !flow.base) {
     flow.base = 'Re';
     renderFlow(); return;
   }
 
-  // ── STEP 3: プレーヤー ──
   html += buildStep(step++, 'プレーヤー（決着）', flow.player !== null, [
     { val:'a1', label:p1A, cls:'choice-a' },
     { val:'a2', label:p2A, cls:'choice-a' },
@@ -1049,14 +950,12 @@ function renderFlow() {
   ], 'player', flow.player);
   if (!flow.player) { el.innerHTML = html; return; }
 
-  // ── STEP 4: ポイント or ミス ──
   html += buildStep(step++, 'ポイント or ミス', flow.type !== null, [
     { val:'point', label:'✔ ポイント', cls:'choice-point' },
     { val:'miss',  label:'✘ ミス',    cls:'choice-miss' }
   ], 'type', flow.type);
   if (!flow.type) { el.innerHTML = html; return; }
 
-  // ── STEP 5: 決着ショット（baseがまだなければ） ──
   if (!flow.base) {
     html += buildStep(step++, '決着ショット', false, [
       { val:'F',   label:'F フォア' },
@@ -1068,14 +967,12 @@ function renderFlow() {
     el.innerHTML = html; return;
   }
 
-  // SA・ReA → コースだけ
   if (flow.base === 'SA' || flow.base === 'ReA') {
     html += buildStep(step++, 'コース', flow.course !== null, [
       { val:'C',   label:'C クロス' }, { val:'Co', label:'Co 逆クロス' },
       { val:'M',   label:'M ミドル' }, { val:'RST', label:'右ST' }, { val:'LST', label:'左ST' }
     ], 'course', flow.course);
     if (!flow.course) { el.innerHTML = html; return; }
-    // SA/ReAはサーバーがポイント取得者
     const aceKey = flow.serverKey || getCurrentServer();
     flow.player = aceKey;
     flow.type = 'point';
@@ -1085,7 +982,6 @@ function renderFlow() {
     el.innerHTML = html; return;
   }
 
-  // ── STEP 6: ショット種類 ──
   html += buildStep(step++, 'ショット種類', flow.shotType !== null, [
     { val:'St', label:'St ストローク' }, { val:'S',  label:'S スライス' },
     { val:'V',  label:'V ボレー' },      { val:'Hv', label:'Hv ハイボレー' },
@@ -1093,7 +989,6 @@ function renderFlow() {
   ], 'shotType', flow.shotType);
   if (!flow.shotType) { el.innerHTML = html; return; }
 
-  // ポイント → コース
   if (flow.type === 'point') {
     html += buildStep(step++, 'コース', flow.course !== null, [
       { val:'C',   label:'C クロス' }, { val:'Co', label:'Co 逆クロス' },
@@ -1107,7 +1002,6 @@ function renderFlow() {
     el.innerHTML = html; return;
   }
 
-  // ミス → ミス種類
   if (flow.type === 'miss') {
     html += buildStep(step++, 'ミスの種類', flow.miss !== null, [
       { val:'N',  label:'N ネット',       cls:'choice-miss' },
@@ -1148,16 +1042,10 @@ function buildSummary(parts) {
 // COMMIT POINT
 // ============================================================
 function commitCurrentFlow() {
-  // winnerをflowから再計算（renderFlow内での設定に依存しない）
   let winner = null;
   if (flow.player) {
-    if (flow.type === 'miss') {
-      // ミスした人の相手がポイント
-      winner = flow.player.startsWith('a') ? 'b' : 'a';
-    } else {
-      // ポイント・ACE・ReA → 実行者側
-      winner = flow.player.startsWith('a') ? 'a' : 'b';
-    }
+    if (flow.type === 'miss') winner = flow.player.startsWith('a') ? 'b' : 'a';
+    else winner = flow.player.startsWith('a') ? 'a' : 'b';
   }
   if (!winner) return;
   flow.winner = winner;
@@ -1166,7 +1054,6 @@ function commitCurrentFlow() {
 
 function commitFault() {
   const winner = M.serving === 'a' ? 'b' : 'a';
-  // serverKeyをflowから引き継ぐ
   commitPoint(winner, { serverKey: flow.serverKey, serve:'fault', rally:null, miss:'DF', type:'miss', player: flow.serverKey, winner });
 }
 
@@ -1178,15 +1065,12 @@ function commitPoint(winner, f) {
   const s = M.stats[winner];
   const ls = M.stats[loser];
 
-  // サーブ統計 - flow開始時点で記録したサーバーキーを使用
-  const serverKey = f.serverKey || getCurrentServer(); // 'a1'|'a2'|'b1'|'b2'
-  const servingTeam = serverKey.startsWith('a') ? 'a' : 'b'; // キーから確実にチームを判定
+  const serverKey = f.serverKey || getCurrentServer(); 
+  const servingTeam = serverKey.startsWith('a') ? 'a' : 'b'; 
   const servingStats = M.stats[servingTeam];
 
   if (!servingStats.players) servingStats.players = {};
-  if (!servingStats.players[serverKey]) {
-    servingStats.players[serverKey] = { pts:0, srv1in:0, srv1tot:0 };
-  }
+  if (!servingStats.players[serverKey]) servingStats.players[serverKey] = { pts:0, srv1in:0, srv1tot:0 };
   const servingPS = servingStats.players[serverKey];
 
   if (f.serve === '1st') {
@@ -1195,24 +1079,20 @@ function commitPoint(winner, f) {
     servingStats.srv1in  = (servingStats.srv1in||0)  + 1;
     servingPS.srv1in     = (servingPS.srv1in||0)     + 1;
   } else if (f.serve === '2nd') {
-    // 2ndサーブ = 1stが入らなかった
     servingStats.srv1tot = (servingStats.srv1tot||0) + 1;
     servingPS.srv1tot    = (servingPS.srv1tot||0)    + 1;
-    // 2ndサーブは成功としてカウント（ダブルフォルトでなければ入った）
     servingStats.srv2tot = (servingStats.srv2tot||0) + 1;
     servingStats.srv2in  = (servingStats.srv2in||0)  + 1;
   } else if (f.serve === 'fault') {
-    // DF = 1stも2ndも入らなかった
     servingStats.srv1tot = (servingStats.srv1tot||0) + 1;
     servingPS.srv1tot    = (servingPS.srv1tot||0)    + 1;
     servingStats.df      = (servingStats.df||0)      + 1;
+    servingPS.df         = (servingPS.df||0)         + 1; // ランキング用にDF記録
     servingStats.srv2tot = (servingStats.srv2tot||0) + 1;
   }
 
-  // ラリー本数
   if (f.rally && s.rally) s.rally[f.rally] = (s.rally[f.rally]||0) + 1;
 
-  // プレーヤー別ポイント数
   if (f.player) {
     const winnerStats = M.stats[winner];
     if (!winnerStats.players) winnerStats.players = {};
@@ -1220,60 +1100,41 @@ function commitPoint(winner, f) {
     winnerStats.players[f.player].pts = (winnerStats.players[f.player].pts||0) + 1;
   }
 
-  // ベースショット
   if (f.base && s.base) s.base[f.base] = (s.base[f.base]||0) + 1;
-
-  // エース
   if (f.base === 'SA' || f.base === 'ReA') s.ace = (s.ace||0) + 1;
-
-  // ショット種類
   if (f.shotType && s.shotType) s.shotType[f.shotType] = (s.shotType[f.shotType]||0) + 1;
+  if (f.course && s.course) s.course[f.course] = (s.course[f.course]||0) + 1;
 
-  if (f.course && s.course) {
-    s.course[f.course] = (s.course[f.course]||0) + 1;
-  }
-
-  // ポイント or ミス
   if (f.type === 'point') s.win = (s.win||0) + 1;
   if (f.type === 'miss' && f.miss) {
-    // ミスはミスした人（f.player）のチームに記録
     const misserTeam = f.player ? (f.player.startsWith('a') ? 'a' : 'b') : loser;
     const misserStats = M.stats[misserTeam];
     if (misserStats.miss_type) misserStats.miss_type[f.miss] = (misserStats.miss_type[f.miss]||0) + 1;
+    
+    // ランキング用にミス回数を個人のStatsに記録
+    if (f.player) {
+      if (!misserStats.players) misserStats.players = {};
+      if (!misserStats.players[f.player]) misserStats.players[f.player] = { pts:0, srv1in:0, srv1tot:0 };
+      misserStats.players[f.player].miss = (misserStats.players[f.player].miss||0) + 1;
+    }
   }
 
   s.pts++;
-
-  // ポイントログ
   const cp = M.isFinal ? M.finalPts : M.pts;
   M.pointLog = M.pointLog || [];
   M.pointLog.push({
-    winner,
-    serve: f.serve,
-    rally: f.rally,
-    player: f.player,
-    type: f.type,
-    base: f.base,
-    shotType: f.shotType,
-    course: f.course,
-    miss: f.miss,
-    scoreA: cp.a + (winner === 'a' ? 1 : 0),
-    scoreB: cp.b + (winner === 'b' ? 1 : 0),
-    gameA: M.gamesWon.a,
-    gameB: M.gamesWon.b
+    winner, serve: f.serve, rally: f.rally, player: f.player, type: f.type,
+    base: f.base, shotType: f.shotType, course: f.course, miss: f.miss,
+    scoreA: cp.a + (winner === 'a' ? 1 : 0), scoreB: cp.b + (winner === 'b' ? 1 : 0),
+    gameA: M.gamesWon.a, gameB: M.gamesWon.b
   });
 
   resetFlow();
-
-  // サーブポイントカウントを進める（サーブ担当者の自動切替用）
   M.servePointCount = (M.servePointCount || 0) + 1;
 
-  // スコア更新
   if (M.isFinal) {
     M.finalPts[winner]++;
-    if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) {
-      winGame(winner); // ★修正：履歴を残し、正しいゲームカウント（3-2など）にしてから終了させる
-    }
+    if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) winGame(winner);
   } else {
     M.pts[winner]++;
     if (M.pts[winner] >= 4 && M.pts[winner] - M.pts[loser] >= 2) winGame(winner);
@@ -1288,7 +1149,7 @@ function winGame(winner) {
   M.gameLog.push({ winner });
   M.gamesWon[winner]++;
   M.pts = { a:0, b:0 };
-  M.servePointCount = 0; // ゲームが変わったらカウントリセット
+  M.servePointCount = 0; 
   M.serving = M.serving === 'a' ? 'b' : 'a';
   if (M.gamesWon[winner] >= M.winGames) { finishMatch(winner); return; }
   const need = M.winGames - 1;
@@ -1302,21 +1163,16 @@ async function finishMatch(winner) {
   M.winner = winner;
   M.endTime = new Date().toISOString();
 
-  // 1. 現在のコート状態を「終了」に更新（これまで通りの処理）
   await window.fbSave(currentCourt, M);
 
-  // 2. 【重要】「履歴（history）」として別枠で保存（上書きされないように現在時刻をIDにする）
   if (navigator.onLine && currentEventId) {
-    const historyId = Date.now(); // 171135xxxx のような重ならない数字をIDにする
+    const historyId = Date.now(); 
     try {
-      // events/イベントID/history/時間ID という場所に保存します
       await xhrRequest('PUT', `events/${currentEventId}/history/${historyId}`, M);
     } catch (e) {
       console.error("履歴の保存に失敗:", e);
     }
   }
-
-  // 試合結果タブへ遷移
   const coachTab = document.querySelectorAll('.nav-tab')[1];
   showPage('coach', coachTab);
 }
@@ -1343,7 +1199,6 @@ function updateModeUI() {
     btn.textContent = '📝 詳細入力';
     btn.style.borderColor = '';
     btn.style.color = '';
-    // タップ有効
     document.getElementById('tap-a-side').onclick = () => simpleTap('a');
     document.getElementById('tap-b-side').onclick = () => simpleTap('b');
     document.getElementById('tap-a-side').style.cursor = 'pointer';
@@ -1354,7 +1209,6 @@ function updateModeUI() {
     btn.textContent = '👆 簡易入力';
     btn.style.borderColor = 'var(--green)';
     btn.style.color = 'var(--green)';
-    // タップ無効
     document.getElementById('tap-a-side').onclick = null;
     document.getElementById('tap-b-side').onclick = null;
     document.getElementById('tap-a-side').style.cursor = 'default';
@@ -1368,13 +1222,11 @@ function simpleTap(winner) {
   if (!M || M.finished || !simpleMode) return;
   stk.push(JSON.parse(JSON.stringify(M)));
 
-  // 簡易モード：スコアのみ進める（統計は一切記録しない）
   M.servePointCount = (M.servePointCount || 0) + 1;
 
   if (M.isFinal) {
     M.finalPts[winner]++;
     const loser = winner==='a'?'b':'a';
-    // ★修正箇所：finishMatch を winGame に変更
     if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) winGame(winner);
   } else {
     M.pts[winner]++;
@@ -1384,6 +1236,7 @@ function simpleTap(winner) {
   window.fbSave(currentCourt, M);
   renderScore();
 }
+
 function toggleServe() {
   if (!M) return;
   stk.push(JSON.parse(JSON.stringify(M)));
@@ -1401,13 +1254,12 @@ function endEarly() {
   window.fbSave(currentCourt, M);
   M = null; stk = [];
   resetFlow();
-  // 試合結果タブへ遷移
   const coachTab = document.querySelectorAll('.nav-tab')[1];
   showPage('coach', coachTab);
 }
 
 // ============================================================
-// RENDER SCORE
+// RENDER SCORE & REFLECT
 // ============================================================
 function renderScore() {
   if (!M) return;
@@ -1417,9 +1269,10 @@ function renderScore() {
   document.getElementById('lbl-a').textContent = teams.a.name;
   document.getElementById('lbl-b').textContent = teams.b.name;
   document.getElementById('final-chip').style.display = isFinal ? '' : 'none';
-  document.getElementById('game-score-disp').textContent = `${gamesWon.a} - ${gamesWon.b}`;
+  
+  const serverName = getServerName();
+  document.getElementById('game-score-disp').textContent = `${gamesWon.a} - ${gamesWon.b}　🎾 ${serverName}`;
 
-  // ドット
   const track = document.getElementById('game-track');
   track.innerHTML = '';
   for (let i = 0; i < matchGames; i++) {
@@ -1439,12 +1292,6 @@ function renderScore() {
   document.getElementById('pt-a').textContent = cp.a;
   document.getElementById('pt-b').textContent = cp.b;
 
-  // サーブ担当者表示
-  const serverName = getServerName();
-  const servingTeamName = serving === 'a' ? teams.a.name : teams.b.name;
-  document.getElementById('game-score-disp').textContent =
-    `${gamesWon.a} - ${gamesWon.b}　🎾 ${serverName}`;
-
   const db2 = document.getElementById('deuce-strip');
   db2.style.display = 'none';
   const thr = isFinal ? 6 : 3;
@@ -1455,9 +1302,6 @@ function renderScore() {
   }
 }
 
-// ============================================================
-// REFLECT
-// ============================================================
 function setStar(n) {
   starVal = n;
   document.querySelectorAll('.star').forEach((s,i) => s.classList.toggle('lit', i < n));
@@ -1478,14 +1322,8 @@ function saveReflect() {
 }
 
 // ============================================================
-// DASHBOARD
+// DASHBOARD & HISTORY
 // ============================================================
-function deleteCourt(id) {
-  window.fbDelete(id);
-  const local = getLocal();
-  renderDash(local);
-}
-
 async function loadDashboard() {
   const eid = currentEventId || 'default';
   const listEl = document.getElementById('coach-list');
@@ -1493,8 +1331,6 @@ async function loadDashboard() {
   if (!listEl || !rankEl) return;
 
   listEl.innerHTML = '<div style="padding:20px;color:var(--muted)">読み込み中...</div>';
-
-  // 1. 履歴(history)を取得
   const history = await xhrRequest('GET', `events/${eid}/history`);
   
   if (!history || Object.keys(history).length === 0) {
@@ -1504,275 +1340,78 @@ async function loadDashboard() {
   }
 
   const matches = Object.values(history);
-
-  // 2. 試合結果リストの表示
   const matchIds = Object.keys(history).sort((a, b) => b - a);
+
   listEl.innerHTML = matchIds.map(mid => {
     const m = history[mid];
     const isA = m.winner === 'a';
     const timeStr = m.endTime ? new Date(m.endTime).toLocaleString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    
+    // 古いデータ形式にも対応させるための安全処理
+    const aNames = m.teams?.a?.players || '後衛 / 前衛';
+    const bNames = m.teams?.b?.players || '後衛 / 前衛';
+    
     return `
-      <div class="match-res-card">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px;color:var(--muted)">
-          <span>試合終了: ${timeStr}</span>
+      <div class="card" style="padding:14px; position:relative;">
+        <button onclick="deleteHistoryMatch('${mid}')" style="position:absolute;right:10px;top:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">🗑️</button>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px;color:var(--muted);width:90%">
+          <span>終了: ${timeStr}</span>
           <span>${m.winGames}Gマッチ</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:center;gap:15px">
           <div style="text-align:right;flex:1">
-            <div style="font-weight:${isA?'700':'400'};font-size:16px">${m.p.a1}・${m.p.a2}</div>
+            <div style="font-weight:${isA?'700':'400'};font-size:16px">${m.teams?.a?.name || 'Aペア'}</div>
             <div style="font-size:24px;font-weight:700;color:${isA?'var(--b)':'inherit'}">${m.gamesWon.a}</div>
           </div>
           <div style="font-size:18px;color:var(--border)">-</div>
           <div style="text-align:left;flex:1">
-            <div style="font-weight:${!isA?'700':'400'};font-size:16px">${m.p.b1}・${m.p.b2}</div>
+            <div style="font-weight:${!isA?'700':'400'};font-size:16px">${m.teams?.b?.name || 'Bペア'}</div>
             <div style="font-size:24px;font-weight:700;color:${!isA?'var(--b)':'inherit'}">${m.gamesWon.b}</div>
           </div>
         </div>
       </div>`;
   }).join('');
-
-  // 3. ランキングの集計
-  let statsP = {};
-  matches.forEach(m => {
-    ['a1','a2','b1','b2'].forEach(k => {
-      const name = m.p[k]; if (!name) return;
-      if (!statsP[name]) statsP[name] = { name, pts:0, srv1in:0, srv1tot:0 };
-      const s = m.stats?.[k];
-      if (s) {
-        statsP[name].pts += (s.point || 0);
-        statsP[name].srv1in += (s.serve1_in || 0);
-        statsP[name].srv1tot += ((s.serve1_in||0) + (s.serve1_out||0));
-      }
-    });
-  });
-
-  const byPtsP = Object.values(statsP).sort((a,b) => b.pts - a.pts).slice(0,5);
-  const bySrv = Object.values(statsP).filter(x=>x.srv1tot>0).sort((a,b) => (b.srv1in/b.srv1tot) - (a.srv1in/a.srv1tot)).slice(0,5);
-
-  const pct = (a,b) => b===0?0:Math.round(a/b*100);
-  
-  if (typeof buildRankSection === 'function') {
-    rankEl.innerHTML = [
-      buildRankSection('🏆 通算ポイント数', byPtsP, x => ({val:x.pts, unit:'pt', sub:''}), byPtsP[0]?.pts||1),
-      buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100)
-    ].join('');
-  }
-}
-  // 2. ランキングの集計（履歴にある全試合から計算）
-  let statsP = {};
-  matches.forEach(m => {
-    ['a1','a2','b1','b2'].forEach(k => {
-      const name = m.p[k]; if (!name) return;
-      if (!statsP[name]) statsP[name] = { name, pts:0, srv1in:0, srv1tot:0 };
-      const s = m.stats?.[k];
-      if (s) {
-        statsP[name].pts += (s.point || 0);
-        statsP[name].srv1in += (s.serve1_in || 0);
-        statsP[name].srv1tot += ((s.serve1_in||0) + (s.serve1_out||0));
-      }
-    });
-  });
-
-  const byPtsP = Object.values(statsP).sort((a,b) => b.pts - a.pts).slice(0,5);
-  const bySrv = Object.values(statsP).filter(x=>x.srv1tot>0).sort((a,b) => (b.srv1in/b.srv1tot) - (a.srv1in/a.srv1tot)).slice(0,5);
-
-  const pct = (a,b) => b===0?0:Math.round(a/b*100);
-  rankEl.innerHTML = `
-    ${buildRankSection('🏆 通算ポイント数', byPtsP, x => ({val:x.pts, unit:'pt', sub:''}), byPtsP[0]?.pts||1)}
-    ${buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100)}
-  `;
 }
 
-function renderDash(all) {
-  const el = document.getElementById('dash');
-  const keys = Object.keys(all || {}).sort();
-  Object.values(chartMap).forEach(c => { try { c.destroy(); } catch(e){} });
-  chartMap = {};
-  if (!keys.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>まだ試合データがありません</div>';
-    return;
-  }
-  el.innerHTML = '';
-  keys.forEach(id => {
-    const d = all[id];
-    if (!d) return;
-    el.appendChild(buildCard(d, id));
-    if (d.finished && !d.aiFeedback) generateAI(id, d);
-  });
-}
-
-function buildCard(d, id) {
-  const ga = d.gamesWon.a, gb = d.gamesWon.b;
-  const sa = d.stats.a, sb = d.stats.b;
-  const winner = d.winner;
-  const statusText = d.finished ? (winner ? `${d.teams[winner].name} 勝利` : '終了') : '試合中';
-  const statusCls = d.finished ? (winner==='a'?'sb-a':'sb-b') : 'sb-p';
-
-  const wrap = document.createElement('div');
-  wrap.className = 'ms-card';
-
-  const pct = (i,t) => t>0 ? Math.round(i/t*100)+'%' : '-';
-
-  // プレーヤー名
-  const [a1n, a2n] = (d.teams.a.players||'後衛A / 前衛A').split(' / ');
-  const [b1n, b2n] = (d.teams.b.players||'後衛B / 前衛B').split(' / ');
-
-  // 個人ブロック生成
-  function playerBlock(name, role, teamCls, stats, playerKey) {
-    const ps = stats.players && stats.players[playerKey];
-    const playerPts = ps ? (ps.pts||0) : 0;
-    const s1in  = ps ? (ps.srv1in||0)  : 0;
-    const s1tot = ps ? (ps.srv1tot||0) : 0;
-    return `
-      <div class="player-block ${teamCls}">
-        <div class="pb-head"><span class="pb-name">${name}</span><span class="pb-role">${role}</span></div>
-        <div class="pb-row"><span class="pb-lbl">1stサーブ</span><span class="pb-val">${pct(s1in,s1tot)} <small>(${s1in}/${s1tot})</small></span></div>
-        <div class="pb-row"><span class="pb-lbl">DF</span><span class="pb-val">${stats.df||0}本</span></div>
-        <div class="pb-row"><span class="pb-lbl">ポイント</span><span class="pb-val">${playerPts}pt</span></div>
-        <div class="pb-row"><span class="pb-lbl">ミス</span><span class="pb-val">${(stats.miss_type ? Object.values(stats.miss_type).reduce((s,v)=>s+v,0) : 0)}回</span></div>
-      </div>`;
-  }
-
-  wrap.innerHTML = `
-    <div class="ms-head">
-      <span class="ms-court-label">COURT ${id}</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="status-badge ${statusCls}">${statusText}</span>
-        <button onclick="deleteCourt(${id})" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;" onmouseover="this.style.borderColor='var(--b)';this.style.color='var(--b)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🗑 削除</button>
-      </div>
-    </div>
-    <div class="score-line">
-      <div class="sl-team sl-a">${d.teams.a.name}</div>
-      <div class="sl-score">${ga} - ${gb}</div>
-      <div class="sl-team sl-b">${d.teams.b.name}</div>
-    </div>
-    <div class="player-grid">
-      ${playerBlock(a1n, '後衛', 'pb-team-a', sa, 'a1')}
-      ${playerBlock(b1n, '後衛', 'pb-team-b', sb, 'b1')}
-      ${playerBlock(a2n, '前衛', 'pb-team-a', sa, 'a2')}
-      ${playerBlock(b2n, '前衛', 'pb-team-b', sb, 'b2')}
-    </div>
-    ${d.reflect ? `
-    <div class="rv">
-      <div class="ai-head"><span class="ai-badge" style="background:var(--green)">生徒の振り返り</span></div>
-      <div class="rv-stars">${'⭐'.repeat(d.reflect.stars||0)}</div>
-      ${d.reflect.good?`<div class="rv-block">✅ ${d.reflect.good}</div>`:''}
-      ${d.reflect.improve?`<div class="rv-block">📝 ${d.reflect.improve}</div>`:''}
-      ${d.reflect.goal?`<div class="rv-block">🎯 ${d.reflect.goal}</div>`:''}
-    </div>` : ''}
-    <div class="ai-section" id="ai-${id}">
-      <div class="ai-head"><span class="ai-badge">AI フィードバック</span></div>
-      ${d.aiFeedback
-        ? `<div class="ai-body">${d.aiFeedback.replace(/\n/g,'<br>')}</div>`
-        : d.finished
-          ? `<div class="thinking"><div class="dp"><span></span><span></span><span></span></div> 分析中...</div>`
-          : `<div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">試合終了後に生成されます</div>`
-      }
-    </div>`;
-
-  return wrap;
-}
-
-function barHTML(va, vb, label) {
-  const total = va + vb;
-  const pA = total > 0 ? Math.round(va/total*100) : 50;
-  return `<div class="bar-lbl">${label}</div>
-    <div class="bar-row">
-      <div class="bv bv-a">${va}</div>
-      <div class="bw"><div class="bf-a" style="width:${pA}%"></div></div>
-      <div class="bw"><div class="bf-b" style="width:${100-pA}%"></div></div>
-      <div class="bv bv-b">${vb}</div>
-    </div>`;
-}
-
-function buildChart(cid, d) {
-  const canvas = document.getElementById(cid);
-  if (!canvas) return;
-  const sa = d.stats.a, sb = d.stats.b;
-  const c = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: ['PTS','1stIn','ACE','UE','DF','F','B','Re','C','Co'],
-      datasets: [
-        { label: d.teams.a.name, data: [
-          sa.pts, sa.srv1in, sa.ace||0, sa.ue||0, sa.df||0,
-          (sa.shot&&sa.shot.F)||0, (sa.shot&&sa.shot.B)||0, (sa.shot&&sa.shot.Re)||0,
-          (sa.course&&sa.course.C)||0, (sa.course&&sa.course.Co)||0
-        ], backgroundColor:'rgba(26,79,138,.7)', borderColor:'rgba(26,79,138,1)', borderWidth:1, borderRadius:4 },
-        { label: d.teams.b.name, data: [
-          sb.pts, sb.srv1in, sb.ace||0, sb.ue||0, sb.df||0,
-          (sb.shot&&sb.shot.F)||0, (sb.shot&&sb.shot.B)||0, (sb.shot&&sb.shot.Re)||0,
-          (sb.course&&sb.course.C)||0, (sb.course&&sb.course.Co)||0
-        ], backgroundColor:'rgba(155,32,32,.7)', borderColor:'rgba(155,32,32,1)', borderWidth:1, borderRadius:4 }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { labels: { font:{size:10}, color:'#555' } } },
-      scales: {
-        x: { grid:{display:false}, ticks:{font:{size:9},color:'#888'} },
-        y: { beginAtZero:true, ticks:{stepSize:1,font:{size:9},color:'#888'}, grid:{color:'rgba(0,0,0,.04)'} }
-      }
-    }
-  });
-  chartMap[cid] = c;
-}
-
-async function generateAI(courtId, d) {
-  const sa = d.stats.a, sb = d.stats.b;
-  const pct = (i,t) => t>0 ? Math.round(i/t*100)+'%':'-';
-  const prompt = `ソフトテニスコーチとして以下の試合データを分析し、両チームへの具体的・前向きなフィードバックを日本語200字程度で書いてください。
-
-【結果】${d.teams.a.name} ${d.gamesWon.a} - ${d.gamesWon.b} ${d.teams.b.name}
-【${d.teams.a.name}】PTS:${sa.pts} 1st:${pct(sa.srv1in,sa.srv1tot)} DF:${sa.df||0} UE:${sa.ue||0} F:${(sa.shot&&sa.shot.F)||0} B:${(sa.shot&&sa.shot.B)||0} C:${(sa.course&&sa.course.C)||0} Co:${(sa.course&&sa.course.Co)||0}
-【${d.teams.b.name}】PTS:${sb.pts} 1st:${pct(sb.srv1in,sb.srv1tot)} DF:${sb.df||0} UE:${sb.ue||0} F:${(sb.shot&&sb.shot.F)||0} B:${(sb.shot&&sb.shot.B)||0} C:${(sb.course&&sb.course.C)||0} Co:${(sb.course&&sb.course.Co)||0}
-${d.reflect?`【振り返り】良:${d.reflect.good} 改:${d.reflect.improve} 目標:${d.reflect.goal}`:''}`;
-
+async function deleteHistoryMatch(mid) {
+  if(!confirm('この試合結果を削除しますか？')) return;
+  const eid = currentEventId || 'default';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
-    });
-    const data = await res.json();
-    const text = data.content?.[0]?.text||'';
-    if (text) {
-      window.fbSaveAI(courtId, text);
-      const el = document.getElementById(`ai-${courtId}`);
-      if (el) el.innerHTML = `<div class="ai-head"><span class="ai-badge">AI フィードバック</span></div><div class="ai-body">${text.replace(/\n/g,'<br>')}</div>`;
-    }
-  } catch(e) { console.error('AI error',e); }
+    await xhrRequest('DELETE', `events/${eid}/history/${mid}`);
+    loadDashboard();
+  } catch(e) {
+    alert('削除に失敗しました');
+  }
 }
 
 // ============================================================
-// RANKING
+// RANKING & STATS
 // ============================================================
-let rankMode = 'individual'; // 'individual' | 'pair'
+let rankMode = 'individual'; 
 
 async function loadRanking() {
   const el = document.getElementById('ranking-content');
   el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>読み込み中...</div>';
-  const all = await window.fbGetAll();
-  const keys = Object.keys(all || {});
-  if (!keys.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>まだデータがありません</div>';
+  const eid = currentEventId || 'default';
+  
+  // 今日のイベント内のhistoryから集計する
+  const history = await xhrRequest('GET', `events/${eid}/history`);
+  
+  if (!history || Object.keys(history).length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>まだ完了した試合のデータがありません</div>';
     return;
   }
 
-  // 今日の日付
   const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+  const individuals = {}; 
+  const pairs = {};       
 
-  // 個人スタッツ集計
-  const individuals = {}; // name → {pts, srv1in, srv1tot, srv2in, srv2tot, matches}
-  const pairs = {};       // pairName → {pts, srv1in, srv1tot, matches}
-
-  keys.forEach(id => {
-    const d = all[id];
+  Object.values(history).forEach(d => {
     if (!d || !d.teams) return;
 
-    // 日付フィルタ（同日のみ）
     if (d.startTime) {
       const matchDate = new Date(d.startTime).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-      if (matchDate !== today) return;
+      if (matchDate !== today) return; // 今日以外のデータは省く
     }
 
     const tA = d.teams.a;
@@ -1780,34 +1419,37 @@ async function loadRanking() {
     const sa = d.stats.a;
     const sb = d.stats.b;
 
-    // Aペア
+    // ペア集計
     const pairA = tA.name;
-    if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0 };
+    if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
     pairs[pairA].pts += sa.pts || 0;
     pairs[pairA].srv1in += sa.srv1in || 0;
     pairs[pairA].srv1tot += sa.srv1tot || 0;
+    pairs[pairA].df += sa.df || 0;
+    pairs[pairA].miss += (sa.miss_type ? Object.values(sa.miss_type).reduce((s,v)=>s+v,0) : 0);
 
-    // Bペア
     const pairB = tB.name;
-    if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0 };
+    if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
     pairs[pairB].pts += sb.pts || 0;
     pairs[pairB].srv1in += sb.srv1in || 0;
     pairs[pairB].srv1tot += sb.srv1tot || 0;
+    pairs[pairB].df += sb.df || 0;
+    pairs[pairB].miss += (sb.miss_type ? Object.values(sb.miss_type).reduce((s,v)=>s+v,0) : 0);
 
-    // 個人（プレーヤー名から）
-    const playersAStr = tA.players || '';
-    const playersBStr = tB.players || '';
-    const [a1name, a2name] = playersAStr.split(' / ');
-    const [b1name, b2name] = playersBStr.split(' / ');
+    // 個人集計
+    const [a1name, a2name] = (tA.players || '').split(' / ');
+    const [b1name, b2name] = (tB.players || '').split(' / ');
 
     const addPlayer = (name, playerKey, stats) => {
       if (!name || name.startsWith('後衛') || name.startsWith('前衛')) return;
-      if (!individuals[name]) individuals[name] = { pts:0, srv1in:0, srv1tot:0 };
+      if (!individuals[name]) individuals[name] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
       const ps = stats.players && stats.players[playerKey];
       if (ps) {
         individuals[name].pts     += ps.pts     || 0;
         individuals[name].srv1in  += ps.srv1in  || 0;
         individuals[name].srv1tot += ps.srv1tot || 0;
+        individuals[name].df      += ps.df      || 0;
+        individuals[name].miss    += ps.miss    || 0;
       }
     };
 
@@ -1841,21 +1483,20 @@ function renderRankBody(individuals, pairs) {
   if (!el) return;
 
   const pct = (i, t) => t > 0 ? Math.round(i/t*100) : 0;
-  const medal = (i) => ['🥇','🥈','🥉'][i] || (i+1)+'';
-  const posCls = (i) => i===0?'p1':i===1?'p2':i===2?'p3':'';
-
+  
+  // あなたが要望した「ダブルフォルト数」と「ミス数」の表示を追加しています
   if (rankMode === 'individual') {
     const names = Object.keys(individuals);
     if (!names.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>個人データがありません</div>'; return; }
 
-    // ポイント数ランキング（個人）
     const byPts = names.map(n => ({name:n, ...individuals[n]})).sort((a,b) => (b.pts||0) - (a.pts||0)).slice(0,3);
-    // 1stサーブ成功率ランキング
     const bySrv = names.map(n => ({name:n, ...individuals[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot)).slice(0,3);
+    const byDF  = names.map(n => ({name:n, ...individuals[n]})).filter(x => x.df > 0).sort((a,b) => (b.df||0) - (a.df||0)).slice(0,3);
 
     el.innerHTML = [
-      buildRankSection('🏆 ポイント数', byPts, x => ({val:x.pts||0, unit:'pt', sub:''}), byPts[0]?.pts||1),
+      buildRankSection('🏆 ポイント獲得数', byPts, x => ({val:x.pts||0, unit:'pt', sub:''}), byPts[0]?.pts||1),
       buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100),
+      buildRankSection('⚠️ ダブルフォルト (多い順)', byDF, x => ({val:x.df||0, unit:'本', sub:''}), byDF[0]?.df||1)
     ].join('');
 
   } else {
@@ -1864,14 +1505,17 @@ function renderRankBody(individuals, pairs) {
 
     const byPtsP = pnames.map(n => ({name:n, ...pairs[n]})).sort((a,b) => (b.pts||0) - (a.pts||0)).slice(0,3);
     const bySrv = pnames.map(n => ({name:n, ...pairs[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot)).slice(0,3);
+    const byMiss = pnames.map(n => ({name:n, ...pairs[n]})).filter(x => x.miss > 0).sort((a,b) => (b.miss||0) - (a.miss||0)).slice(0,3);
 
     el.innerHTML = [
-      buildRankSection('🏆 ポイント数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:''}), byPtsP[0]?.pts||1),
+      buildRankSection('🏆 ポイント獲得数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:''}), byPtsP[0]?.pts||1),
       buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100),
+      buildRankSection('⚠️ 試合中のミス (多い順)', byMiss, x => ({val:x.miss||0, unit:'回', sub:''}), byMiss[0]?.miss||1)
     ].join('');
   }
 }
 
+// すべてのランキング表示で共有する関数（重複エラーを解消）
 function buildRankSection(title, list, valFn, maxVal) {
   const medal = (i) => ['🥇','🥈','🥉'][i]||'';
   const posCls = (i) => i===0?'p1':i===1?'p2':i===2?'p3':'';
@@ -1891,7 +1535,7 @@ function buildRankSection(title, list, valFn, maxVal) {
         <div class="rank-val-unit">${v.unit}</div>
       </div>
     </div>`;
-  }).join('') : `<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">データなし（詳細入力モードで記録すると表示されます）</div>`;
+  }).join('') : `<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">データがありません</div>`;
 
   return `<div class="rank-section">
     <div class="rank-section-head"><span class="rank-medal">${title}</span></div>
@@ -1899,7 +1543,6 @@ function buildRankSection(title, list, valFn, maxVal) {
   </div>`;
 }
 
-// INIT - DOMContentLoadedで呼ばれるため不要
 </script>
 </body>
 </html>
