@@ -8,9 +8,8 @@
 <script>
 let db = null;
 
-// Netlifyプロキシ経由でFirebase REST APIにアクセス
-const FB_PROXY = '/api/firebase';
-
+// 変更後：Vercel等の環境から直接Firebaseに通信する
+const FB_PROXY = 'https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app';
 function xhrRequest(method, path, data) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -1339,40 +1338,72 @@ async function loadDashboard() {
     return;
   }
 
-  const matches = Object.values(history);
   const matchIds = Object.keys(history).sort((a, b) => b - a);
+  listEl.innerHTML = ''; // 読み込み中の文字を消去
 
-  listEl.innerHTML = matchIds.map(mid => {
+  matchIds.forEach(mid => {
     const m = history[mid];
-    const isA = m.winner === 'a';
-    const timeStr = m.endTime ? new Date(m.endTime).toLocaleString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-    
-    // 古いデータ形式にも対応させるための安全処理
-    const aNames = m.teams?.a?.players || '後衛 / 前衛';
-    const bNames = m.teams?.b?.players || '後衛 / 前衛';
-    
-    return `
-      <div class="card" style="padding:14px; position:relative;">
-        <button onclick="deleteHistoryMatch('${mid}')" style="position:absolute;right:10px;top:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">🗑️</button>
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px;color:var(--muted);width:90%">
-          <span>終了: ${timeStr}</span>
-          <span>${m.winGames}Gマッチ</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:15px">
-          <div style="text-align:right;flex:1">
-            <div style="font-weight:${isA?'700':'400'};font-size:16px">${m.teams?.a?.name || 'Aペア'}</div>
-            <div style="font-size:24px;font-weight:700;color:${isA?'var(--b)':'inherit'}">${m.gamesWon.a}</div>
-          </div>
-          <div style="font-size:18px;color:var(--border)">-</div>
-          <div style="text-align:left;flex:1">
-            <div style="font-weight:${!isA?'700':'400'};font-size:16px">${m.teams?.b?.name || 'Bペア'}</div>
-            <div style="font-size:24px;font-weight:700;color:${!isA?'var(--b)':'inherit'}">${m.gamesWon.b}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
+    listEl.appendChild(buildHistoryCard(m, mid));
+  });
 }
 
+function buildHistoryCard(d, mid) {
+  const wrap = document.createElement('div');
+  wrap.className = 'ms-card';
+
+  const timeStr = d.endTime ? new Date(d.endTime).toLocaleString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+  const sa = d.stats.a || {};
+  const sb = d.stats.b || {};
+
+  function playerBlock(name, role, teamCls, stats, playerKey) {
+    const ps = stats.players && stats.players[playerKey];
+    const playerPts = ps ? (ps.pts||0) : 0;
+    const s1in  = ps ? (ps.srv1in||0)  : 0;
+    const s1tot = ps ? (ps.srv1tot||0) : 0;
+    const df = ps ? (ps.df||0) : 0;
+    const miss = ps ? (ps.miss||0) : 0;
+    const pct = s1tot > 0 ? Math.round(s1in/s1tot*100)+'%' : '-';
+    
+    return `
+      <div class="player-block ${teamCls}">
+        <div class="pb-head"><span class="pb-name">${name}</span><span class="pb-role">${role}</span></div>
+        <div class="pb-row"><span class="pb-lbl">1stサーブ</span><span class="pb-val">${pct} <small>(${s1in}/${s1tot})</small></span></div>
+        <div class="pb-row"><span class="pb-lbl">DF</span><span class="pb-val">${df}本</span></div>
+        <div class="pb-row"><span class="pb-lbl">ポイント</span><span class="pb-val">${playerPts}pt</span></div>
+        <div class="pb-row"><span class="pb-lbl">ミス</span><span class="pb-val">${miss}回</span></div>
+      </div>`;
+  }
+
+  const [a1n, a2n] = (d.teams?.a?.players||'後衛A / 前衛A').split(' / ');
+  const [b1n, b2n] = (d.teams?.b?.players||'後衛B / 前衛B').split(' / ');
+
+  wrap.innerHTML = `
+    <div class="ms-head">
+      <span class="ms-court-label">終了: ${timeStr} (${d.matchGames}Gマッチ)</span>
+      <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;">🗑 削除</button>
+    </div>
+    <div class="score-line">
+      <div class="sl-team sl-a">${d.teams?.a?.name || 'Aペア'}</div>
+      <div class="sl-score">${d.gamesWon.a} - ${d.gamesWon.b}</div>
+      <div class="sl-team sl-b">${d.teams?.b?.name || 'Bペア'}</div>
+    </div>
+    <div class="player-grid">
+      ${playerBlock(a1n, '後衛', 'pb-team-a', sa, 'a1')}
+      ${playerBlock(b1n, '後衛', 'pb-team-b', sb, 'b1')}
+      ${playerBlock(a2n, '前衛', 'pb-team-a', sa, 'a2')}
+      ${playerBlock(b2n, '前衛', 'pb-team-b', sb, 'b2')}
+    </div>
+    ${d.reflect ? `
+    <div class="rv">
+      <div class="ai-head"><span class="ai-badge" style="background:var(--green)">生徒の振り返り</span></div>
+      <div class="rv-stars">${'⭐'.repeat(d.reflect.stars||0)}</div>
+      ${d.reflect.good?`<div class="rv-block">✅ ${d.reflect.good}</div>`:''}
+      ${d.reflect.improve?`<div class="rv-block">📝 ${d.reflect.improve}</div>`:''}
+      ${d.reflect.goal?`<div class="rv-block">🎯 ${d.reflect.goal}</div>`:''}
+    </div>` : ''}
+  `;
+  return wrap;
+}
 async function deleteHistoryMatch(mid) {
   if(!confirm('この試合結果を削除しますか？')) return;
   const eid = currentEventId || 'default';
