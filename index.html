@@ -8,14 +8,12 @@
 <script>
 let db = null;
 
-// Vercel等の環境から直接Firebaseに通信する
+// 変更後：Vercel等の環境から直接Firebaseに通信する
 const FB_PROXY = 'https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app';
-
 function xhrRequest(method, path, data) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    // ★修正ポイント：${path} の後ろに必ず .json をつける
-    const url = `${FB_PROXY}/${path}.json?t=${Date.now()}`;
+    const url = `${FB_PROXY}/${path}?t=${Date.now()}`;
     xhr.open(method, url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.timeout = 10000;
@@ -889,10 +887,17 @@ function renderFlow() {
   let html = '';
   let step = 1;
 
-  const currentServerKey = flow.serverKey || getCurrentServer();
+const currentServerKey = flow.serverKey || getCurrentServer();
   const serverName = pName(currentServerKey);
-  const serverTeam = currentServerKey.startsWith('a') ? tA : tB;
-  html += `<div style="background:rgba(26,79,138,.06);border:1px solid rgba(26,79,138,.15);border-radius:7px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-family:'DM Mono',monospace;color:var(--a)">🎾 サーバー：<strong>${serverName}</strong>（${serverTeam}）</div>`;
+  const isTeamA = currentServerKey.startsWith('a'); // Aチームか判定
+  const serverTeam = isTeamA ? tA : tB;
+  
+  // Aなら青、Bなら赤の色を設定
+  const boxBg = isTeamA ? 'rgba(26,79,138,.06)' : 'rgba(155,32,32,.06)';
+  const boxBorder = isTeamA ? 'rgba(26,79,138,.15)' : 'rgba(155,32,32,.15)';
+  const boxColor = isTeamA ? 'var(--a)' : 'var(--b)';
+  
+  html += `<div style="background:${boxBg};border:1px solid ${boxBorder};border-radius:7px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-family:'DM Mono',monospace;color:${boxColor}">🎾 サーバー：<strong>${serverName}</strong>（${serverTeam}）</div>`;family:'DM Mono',monospace;color:var(--a)">🎾 サーバー：<strong>${serverName}</strong>（${serverTeam}）</div>`;
 
   html += buildStep(step++, 'サーブ', flow.serve !== null, [
     { val:'1st', label:'1st' },
