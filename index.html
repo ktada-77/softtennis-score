@@ -8,12 +8,14 @@
 <script>
 let db = null;
 
-// 変更後：Vercel等の環境から直接Firebaseに通信する
+// Vercel等の環境から直接Firebaseに通信する
 const FB_PROXY = 'https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app';
+
 function xhrRequest(method, path, data) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const url = `${FB_PROXY}/${path}?t=${Date.now()}`;
+    // ★修正ポイント：${path} の後ろに必ず .json をつける
+    const url = `${FB_PROXY}/${path}.json?t=${Date.now()}`;
     xhr.open(method, url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.timeout = 10000;
