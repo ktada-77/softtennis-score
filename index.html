@@ -896,8 +896,6 @@ const currentServerKey = flow.serverKey || getCurrentServer();
   const boxBg = isTeamA ? 'rgba(26,79,138,.06)' : 'rgba(155,32,32,.06)';
   const boxBorder = isTeamA ? 'rgba(26,79,138,.15)' : 'rgba(155,32,32,.15)';
   const boxColor = isTeamA ? 'var(--a)' : 'var(--b)';
-  
-  html += `<div style="background:${boxBg};border:1px solid ${boxBorder};border-radius:7px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-family:'DM Mono',monospace;color:${boxColor}">🎾 サーバー：<strong>${serverName}</strong>（${serverTeam}）</div>`;family:'DM Mono',monospace;color:var(--a)">🎾 サーバー：<strong>${serverName}</strong>（${serverTeam}）</div>`;
 
   html += buildStep(step++, 'サーブ', flow.serve !== null, [
     { val:'1st', label:'1st' },
