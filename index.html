@@ -840,9 +840,26 @@ function resetFlow() {
 
 function getCurrentServer() {
   if (!M) return null;
-  const t = M.serving; 
-  const count = (M.servePointCount || 0) % 4;
-  return count < 2 ? t + '1' : t + '2';
+
+  // 現在のゲーム内でのポイント数（0, 1, 2, 3...）
+  const pts = M.points ? M.points.length : 0;
+  const gA = M.gamesA || 0;
+  const gB = M.gamesB || 0;
+
+  // ①ファイナルゲームの判定（7ゲームなら3-3、5ゲームなら2-2で突入）
+  const isFinal = (gA === 3 && gB === 3) || (gA === 2 && gB === 2);
+
+  if (!isFinal) {
+    // 【通常ゲーム】ペア内で2ポイントごとに交代（A1→A1→A2→A2...）
+    const team = M.serving; // 'a' または 'b'
+    const playerIndex = Math.floor(pts / 2) % 2; // 2点ごとに 0 と 1 が入れ替わる
+    return team + (playerIndex === 0 ? '1' : '2');
+  } else {
+    // 【ファイナルゲーム】ご提示の ④ のルール（A1→B1→A2→B2 を2点ずつ）
+    const finalCycle = Math.floor(pts / 2) % 4;
+    const finalOrder = ['a1', 'b1', 'a2', 'b2'];
+    return finalOrder[finalCycle];
+  }
 }
 
 function getServerName() {
