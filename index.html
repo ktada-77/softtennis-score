@@ -477,6 +477,22 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
         <span></span>
       </div>
       <div class="setup-body">
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          <div style="flex:1">
+            <label>チームA</label>
+            <div class="rbtn-row" style="margin-bottom:8px">
+              <button class="rbtn on" id="team-a-own" onclick="setTeamType('a',true,this)">🏠 自チーム</button>
+              <button class="rbtn" id="team-a-opp" onclick="setTeamType('a',false,this)">🏁 相手</button>
+            </div>
+          </div>
+          <div style="flex:1">
+            <label>チームB</label>
+            <div class="rbtn-row" style="margin-bottom:8px">
+              <button class="rbtn on" id="team-b-own" onclick="setTeamType('b',true,this)">🏠 自チーム</button>
+              <button class="rbtn" id="team-b-opp" onclick="setTeamType('b',false,this)">🏁 相手</button>
+            </div>
+          </div>
+        </div>
         <div class="two-col">
           <div><label>チームA 後衛</label><input type="text" id="s-a1" placeholder="氏名"></div>
           <div><label>チームA 前衛</label><input type="text" id="s-a2" placeholder="氏名"></div>
@@ -604,7 +620,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 // STATE
 // ============================================================
 let currentCourt = null;
-let cfg = { match: 7, serve: 'a', servePlayer: 'a1', servePlayerB: 'b1' };
+let cfg = { match: 7, serve: 'a', servePlayer: 'a1', servePlayerB: 'b1', isOwnA: true, isOwnB: true };
 let M = null;
 let stk = [];
 let starVal = 0;
@@ -793,13 +809,27 @@ function selectCourt(id, d) {
 }
 
 function resetCfg() {
-  cfg = { match: 7, serve: 'a' };
+  cfg = { match: 7, serve: 'a', isOwnA: true, isOwnB: true };
   document.querySelectorAll('[onclick^="setC(\'match\'"]').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('[onclick^="setC(\'serve\'"]').forEach(b => b.classList.remove('on'));
   const m7 = document.querySelector('[onclick="setC(\'match\',7,this)"]');
   const sa = document.querySelector('[onclick="setC(\'serve\',\'a\',this)"]');
   if (m7) m7.classList.add('on');
   if (sa) sa.classList.add('on');
+  // 自チーム/相手トグルもリセット
+  const aOwn = document.getElementById('team-a-own');
+  const aOpp = document.getElementById('team-a-opp');
+  const bOwn = document.getElementById('team-b-own');
+  const bOpp = document.getElementById('team-b-opp');
+  if (aOwn) { aOwn.classList.add('on'); aOpp.classList.remove('on'); }
+  if (bOwn) { bOwn.classList.add('on'); bOpp.classList.remove('on'); }
+}
+
+function setTeamType(team, isOwn, btn) {
+  if (team === 'a') cfg.isOwnA = isOwn;
+  else cfg.isOwnB = isOwn;
+  btn.closest('.rbtn-row').querySelectorAll('.rbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
 }
 
 function showCourtConfirm(id) {
@@ -849,8 +879,8 @@ function startMatch() {
   M = {
     courtId: currentCourt,
     teams: {
-      a: { name: `${a1}・${a2}`, players: `${a1} / ${a2}` },
-      b: { name: `${b1}・${b2}`, players: `${b1} / ${b2}` }
+      a: { name: `${a1}・${a2}`, players: `${a1} / ${a2}`, isOwn: cfg.isOwnA !== false },
+      b: { name: `${b1}・${b2}`, players: `${b1} / ${b2}`, isOwn: cfg.isOwnB !== false }
     },
     matchGames: cfg.match,
     winGames: Math.ceil(cfg.match / 2),
@@ -1628,25 +1658,31 @@ async function loadRanking() {
     const tB = d.teams.b;
     const sa = d.stats.a;
     const sb = d.stats.b;
+    const aIsOwn = tA.isOwn !== false; // 未設定(旧データ)は自チーム扱い
+    const bIsOwn = tB.isOwn !== false;
 
-    // ペア集計
-    const pairA = tA.name;
-    if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
-    pairs[pairA].pts += sa.pts || 0;
-    pairs[pairA].srv1in += sa.srv1in || 0;
-    pairs[pairA].srv1tot += sa.srv1tot || 0;
-    pairs[pairA].df += sa.df || 0;
-    pairs[pairA].miss += (sa.miss_type ? Object.values(sa.miss_type).reduce((s,v)=>s+v,0) : 0);
+    // ペア集計（自チームのみ）
+    if (aIsOwn) {
+      const pairA = tA.name;
+      if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
+      pairs[pairA].pts += sa.pts || 0;
+      pairs[pairA].srv1in += sa.srv1in || 0;
+      pairs[pairA].srv1tot += sa.srv1tot || 0;
+      pairs[pairA].df += sa.df || 0;
+      pairs[pairA].miss += (sa.miss_type ? Object.values(sa.miss_type).reduce((s,v)=>s+v,0) : 0);
+    }
 
-    const pairB = tB.name;
-    if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
-    pairs[pairB].pts += sb.pts || 0;
-    pairs[pairB].srv1in += sb.srv1in || 0;
-    pairs[pairB].srv1tot += sb.srv1tot || 0;
-    pairs[pairB].df += sb.df || 0;
-    pairs[pairB].miss += (sb.miss_type ? Object.values(sb.miss_type).reduce((s,v)=>s+v,0) : 0);
+    if (bIsOwn) {
+      const pairB = tB.name;
+      if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
+      pairs[pairB].pts += sb.pts || 0;
+      pairs[pairB].srv1in += sb.srv1in || 0;
+      pairs[pairB].srv1tot += sb.srv1tot || 0;
+      pairs[pairB].df += sb.df || 0;
+      pairs[pairB].miss += (sb.miss_type ? Object.values(sb.miss_type).reduce((s,v)=>s+v,0) : 0);
+    }
 
-    // 個人集計
+    // 個人集計（自チームのみ）
     const [a1name, a2name] = (tA.players || '').split(' / ');
     const [b1name, b2name] = (tB.players || '').split(' / ');
 
@@ -1663,20 +1699,25 @@ async function loadRanking() {
       }
     };
 
-    addPlayer(a1name, 'a1', sa);
-    addPlayer(a2name, 'a2', sa);
-    addPlayer(b1name, 'b1', sb);
-    addPlayer(b2name, 'b2', sb);
+    if (aIsOwn) {
+      addPlayer(a1name, 'a1', sa);
+      addPlayer(a2name, 'a2', sa);
+    }
+    if (bIsOwn) {
+      addPlayer(b1name, 'b1', sb);
+      addPlayer(b2name, 'b2', sb);
+    }
 
-    // ⑤ 勝率集計: 試合の勝者チームの2名に1勝、全員に1試合
+    // ⑤ 勝率集計（自チームのみ）
     const matchWinner = d.winner; // 'a' or 'b'
     const allPlayers = [
-      { name: a1name, team: 'a' },
-      { name: a2name, team: 'a' },
-      { name: b1name, team: 'b' },
-      { name: b2name, team: 'b' }
+      { name: a1name, team: 'a', isOwn: aIsOwn },
+      { name: a2name, team: 'a', isOwn: aIsOwn },
+      { name: b1name, team: 'b', isOwn: bIsOwn },
+      { name: b2name, team: 'b', isOwn: bIsOwn }
     ];
     allPlayers.forEach(p => {
+      if (!p.isOwn) return;
       if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛')) return;
       if (!playerWinLoss[p.name]) playerWinLoss[p.name] = { wins: 0, total: 0 };
       playerWinLoss[p.name].total += 1;
@@ -1810,12 +1851,13 @@ async function loadStatsPlayerList() {
       if (matchDate !== today) return;
     }
     const allP = [
-      { name: (d.teams.a.players||'').split(' / ')[0], team:'a' },
-      { name: (d.teams.a.players||'').split(' / ')[1], team:'a' },
-      { name: (d.teams.b.players||'').split(' / ')[0], team:'b' },
-      { name: (d.teams.b.players||'').split(' / ')[1], team:'b' }
+      { name: (d.teams.a.players||'').split(' / ')[0], team:'a', isOwn: d.teams.a.isOwn !== false },
+      { name: (d.teams.a.players||'').split(' / ')[1], team:'a', isOwn: d.teams.a.isOwn !== false },
+      { name: (d.teams.b.players||'').split(' / ')[0], team:'b', isOwn: d.teams.b.isOwn !== false },
+      { name: (d.teams.b.players||'').split(' / ')[1], team:'b', isOwn: d.teams.b.isOwn !== false }
     ];
     allP.forEach(p => {
+      if (!p.isOwn) return;
       if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛')) return;
       if (!playerMap[p.name]) playerMap[p.name] = { wins:0, total:0 };
       playerMap[p.name].total++;
@@ -1878,12 +1920,14 @@ function openStatsDetail(name) {
       (d.teams.b.players||'').split(' / ')[0],
       (d.teams.b.players||'').split(' / ')[1]
     ];
-    // この選手のplayerKeyを特定
+    // この選手のplayerKeyを特定（自チームのみ）
     let playerKey = null;
-    if (allNames[0] === name) playerKey = 'a1';
-    else if (allNames[1] === name) playerKey = 'a2';
-    else if (allNames[2] === name) playerKey = 'b1';
-    else if (allNames[3] === name) playerKey = 'b2';
+    const aIsOwn = d.teams.a.isOwn !== false;
+    const bIsOwn = d.teams.b.isOwn !== false;
+    if (aIsOwn && allNames[0] === name) playerKey = 'a1';
+    else if (aIsOwn && allNames[1] === name) playerKey = 'a2';
+    else if (bIsOwn && allNames[2] === name) playerKey = 'b1';
+    else if (bIsOwn && allNames[3] === name) playerKey = 'b2';
 
     if (playerKey) {
       matchCount++;
