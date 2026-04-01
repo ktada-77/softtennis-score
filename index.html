@@ -361,6 +361,39 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .rank-tab.active{color:var(--green);border-bottom-color:var(--green);background:#f5fdf5}
 .rank-date-label{text-align:center;font-family:var(--font-num);font-size:11px;color:var(--muted);margin-bottom:12px}
 
+/* PLAYER STATS */
+.stats-player-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.stats-player-card:active{transform:scale(.98)}
+.stats-player-card:hover{border-color:var(--green)}
+.spc-name{font-size:15px;font-weight:700}
+.spc-rate{font-family:var(--font-num);font-size:13px;color:var(--green);font-weight:700}
+.spc-rate-sub{font-family:var(--font-num);font-size:10px;color:var(--muted)}
+.stats-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.stats-card-head{padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--border);font-family:var(--font-head);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stats-card-body{padding:14px}
+.hbar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.hbar-label{font-family:var(--font-num);font-size:11px;font-weight:600;width:80px;text-align:right;flex-shrink:0}
+.hbar-track{flex:1;height:22px;background:var(--bg);border-radius:4px;overflow:hidden;display:flex}
+.hbar-seg{height:100%;transition:width .4s}
+.hbar-val{font-family:var(--font-num);font-size:11px;font-weight:700;width:30px;flex-shrink:0}
+.heat-table{width:100%;border-collapse:collapse;font-family:var(--font-num);font-size:12px}
+.heat-table th{padding:6px 8px;font-weight:600;background:var(--s2);border:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.heat-table td{padding:6px 8px;text-align:center;border:1px solid var(--border);font-weight:700;transition:background .3s}
+.heat-table td.heat-0{background:transparent}
+.heat-table td.heat-1{background:rgba(185,32,32,.08)}
+.heat-table td.heat-2{background:rgba(185,32,32,.18)}
+.heat-table td.heat-3{background:rgba(185,32,32,.30);color:#fff}
+.heat-table td.heat-4{background:rgba(185,32,32,.50);color:#fff}
+.rally-bar-wrap{display:flex;align-items:flex-end;gap:4px;height:120px;padding:0 4px}
+.rally-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.rally-bar{width:100%;border-radius:4px 4px 0 0;background:var(--b);transition:height .4s;min-width:20px}
+.rally-bar-num{font-family:var(--font-num);font-size:11px;font-weight:700;margin-bottom:2px}
+.rally-bar-lbl{font-family:var(--font-num);font-size:10px;color:var(--muted);margin-top:4px}
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
+.donut-legend{display:flex;flex-direction:column;gap:6px}
+.donut-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--font-num)}
+.donut-legend-color{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+
 /* AI */
 .ai-section{padding:13px 14px;border-top:1px solid var(--border)}
 .ai-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
@@ -396,6 +429,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
     <div class="nav-tab active" onclick="showPage('player',this)">スコア入力</div>
     <div class="nav-tab" onclick="showPage('coach',this)">試合結果</div>
     <div class="nav-tab" onclick="showPage('ranking',this)">🏆 ランキング</div>
+    <div class="nav-tab" onclick="showPage('stats',this)">📊 スタッツ</div>
   </div>
   <div class="nav-right"><span id="sync-status">確認中...</span></div>
 </nav>
@@ -543,6 +577,28 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
   <div id="ranking-content"></div>
 </div>
 
+<div class="page" id="page-stats">
+  <div id="stats-list-view">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="sec-title">📊 プレーヤースタッツ</div>
+      <button class="btn sm green" onclick="loadStatsPlayerList()">🔄 更新</button>
+    </div>
+    <div id="stats-player-list"></div>
+  </div>
+  <div id="stats-detail-view" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button class="btn sm" onclick="backToStatsList()">← 一覧へ</button>
+      <div class="sec-title" style="margin-bottom:0" id="stats-player-name"></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <select id="stats-match-filter" onchange="renderStatsDetail()" style="font-family:var(--font-main);font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;background:var(--surface);color:var(--ink);width:100%">
+        <option value="all">すべての試合</option>
+      </select>
+    </div>
+    <div id="stats-charts"></div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // STATE
@@ -680,6 +736,7 @@ function showPage(p, el) {
   if (p === 'coach') loadDashboard();
   if (p === 'player') { loadCourts(); goStep('court'); }
   if (p === 'ranking') loadRanking();
+  if (p === 'stats') loadStatsPlayerList();
 }
 
 function goStep(s) {
@@ -1719,6 +1776,382 @@ function buildRankSection(title, list, valFn, maxVal) {
     <div class="rank-section-head"><span class="rank-medal">${title}</span></div>
     <div class="rank-list">${rows}</div>
   </div>`;
+}
+
+// ============================================================
+// PLAYER STATS — ⑭ 選手別ミス分析
+// ============================================================
+let statsHistory = null;
+let statsPlayerName = null;
+let statsPlayerMatches = []; // {matchId, label, pointLog}
+
+async function loadStatsPlayerList() {
+  document.getElementById('stats-list-view').style.display = '';
+  document.getElementById('stats-detail-view').style.display = 'none';
+
+  const el = document.getElementById('stats-player-list');
+  el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>読み込み中...</div>';
+
+  const eid = currentEventId || 'default';
+  statsHistory = await xhrRequest('GET', `events/${eid}/history`);
+
+  if (!statsHistory || Object.keys(statsHistory).length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>まだ完了した試合のデータがありません</div>';
+    return;
+  }
+
+  const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+  const playerMap = {}; // name -> {wins, total}
+
+  Object.values(statsHistory).forEach(d => {
+    if (!d || !d.teams) return;
+    if (d.startTime) {
+      const matchDate = new Date(d.startTime).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+      if (matchDate !== today) return;
+    }
+    const allP = [
+      { name: (d.teams.a.players||'').split(' / ')[0], team:'a' },
+      { name: (d.teams.a.players||'').split(' / ')[1], team:'a' },
+      { name: (d.teams.b.players||'').split(' / ')[0], team:'b' },
+      { name: (d.teams.b.players||'').split(' / ')[1], team:'b' }
+    ];
+    allP.forEach(p => {
+      if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛')) return;
+      if (!playerMap[p.name]) playerMap[p.name] = { wins:0, total:0 };
+      playerMap[p.name].total++;
+      if (d.winner && p.team === d.winner) playerMap[p.name].wins++;
+    });
+  });
+
+  const names = Object.keys(playerMap).sort((a,b) => {
+    const ra = playerMap[b].total > 0 ? playerMap[b].wins/playerMap[b].total : 0;
+    const rb = playerMap[a].total > 0 ? playerMap[a].wins/playerMap[a].total : 0;
+    return ra - rb;
+  });
+
+  if (!names.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>選手データがありません</div>';
+    return;
+  }
+
+  el.innerHTML = names.map(n => {
+    const pw = playerMap[n];
+    const rate = pw.total > 0 ? Math.round(pw.wins/pw.total*100) : 0;
+    return `<div class="stats-player-card" onclick="openStatsDetail('${n}')">
+      <div>
+        <div class="spc-name">${n}</div>
+        <div class="spc-rate-sub">${pw.wins}勝 / ${pw.total}試合</div>
+      </div>
+      <div style="text-align:right">
+        <div class="spc-rate">${rate}%</div>
+        <div class="spc-rate-sub">勝率</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function backToStatsList() {
+  document.getElementById('stats-list-view').style.display = '';
+  document.getElementById('stats-detail-view').style.display = 'none';
+}
+
+function openStatsDetail(name) {
+  statsPlayerName = name;
+  document.getElementById('stats-list-view').style.display = 'none';
+  document.getElementById('stats-detail-view').style.display = '';
+  document.getElementById('stats-player-name').textContent = `📊 ${name} のミス分析`;
+
+  // この選手が出場した試合を抽出
+  const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+  statsPlayerMatches = [];
+  let matchCount = 0;
+
+  Object.entries(statsHistory).forEach(([mid, d]) => {
+    if (!d || !d.teams) return;
+    if (d.startTime) {
+      const matchDate = new Date(d.startTime).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+      if (matchDate !== today) return;
+    }
+    const allNames = [
+      (d.teams.a.players||'').split(' / ')[0],
+      (d.teams.a.players||'').split(' / ')[1],
+      (d.teams.b.players||'').split(' / ')[0],
+      (d.teams.b.players||'').split(' / ')[1]
+    ];
+    // この選手のplayerKeyを特定
+    let playerKey = null;
+    if (allNames[0] === name) playerKey = 'a1';
+    else if (allNames[1] === name) playerKey = 'a2';
+    else if (allNames[2] === name) playerKey = 'b1';
+    else if (allNames[3] === name) playerKey = 'b2';
+
+    if (playerKey) {
+      matchCount++;
+      const timeStr = d.endTime ? new Date(d.endTime).toLocaleString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+      const vs = playerKey.startsWith('a') ? d.teams.b.name : d.teams.a.name;
+      const won = d.winner === (playerKey.startsWith('a') ? 'a' : 'b');
+      statsPlayerMatches.push({
+        matchId: mid,
+        label: `第${matchCount}試合 ${timeStr} vs ${vs} ${won?'⭕':'❌'}`,
+        pointLog: d.pointLog || [],
+        playerKey
+      });
+    }
+  });
+
+  // フィルター更新
+  const sel = document.getElementById('stats-match-filter');
+  sel.innerHTML = '<option value="all">すべての試合</option>';
+  statsPlayerMatches.forEach((m, i) => {
+    sel.innerHTML += `<option value="${i}">${m.label}</option>`;
+  });
+
+  renderStatsDetail();
+}
+
+function renderStatsDetail() {
+  const el = document.getElementById('stats-charts');
+  const filterVal = document.getElementById('stats-match-filter').value;
+
+  // 対象のpointLogとplayerKeyを集める
+  let missPoints = [];
+  if (filterVal === 'all') {
+    statsPlayerMatches.forEach(m => {
+      m.pointLog.forEach(p => {
+        if (p.type === 'miss' && p.player === m.playerKey) {
+          missPoints.push(p);
+        }
+      });
+    });
+  } else {
+    const m = statsPlayerMatches[parseInt(filterVal)];
+    if (m) {
+      m.pointLog.forEach(p => {
+        if (p.type === 'miss' && p.player === m.playerKey) {
+          missPoints.push(p);
+        }
+      });
+    }
+  }
+
+  if (missPoints.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✨</div>ミスのデータがありません<br>（素晴らしい！）</div>';
+    return;
+  }
+
+  el.innerHTML = '';
+  el.appendChild(buildChart1_ShotMiss(missPoints));
+  el.appendChild(buildChart2_HeatMatrix(missPoints));
+  el.appendChild(buildChart3_RallyHist(missPoints));
+  el.appendChild(buildChart4_Donut(missPoints));
+}
+
+// ① ショット別 × ミス原因（積み上げ横棒グラフ）
+function buildChart1_ShotMiss(points) {
+  const shotTypes = ['St','S','V','LV','Hv','Sm'];
+  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ'};
+  const missTypes = ['N','SO','BO','T'];
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ'};
+  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0'};
+
+  const data = {};
+  shotTypes.forEach(s => { data[s] = {}; missTypes.forEach(m => data[s][m] = 0); });
+  points.forEach(p => {
+    const st = p.shotType || 'St';
+    const ms = p.miss || 'N';
+    if (data[st]) data[st][ms] = (data[st][ms]||0) + 1;
+  });
+
+  // ショットにデータがあるもののみ表示
+  const activeShots = shotTypes.filter(s => missTypes.some(m => data[s][m] > 0));
+  const maxTotal = Math.max(1, ...activeShots.map(s => missTypes.reduce((sum,m) => sum + data[s][m], 0)));
+
+  const card = document.createElement('div');
+  card.className = 'stats-card';
+
+  let legendHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">`;
+  missTypes.forEach(m => {
+    legendHtml += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-num)"><div style="width:12px;height:12px;border-radius:2px;background:${missColors[m]}"></div>${missLabels[m]}</div>`;
+  });
+  legendHtml += `</div>`;
+
+  let barsHtml = '';
+  activeShots.forEach(s => {
+    const total = missTypes.reduce((sum,m) => sum + data[s][m], 0);
+    let segs = '';
+    missTypes.forEach(m => {
+      if (data[s][m] > 0) {
+        const w = Math.round(data[s][m] / maxTotal * 100);
+        segs += `<div class="hbar-seg" style="width:${w}%;background:${missColors[m]}" title="${missLabels[m]}: ${data[s][m]}"></div>`;
+      }
+    });
+    barsHtml += `<div class="hbar-row">
+      <div class="hbar-label">${shotLabels[s]||s}</div>
+      <div class="hbar-track">${segs}</div>
+      <div class="hbar-val">${total}</div>
+    </div>`;
+  });
+
+  card.innerHTML = `<div class="stats-card-head">① ショット別 × ミス原因</div>
+    <div class="stats-card-body">${legendHtml}${barsHtml || '<div style="text-align:center;color:var(--muted);font-size:12px">データなし</div>'}</div>`;
+  return card;
+}
+
+// ② ショット別 × コース（ヒートマップ表）
+function buildChart2_HeatMatrix(points) {
+  const bases = ['F','B'];
+  const baseLabels = {F:'フォア',B:'バック'};
+  const shotTypes = ['St','S','V','LV','Hv','Sm'];
+  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ'};
+  const courses = ['C','Co','M','RST','LST'];
+  const courseLabels = {C:'クロス',Co:'逆クロス',M:'ミドル',RST:'右ST',LST:'左ST'};
+
+  // 行 = base+shotType, 列 = course
+  const rows = [];
+  bases.forEach(b => {
+    shotTypes.forEach(s => {
+      rows.push({ key: b+'_'+s, label: baseLabels[b]+' '+shotLabels[s] });
+    });
+  });
+
+  const data = {};
+  rows.forEach(r => { data[r.key] = {}; courses.forEach(c => data[r.key][c] = 0); });
+
+  points.forEach(p => {
+    const b = p.base || '';
+    const s = p.shotType || '';
+    const c = p.course || '';
+    const key = b+'_'+s;
+    if (data[key] && data[key][c] !== undefined) data[key][c]++;
+  });
+
+  // データがある行のみ
+  const activeRows = rows.filter(r => courses.some(c => data[r.key][c] > 0));
+  const allVals = activeRows.flatMap(r => courses.map(c => data[r.key][c]));
+  const maxVal = Math.max(1, ...allVals);
+
+  const heatClass = (v) => {
+    if (v === 0) return 'heat-0';
+    const ratio = v / maxVal;
+    if (ratio <= 0.25) return 'heat-1';
+    if (ratio <= 0.5) return 'heat-2';
+    if (ratio <= 0.75) return 'heat-3';
+    return 'heat-4';
+  };
+
+  const card = document.createElement('div');
+  card.className = 'stats-card';
+
+  let tableHtml = `<table class="heat-table"><thead><tr><th></th>`;
+  courses.forEach(c => { tableHtml += `<th>${courseLabels[c]}</th>`; });
+  tableHtml += `</tr></thead><tbody>`;
+
+  if (activeRows.length === 0) {
+    tableHtml += `<tr><td colspan="${courses.length+1}" style="text-align:center;color:var(--muted);padding:14px">データなし</td></tr>`;
+  } else {
+    activeRows.forEach(r => {
+      tableHtml += `<tr><td style="text-align:right;font-weight:600;font-size:10px;white-space:nowrap">${r.label}</td>`;
+      courses.forEach(c => {
+        const v = data[r.key][c];
+        tableHtml += `<td class="${heatClass(v)}">${v>0?v:''}</td>`;
+      });
+      tableHtml += `</tr>`;
+    });
+  }
+  tableHtml += `</tbody></table>`;
+
+  card.innerHTML = `<div class="stats-card-head">② ショット × コース（ヒートマップ）</div>
+    <div class="stats-card-body">${tableHtml}</div>`;
+  return card;
+}
+
+// ③ ラリー本数別ミス（棒グラフ）
+function buildChart3_RallyHist(points) {
+  const rallyKeys = ['1','2','3','4','5','6+'];
+  const rallyData = {};
+  rallyKeys.forEach(k => rallyData[k] = 0);
+
+  points.forEach(p => {
+    const r = p.rally || '1';
+    if (rallyData[r] !== undefined) rallyData[r]++;
+    else rallyData['6+']++;
+  });
+
+  const maxVal = Math.max(1, ...Object.values(rallyData));
+
+  const card = document.createElement('div');
+  card.className = 'stats-card';
+
+  let barsHtml = `<div class="rally-bar-wrap">`;
+  rallyKeys.forEach(k => {
+    const v = rallyData[k];
+    const h = v > 0 ? Math.max(8, Math.round(v / maxVal * 100)) : 0;
+    barsHtml += `<div class="rally-bar-col">
+      <div class="rally-bar-num">${v>0?v:''}</div>
+      <div class="rally-bar" style="height:${h}%"></div>
+      <div class="rally-bar-lbl">${k}本</div>
+    </div>`;
+  });
+  barsHtml += `</div>`;
+
+  card.innerHTML = `<div class="stats-card-head">③ ラリー本数別のミス回数</div>
+    <div class="stats-card-body">${barsHtml}</div>`;
+  return card;
+}
+
+// ④ ミスの総合割合（ドーナツグラフ）
+function buildChart4_Donut(points) {
+  const missTypes = ['N','SO','BO','T'];
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ'};
+  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0'};
+
+  const data = {};
+  missTypes.forEach(m => data[m] = 0);
+  points.forEach(p => {
+    const ms = p.miss || 'N';
+    if (data[ms] !== undefined) data[ms]++;
+  });
+  const total = Math.max(1, missTypes.reduce((s,m) => s + data[m], 0));
+
+  // SVGドーナツ
+  const size = 140;
+  const cx = size/2, cy = size/2, r = 52, stroke = 18;
+  const circumference = 2 * Math.PI * r;
+  let offset = 0;
+  let arcs = '';
+
+  missTypes.forEach(m => {
+    if (data[m] === 0) return;
+    const pct = data[m] / total;
+    const len = circumference * pct;
+    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${missColors[m]}" stroke-width="${stroke}" stroke-dasharray="${len} ${circumference - len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
+    offset += len;
+  });
+
+  const svgHtml = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${stroke}" />
+    ${arcs}
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" fill="var(--ink)" font-family="var(--font-num)" font-size="20" font-weight="800">${total}</text>
+    <text x="${cx}" y="${cy+12}" text-anchor="middle" fill="var(--muted)" font-family="var(--font-num)" font-size="9">TOTAL MISS</text>
+  </svg>`;
+
+  let legendHtml = `<div class="donut-legend">`;
+  missTypes.forEach(m => {
+    if (data[m] === 0) return;
+    const pct = Math.round(data[m]/total*100);
+    legendHtml += `<div class="donut-legend-item">
+      <div class="donut-legend-color" style="background:${missColors[m]}"></div>
+      <span>${missLabels[m]}</span>
+      <span style="font-weight:800;margin-left:auto">${data[m]}回 (${pct}%)</span>
+    </div>`;
+  });
+  legendHtml += `</div>`;
+
+  const card = document.createElement('div');
+  card.className = 'stats-card';
+  card.innerHTML = `<div class="stats-card-head">④ ミスの総合割合</div>
+    <div class="stats-card-body"><div class="donut-wrap">${svgHtml}${legendHtml}</div></div>`;
+  return card;
 }
 
 </script>
