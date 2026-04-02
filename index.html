@@ -21,16 +21,19 @@ function xhrRequest(method, path, data) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try { resolve(JSON.parse(xhr.responseText)); } catch(e) { resolve(null); }
       } else { 
-        alert(`【通信エラー】番号: ${xhr.status}\n設定かFirebaseのURLを確認してください。`);
+        console.warn(`通信エラー: HTTP ${xhr.status} - ${path}`);
+        showSync('offline');
         reject(new Error(`HTTP ${xhr.status}`)); 
       }
     };
     xhr.onerror = () => {
-      alert('【ネットワークエラー】サーバーに接続できません。');
+      console.warn('ネットワークエラー:', path);
+      showSync('offline');
       reject(new Error('Network error'));
     };
     xhr.ontimeout = () => {
-      alert('【タイムアウト】通信が時間切れです。');
+      console.warn('タイムアウト:', path);
+      showSync('offline');
       reject(new Error('Timeout'));
     };
     xhr.send(data !== undefined ? JSON.stringify(data) : null);
