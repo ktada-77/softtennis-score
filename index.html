@@ -949,7 +949,9 @@ function getCurrentServer() {
     return team + (playerIndex === 0 ? '1' : '2');
   } else {
     const finalCycle = Math.floor(pts / 2) % 4;
-    const finalOrder = ['a1', 'b1', 'a2', 'b2'];
+    const first = M.serving;  // ファイナルの先サーブチーム
+    const second = first === 'a' ? 'b' : 'a';
+    const finalOrder = [first+'1', second+'1', first+'2', second+'2'];
     return finalOrder[finalCycle];
   }
 }
