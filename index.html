@@ -422,6 +422,14 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .current-event-bar{background:var(--green);color:#fff;padding:8px 14px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .current-event-name{font-weight:700;font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .change-event-btn{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;cursor:pointer;white-space:nowrap;font-family:var(--font-num)}
+
+/* 期間フィルタ */
+.date-filter-bar{background:var(--s2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.date-filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-filter-row label{font-size:11px;color:var(--muted);font-family:var(--font-head);letter-spacing:.1em;white-space:nowrap}
+.date-filter-row input[type="date"]{font-family:var(--font-num);font-size:13px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);flex:1;min-width:0}
+.date-filter-row .dfbtn{font-family:var(--font-num);font-size:11px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap}
+.date-filter-row .dfbtn.active{border-color:var(--green);background:#e8f5e9;color:var(--green);font-weight:700}
 </style>
 </head>
 <body>
@@ -590,9 +598,10 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 
 <div class="page" id="page-ranking">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div class="sec-title">🏆 本日のランキング</div>
+    <div class="sec-title">🏆 ランキング</div>
     <button class="btn sm green" onclick="loadRanking()">🔄 更新</button>
   </div>
+  <div id="ranking-filter"></div>
   <div id="ranking-content"></div>
 </div>
 
@@ -602,6 +611,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <div class="sec-title">📊 プレーヤースタッツ</div>
       <button class="btn sm green" onclick="loadStatsPlayerList()">🔄 更新</button>
     </div>
+    <div id="stats-filter"></div>
     <div id="stats-player-list"></div>
   </div>
   <div id="stats-detail-view" style="display:none">
@@ -629,6 +639,54 @@ let stk = [];
 let starVal = 0;
 let simpleMode = true;
 window._coachOpen = false;
+
+// 期間フィルタ（ランキング・スタッツ共通）
+let dateFilterMode = 'all'; // 'all' | 'custom'
+let dateFilterFrom = '';
+let dateFilterTo = '';
+
+function renderDateFilterBar(containerId, reloadFn) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const todayISO = new Date().toISOString().slice(0,10);
+  el.innerHTML = `
+    <div class="date-filter-bar">
+      <div class="date-filter-row">
+        <button class="dfbtn${dateFilterMode==='all'?' active':''}" onclick="setDateFilter('all','${containerId}',${reloadFn.name})">全期間</button>
+        <button class="dfbtn${dateFilterMode==='custom'?' active':''}" onclick="setDateFilter('custom','${containerId}',${reloadFn.name})">期間指定</button>
+      </div>
+      ${dateFilterMode==='custom' ? `
+      <div class="date-filter-row" style="margin-top:8px">
+        <label>FROM</label>
+        <input type="date" id="df-from-${containerId}" value="${dateFilterFrom}" max="${todayISO}" onchange="applyDateRange('${containerId}',${reloadFn.name})">
+        <label>TO</label>
+        <input type="date" id="df-to-${containerId}" value="${dateFilterTo || todayISO}" max="${todayISO}" onchange="applyDateRange('${containerId}',${reloadFn.name})">
+      </div>` : ''}
+    </div>`;
+}
+
+function setDateFilter(mode, containerId, reloadFn) {
+  dateFilterMode = mode;
+  if (mode === 'all') { dateFilterFrom = ''; dateFilterTo = ''; }
+  reloadFn();
+}
+
+function applyDateRange(containerId, reloadFn) {
+  const fromEl = document.getElementById('df-from-' + containerId);
+  const toEl = document.getElementById('df-to-' + containerId);
+  if (fromEl) dateFilterFrom = fromEl.value;
+  if (toEl) dateFilterTo = toEl.value;
+  reloadFn();
+}
+
+function matchPassesDateFilter(d) {
+  if (dateFilterMode === 'all') return true;
+  if (!d.startTime) return true;
+  const matchDate = d.startTime.slice(0,10); // 'YYYY-MM-DD'
+  if (dateFilterFrom && matchDate < dateFilterFrom) return false;
+  if (dateFilterTo && matchDate > dateFilterTo) return false;
+  return true;
+}
 
 let flow = {
   serve: null, rally: null, shot: null, course: null, result: null, winner: null
@@ -1636,6 +1694,7 @@ let rankMode = 'individual';
 async function loadRanking() {
   const el = document.getElementById('ranking-content');
   el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>読み込み中...</div>';
+  renderDateFilterBar('ranking-filter', loadRanking);
   const eid = currentEventId || 'default';
   
   const history = await xhrRequest('GET', `events/${eid}/history`);
@@ -1645,19 +1704,13 @@ async function loadRanking() {
     return;
   }
 
-  const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
   const individuals = {}; 
   const pairs = {};
-  // ⑤ 勝率用: 個人の勝敗記録
   const playerWinLoss = {};
 
   Object.values(history).forEach(d => {
     if (!d || !d.teams) return;
-
-    if (d.startTime) {
-      const matchDate = new Date(d.startTime).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-      if (matchDate !== today) return;
-    }
+    if (!matchPassesDateFilter(d)) return;
 
     const tA = d.teams.a;
     const tB = d.teams.b;
@@ -1732,8 +1785,11 @@ async function loadRanking() {
     });
   });
 
+  const filterLabel = dateFilterMode === 'all' ? '全期間' : 
+    `${dateFilterFrom || '?'} 〜 ${dateFilterTo || '?'}`;
+
   el.innerHTML = `
-    <div class="rank-date-label">📅 ${today}</div>
+    <div class="rank-date-label">📅 ${filterLabel}</div>
     <div class="rank-tabs">
       <div class="rank-tab ${rankMode==='individual'?'active':''}" onclick="setRankMode('individual',this)">👤 個人</div>
       <div class="rank-tab ${rankMode==='pair'?'active':''}" onclick="setRankMode('pair',this)">👥 ペア</div>
@@ -1837,6 +1893,7 @@ async function loadStatsPlayerList() {
 
   const el = document.getElementById('stats-player-list');
   el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>読み込み中...</div>';
+  renderDateFilterBar('stats-filter', loadStatsPlayerList);
 
   const eid = currentEventId || 'default';
   statsHistory = await xhrRequest('GET', `events/${eid}/history`);
@@ -1846,15 +1903,11 @@ async function loadStatsPlayerList() {
     return;
   }
 
-  const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-  const playerMap = {}; // name -> {wins, total}
+  const playerMap = {};
 
   Object.values(statsHistory).forEach(d => {
     if (!d || !d.teams) return;
-    if (d.startTime) {
-      const matchDate = new Date(d.startTime).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-      if (matchDate !== today) return;
-    }
+    if (!matchPassesDateFilter(d)) return;
     const allP = [
       { name: (d.teams.a.players||'').split(' / ')[0], team:'a', isOwn: d.teams.a.isOwn !== false },
       { name: (d.teams.a.players||'').split(' / ')[1], team:'a', isOwn: d.teams.a.isOwn !== false },
@@ -1909,16 +1962,12 @@ function openStatsDetail(name) {
   document.getElementById('stats-player-name').textContent = `📊 ${name} のミス分析`;
 
   // この選手が出場した試合を抽出
-  const today = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
   statsPlayerMatches = [];
   let matchCount = 0;
 
   Object.entries(statsHistory).forEach(([mid, d]) => {
     if (!d || !d.teams) return;
-    if (d.startTime) {
-      const matchDate = new Date(d.startTime).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-      if (matchDate !== today) return;
-    }
+    if (!matchPassesDateFilter(d)) return;
     const allNames = [
       (d.teams.a.players||'').split(' / ')[0],
       (d.teams.a.players||'').split(' / ')[1],
