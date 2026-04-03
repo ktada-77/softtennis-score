@@ -1341,7 +1341,6 @@ function commitPoint(winner, f) {
     gameA: M.gamesWon.a, gameB: M.gamesWon.b
   });
 
-  resetFlow();
   M.servePointCount = (M.servePointCount || 0) + 1;
 
   if (M.isFinal) {
@@ -1352,6 +1351,7 @@ function commitPoint(winner, f) {
     if (M.pts[winner] >= 4 && M.pts[winner] - M.pts[loser] >= 2) winGame(winner);
   }
 
+  resetFlow();  // スコア加算後にリセット（次のサーバーを正しく計算するため）
   window.fbSave(currentCourt, M);
   renderScore();
   renderFlow();
