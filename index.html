@@ -1137,7 +1137,8 @@ function renderFlow() {
 
   // --- DF選択時: 即確定 ---
   if (flow.serve === 'fault') {
-    const w = M.serving === 'a' ? 'b' : 'a';
+    const serverTeam = currentServerKey.startsWith('a') ? 'a' : 'b';
+    const w = serverTeam === 'a' ? 'b' : 'a';
     html += buildSummary(['DF', `${w==='a'?tA:tB} ポイント`]);
     html += `<button class="confirm-btn" onclick="commitFault()">✔ 確定してポイント追加</button>`;
     el.innerHTML = html; return;
@@ -1336,7 +1337,8 @@ function commitCurrentFlow() {
 }
 
 function commitFault() {
-  const winner = M.serving === 'a' ? 'b' : 'a';
+  const serverTeam = flow.serverKey.startsWith('a') ? 'a' : 'b';
+  const winner = serverTeam === 'a' ? 'b' : 'a';
   commitPoint(winner, { serverKey: flow.serverKey, serve:'fault', rally:null, miss:'DF', type:'miss', player: flow.serverKey, winner });
 }
 
@@ -1367,13 +1369,16 @@ function commitPoint(winner, f) {
     servingStats.srv1tot = (servingStats.srv1tot||0) + 1;
     servingPS.srv1tot    = (servingPS.srv1tot||0)    + 1;
     servingStats.srv2tot = (servingStats.srv2tot||0) + 1;
+    servingPS.srv2tot    = (servingPS.srv2tot||0)    + 1;
     servingStats.srv2in  = (servingStats.srv2in||0)  + 1;
+    servingPS.srv2in     = (servingPS.srv2in||0)     + 1;
   } else if (f.serve === 'fault') {
     servingStats.srv1tot = (servingStats.srv1tot||0) + 1;
     servingPS.srv1tot    = (servingPS.srv1tot||0)    + 1;
     servingStats.df      = (servingStats.df||0)      + 1;
     servingPS.df         = (servingPS.df||0)         + 1;
     servingStats.srv2tot = (servingStats.srv2tot||0) + 1;
+    servingPS.srv2tot    = (servingPS.srv2tot||0)    + 1;
   }
 
   // --- ラリー統計 ---
