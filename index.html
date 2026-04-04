@@ -192,10 +192,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 body{font-family:var(--font-main);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* NAV */
-.top-nav{background:#111;color:#fff;display:flex;align-items:stretch;position:sticky;top:0;z-index:100}
-.nav-logo{padding:13px 16px;font-size:14px;font-weight:700;font-family:var(--font-head);letter-spacing:.05em;border-right:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:7px;white-space:nowrap}
-.nav-tabs{display:flex;flex:1}
-.nav-tab{padding:13px 16px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.top-nav{background:#111;color:#fff;display:flex;flex-wrap:wrap;align-items:stretch;position:sticky;top:0;z-index:100}
+.nav-logo{padding:10px 16px;font-size:14px;font-weight:700;font-family:var(--font-head);letter-spacing:.05em;display:flex;align-items:center;gap:7px;white-space:nowrap;flex:1}
+.nav-tabs{display:flex;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-top:1px solid rgba(255,255,255,.08)}
+.nav-tab{padding:10px 14px;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;flex:1;text-align:center;min-width:0}
 .nav-tab:hover{color:rgba(255,255,255,.8)}
 .nav-tab.active{color:#fff;border-bottom-color:#7fc87f}
 .nav-right{padding:0 12px;display:flex;align-items:center}
