@@ -641,7 +641,7 @@ let simpleMode = true;
 window._coachOpen = false;
 
 // 期間フィルタ（ランキング・スタッツ共通）
-let dateFilterMode = 'all'; // 'all' | 'custom'
+let dateFilterMode = 'event'; // 'event' | 'all' | 'custom'
 let dateFilterFrom = '';
 let dateFilterTo = '';
 
@@ -652,8 +652,9 @@ function renderDateFilterBar(containerId, reloadFn) {
   el.innerHTML = `
     <div class="date-filter-bar">
       <div class="date-filter-row">
-        <button class="dfbtn${dateFilterMode==='all'?' active':''}" onclick="setDateFilter('all','${containerId}',${reloadFn.name})">全期間</button>
-        <button class="dfbtn${dateFilterMode==='custom'?' active':''}" onclick="setDateFilter('custom','${containerId}',${reloadFn.name})">期間指定</button>
+        <button class="dfbtn${dateFilterMode==='event'?' active':''}" onclick="setDateFilter('event',${reloadFn.name})">このイベント</button>
+        <button class="dfbtn${dateFilterMode==='all'?' active':''}" onclick="setDateFilter('all',${reloadFn.name})">全期間</button>
+        <button class="dfbtn${dateFilterMode==='custom'?' active':''}" onclick="setDateFilter('custom',${reloadFn.name})">期間指定</button>
       </div>
       ${dateFilterMode==='custom' ? `
       <div class="date-filter-row" style="margin-top:8px">
@@ -665,9 +666,9 @@ function renderDateFilterBar(containerId, reloadFn) {
     </div>`;
 }
 
-function setDateFilter(mode, containerId, reloadFn) {
+function setDateFilter(mode, reloadFn) {
   dateFilterMode = mode;
-  if (mode === 'all') { dateFilterFrom = ''; dateFilterTo = ''; }
+  if (mode === 'event') { dateFilterFrom = ''; dateFilterTo = ''; }
   reloadFn();
 }
 
@@ -680,12 +681,35 @@ function applyDateRange(containerId, reloadFn) {
 }
 
 function matchPassesDateFilter(d) {
-  if (dateFilterMode === 'all') return true;
+  // 'event'と'all'はデータ取得元で制御するのでここでは素通し
+  if (dateFilterMode === 'event' || dateFilterMode === 'all') return true;
+  // 'custom': 期間で絞り込み
   if (!d.startTime) return true;
-  const matchDate = d.startTime.slice(0,10); // 'YYYY-MM-DD'
+  const matchDate = d.startTime.slice(0,10);
   if (dateFilterFrom && matchDate < dateFilterFrom) return false;
   if (dateFilterTo && matchDate > dateFilterTo) return false;
   return true;
+}
+
+// 全イベントのhistoryを結合して取得
+async function getAllEventsHistory() {
+  try {
+    const allData = await xhrRequest('GET', 'events');
+    if (!allData) return {};
+    const combined = {};
+    Object.keys(allData).forEach(eid => {
+      const ev = allData[eid];
+      if (ev && ev.history) {
+        Object.entries(ev.history).forEach(([mid, match]) => {
+          combined[eid + '_' + mid] = match;
+        });
+      }
+    });
+    return combined;
+  } catch(e) {
+    console.warn('getAllEventsHistory:', e);
+    return {};
+  }
 }
 
 let flow = {
@@ -1695,9 +1719,14 @@ async function loadRanking() {
   const el = document.getElementById('ranking-content');
   el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>読み込み中...</div>';
   renderDateFilterBar('ranking-filter', loadRanking);
-  const eid = currentEventId || 'default';
   
-  const history = await xhrRequest('GET', `events/${eid}/history`);
+  let history;
+  if (dateFilterMode === 'event') {
+    const eid = currentEventId || 'default';
+    history = await xhrRequest('GET', `events/${eid}/history`);
+  } else {
+    history = await getAllEventsHistory();
+  }
   
   if (!history || Object.keys(history).length === 0) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>まだ完了した試合のデータがありません</div>';
@@ -1785,7 +1814,8 @@ async function loadRanking() {
     });
   });
 
-  const filterLabel = dateFilterMode === 'all' ? '全期間' : 
+  const filterLabel = dateFilterMode === 'event' ? 'このイベント' :
+    dateFilterMode === 'all' ? '全期間' : 
     `${dateFilterFrom || '?'} 〜 ${dateFilterTo || '?'}`;
 
   el.innerHTML = `
@@ -1895,8 +1925,12 @@ async function loadStatsPlayerList() {
   el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>読み込み中...</div>';
   renderDateFilterBar('stats-filter', loadStatsPlayerList);
 
-  const eid = currentEventId || 'default';
-  statsHistory = await xhrRequest('GET', `events/${eid}/history`);
+  if (dateFilterMode === 'event') {
+    const eid = currentEventId || 'default';
+    statsHistory = await xhrRequest('GET', `events/${eid}/history`);
+  } else {
+    statsHistory = await getAllEventsHistory();
+  }
 
   if (!statsHistory || Object.keys(statsHistory).length === 0) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>まだ完了した試合のデータがありません</div>';
