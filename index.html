@@ -1963,9 +1963,7 @@ async function loadStatsPlayerList() {
   });
 
   const names = Object.keys(playerMap).sort((a,b) => {
-    const ra = playerMap[b].total > 0 ? playerMap[b].wins/playerMap[b].total : 0;
-    const rb = playerMap[a].total > 0 ? playerMap[a].wins/playerMap[a].total : 0;
-    return ra - rb;
+    return a.localeCompare(b, 'ja');
   });
 
   if (!names.length) {
