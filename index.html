@@ -860,6 +860,8 @@ async function loadCourts() {
     let cls = 'court-card', sh = '';
     if (!d) {
       sh = `<div class="court-status"><span class="sdot sd-empty"></span>空き</div>`;
+    } else if (!d.teams || !d.teams.a || !d.teams.b) {
+      sh = `<div class="court-status"><span class="sdot sd-empty"></span>データ不正</div>`;
     } else if (d.finished) {
       cls += ' finished';
       sh = `<div class="court-status"><span class="sdot sd-done"></span>終了</div><div class="court-teams">${d.teams.a.name}<br>vs<br>${d.teams.b.name}</div>`;
@@ -879,6 +881,7 @@ function selectCourt(id, d) {
   if (d && !d.finished) {
     M = d; stk = [];
     simpleMode = true;
+    resetFlow();  // コート復元時にサーバーを最新スコアから再計算
     goStep('score'); renderScore(); renderFlow();
     setTimeout(updateModeUI, 100);
     return;
@@ -1039,7 +1042,7 @@ function getCurrentServer() {
 }
 
 function getServerName() {
-  if (!M) return '';
+  if (!M || !M.teams) return '';
   const serverKey = getCurrentServer();
   if (!serverKey) return '';
   const teamKey = serverKey.startsWith('a') ? 'a' : 'b';
@@ -1337,9 +1340,11 @@ function commitCurrentFlow() {
 }
 
 function commitFault() {
-  const serverTeam = flow.serverKey.startsWith('a') ? 'a' : 'b';
+  const sk = flow.serverKey || getCurrentServer();
+  if (!sk) return;
+  const serverTeam = sk.startsWith('a') ? 'a' : 'b';
   const winner = serverTeam === 'a' ? 'b' : 'a';
-  commitPoint(winner, { serverKey: flow.serverKey, serve:'fault', rally:null, miss:'DF', type:'miss', player: flow.serverKey, winner });
+  commitPoint(winner, { serverKey: sk, serve:'fault', rally:null, miss:'DF', type:'miss', player: sk, winner });
 }
 
 function commitPoint(winner, f) {
@@ -1487,6 +1492,7 @@ function undoPt() {
 
 function toggleMode() {
   simpleMode = !simpleMode;
+  resetFlow();  // モード切替時にサーバーを最新のスコアから再計算
   updateModeUI();
   renderFlow();
 }
@@ -1684,7 +1690,7 @@ function buildHistoryCard(d, mid) {
     </div>
     <div class="score-line">
       <div class="sl-team sl-a">${d.teams?.a?.name || 'Aペア'}</div>
-      <div class="sl-score">${d.gamesWon.a} - ${d.gamesWon.b}</div>
+      <div class="sl-score">${d.gamesWon?.a||0} - ${d.gamesWon?.b||0}</div>
       <div class="sl-team sl-b">${d.teams?.b?.name || 'Bペア'}</div>
     </div>
     <div class="player-grid">
@@ -1743,7 +1749,7 @@ async function loadRanking() {
   const playerWinLoss = {};
 
   Object.values(history).forEach(d => {
-    if (!d || !d.teams) return;
+    if (!d || !d.teams || !d.stats) return;
     if (!matchPassesDateFilter(d)) return;
 
     const tA = d.teams.a;
@@ -1945,7 +1951,7 @@ async function loadStatsPlayerList() {
   const playerMap = {};
 
   Object.values(statsHistory).forEach(d => {
-    if (!d || !d.teams) return;
+    if (!d || !d.teams || !d.stats) return;
     if (!matchPassesDateFilter(d)) return;
     const allP = [
       { name: (d.teams.a.players||'').split(' / ')[0], team:'a', isOwn: d.teams.a.isOwn !== false },
@@ -2003,7 +2009,7 @@ function openStatsDetail(name) {
   let matchCount = 0;
 
   Object.entries(statsHistory).forEach(([mid, d]) => {
-    if (!d || !d.teams) return;
+    if (!d || !d.teams || !d.stats) return;
     if (!matchPassesDateFilter(d)) return;
     const allNames = [
       (d.teams.a.players||'').split(' / ')[0],
