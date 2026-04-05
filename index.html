@@ -1171,25 +1171,38 @@ function renderFlow() {
     el.innerHTML = html; return;
   }
 
-  // ============ ⑦ ラリー2本 → レシーバーに確定 ============
+  // ============ ⑦ ラリー2本 → レシーバーを選択 ============
   if (flow.rally === '2') {
-    // レシーバー = サーバーの相手チーム
     const serverTeamKey = currentServerKey.startsWith('a') ? 'a' : 'b';
     const receiverTeam = serverTeamKey === 'a' ? 'b' : 'a';
-    // レシーバーは後衛（1）がデフォルト
-    const receiverKey = receiverTeam + '1';
-    
+    const r1 = receiverTeam + '1';
+    const r2 = receiverTeam + '2';
+
+    // レシーバー選択
+    if (!flow.player) {
+      html += buildStep(step++, 'レシーバー', false, [
+        { val: r1, label: pName(r1), cls: 'choice-' + receiverTeam },
+        { val: r2, label: pName(r2), cls: 'choice-' + receiverTeam }
+      ], 'player', flow.player);
+      el.innerHTML = html; return;
+    }
+
+    const receiverKey = flow.player;
+    flow.base = 'Re';
+
     // レシーバーの成功/失敗を選択
-    html += buildStep(step++, `レシーブ結果 (${pName(receiverKey)})`, flow.type !== null, [
+    html += buildStep(step++, `レシーバー: ${pName(receiverKey)}`, true, [
+      { val: receiverKey, label: pName(receiverKey), cls: 'choice-' + receiverTeam }
+    ], 'player', flow.player);
+
+    html += buildStep(step++, `レシーブ結果`, flow.type !== null, [
       { val:'point', label:'✔ レシーブエース', cls:'choice-point' },
       { val:'miss',  label:'✘ レシーブミス',  cls:'choice-miss' }
     ], 'type', flow.type);
     if (!flow.type) { el.innerHTML = html; return; }
 
-    flow.player = receiverKey;
-    flow.base = flow.type === 'point' ? 'ReA' : 'Re';
-
     if (flow.type === 'point') {
+      flow.base = 'ReA';
       // レシーブエース → コース選択
       html += buildStep(step++, 'コース', flow.course !== null, [
         { val:'C', label:'C クロス' }, { val:'Co', label:'Co 逆クロス' },
