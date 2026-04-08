@@ -2111,18 +2111,27 @@ function renderStatsDetail() {
 
 // ① ショット別 × ミス原因（積み上げ横棒グラフ）
 function buildChart1_ShotMiss(points) {
-  const shotTypes = ['St','S','V','LV','Hv','Sm'];
-  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ'};
-  const missTypes = ['N','SO','BO','T'];
-  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ'};
-  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0'};
+  const shotTypes = ['St','S','V','LV','Hv','Sm','Re','DF'];
+  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Re:'レシーブ',DF:'ダブルフォルト'};
+  const missTypes = ['N','SO','BO','T','DF'];
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ',DF:'DF'};
+  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0',DF:'#888888'};
 
   const data = {};
   shotTypes.forEach(s => { data[s] = {}; missTypes.forEach(m => data[s][m] = 0); });
   points.forEach(p => {
-    const st = p.shotType || 'St';
-    const ms = p.miss || 'N';
-    if (data[st]) data[st][ms] = (data[st][ms]||0) + 1;
+    if (p.miss === 'DF') {
+      // ダブルフォルトは独立カテゴリ
+      data['DF']['DF']++;
+    } else if (p.shotType) {
+      // 通常のミス（ショット種類あり）
+      const ms = p.miss || 'N';
+      if (data[p.shotType]) data[p.shotType][ms] = (data[p.shotType][ms]||0) + 1;
+    } else if (p.base === 'Re') {
+      // レシーブミス
+      const ms = p.miss || 'N';
+      data['Re'][ms] = (data['Re'][ms]||0) + 1;
+    }
   });
 
   // ショットにデータがあるもののみ表示
@@ -2230,14 +2239,19 @@ function buildChart2_HeatMatrix(points) {
 
 // ③ ラリー本数別ミス（棒グラフ）
 function buildChart3_RallyHist(points) {
-  const rallyKeys = ['1','2','3','4','5','6+'];
+  const rallyKeys = ['0','1','2','3','4','5','6+'];
+  const rallyLabels = {'0':'DF','1':'1','2':'2','3':'3','4':'4','5':'5','6+':'6+'};
   const rallyData = {};
   rallyKeys.forEach(k => rallyData[k] = 0);
 
   points.forEach(p => {
-    const r = p.rally || '1';
-    if (rallyData[r] !== undefined) rallyData[r]++;
-    else rallyData['6+']++;
+    if (p.miss === 'DF') {
+      rallyData['0']++;  // DFはラリー0本
+    } else {
+      const r = p.rally || '1';
+      if (rallyData[r] !== undefined) rallyData[r]++;
+      else rallyData['6+']++;
+    }
   });
 
   const maxVal = Math.max(1, ...Object.values(rallyData));
@@ -2252,7 +2266,7 @@ function buildChart3_RallyHist(points) {
     barsHtml += `<div class="rally-bar-col">
       <div class="rally-bar-num">${v>0?v:''}</div>
       <div class="rally-bar" style="height:${h}%"></div>
-      <div class="rally-bar-lbl">${k}本</div>
+      <div class="rally-bar-lbl">${k==='0'?'DF':k+'本'}</div>
     </div>`;
   });
   barsHtml += `</div>`;
@@ -2264,9 +2278,9 @@ function buildChart3_RallyHist(points) {
 
 // ④ ミスの総合割合（ドーナツグラフ）
 function buildChart4_Donut(points) {
-  const missTypes = ['N','SO','BO','T'];
-  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ'};
-  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0'};
+  const missTypes = ['N','SO','BO','T','DF'];
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ',DF:'ダブルフォルト'};
+  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0',DF:'#888888'};
 
   const data = {};
   missTypes.forEach(m => data[m] = 0);
