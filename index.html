@@ -1782,7 +1782,9 @@ async function loadRanking() {
     if (aIsOwn) {
       const pairA = tA.name;
       if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
-      pairs[pairA].pts += sa.pts || 0;
+      // 個人ポイントの合計（決定打を打ったポイント）
+      const aPlayerPts = (sa.players?.a1?.pts||0) + (sa.players?.a2?.pts||0);
+      pairs[pairA].pts += aPlayerPts;
       pairs[pairA].srv1in += sa.srv1in || 0;
       pairs[pairA].srv1tot += sa.srv1tot || 0;
       pairs[pairA].df += sa.df || 0;
@@ -1792,7 +1794,8 @@ async function loadRanking() {
     if (bIsOwn) {
       const pairB = tB.name;
       if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
-      pairs[pairB].pts += sb.pts || 0;
+      const bPlayerPts = (sb.players?.b1?.pts||0) + (sb.players?.b2?.pts||0);
+      pairs[pairB].pts += bPlayerPts;
       pairs[pairB].srv1in += sb.srv1in || 0;
       pairs[pairB].srv1tot += sb.srv1tot || 0;
       pairs[pairB].df += sb.df || 0;
