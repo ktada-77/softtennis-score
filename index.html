@@ -1214,7 +1214,13 @@ function renderFlow() {
       html += `<button class="confirm-btn" onclick="commitCurrentFlow()">✔ 確定してポイント追加</button>`;
       el.innerHTML = html; return;
     } else {
-      // レシーブミス → ミス種類
+      // レシーブミス → コース → ミス種類
+      html += buildStep(step++, 'コース', flow.course !== null, [
+        { val:'C', label:'C クロス' }, { val:'Co', label:'Co 逆クロス' },
+        { val:'M', label:'M ミドル' }, { val:'RST', label:'右ST' }, { val:'LST', label:'左ST' }
+      ], 'course', flow.course);
+      if (!flow.course) { el.innerHTML = html; return; }
+
       html += buildStep(step++, 'ミスの種類', flow.miss !== null, [
         { val:'N',  label:'N ネット',       cls:'choice-miss' },
         { val:'SO', label:'SO サイドアウト', cls:'choice-miss' },
@@ -1223,7 +1229,7 @@ function renderFlow() {
       ], 'miss', flow.miss);
       if (!flow.miss) { el.innerHTML = html; return; }
       flow.winner = receiverKey.startsWith('a') ? 'b' : 'a';
-      html += buildSummary([flow.serve, '2球', pName(receiverKey), 'Re ミス', flow.miss, `→${flow.winner==='a'?tA:tB}ポイント`]);
+      html += buildSummary([flow.serve, '2球', pName(receiverKey), 'Re ミス', flow.course, flow.miss, `→${flow.winner==='a'?tA:tB}ポイント`]);
       html += `<button class="confirm-btn" onclick="commitCurrentFlow()">✔ 確定してポイント追加</button>`;
       el.innerHTML = html; return;
     }
