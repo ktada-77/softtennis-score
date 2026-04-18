@@ -430,6 +430,68 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .date-filter-row input[type="date"]{font-family:var(--font-num);font-size:13px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);flex:1;min-width:0}
 .date-filter-row .dfbtn{font-family:var(--font-num);font-size:11px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap}
 .date-filter-row .dfbtn.active{border-color:var(--green);background:#e8f5e9;color:var(--green);font-weight:700}
+
+/* リアルタイム分析モーダル */
+.live-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.live-modal-bg.show{display:flex}
+.live-modal{background:var(--surface);border-radius:14px;width:100%;max-width:560px;box-shadow:0 10px 40px rgba(0,0,0,.3);overflow:hidden;margin:auto 0}
+.live-head{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.live-head h3{font-size:14px;font-weight:700;margin:0;letter-spacing:.05em}
+.live-close{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:var(--font-num)}
+.live-body{padding:12px}
+
+/* 4選手の比較テーブル */
+.live-players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.live-pcard{background:var(--s2);border:1.5px solid var(--border);border-radius:9px;padding:9px 10px}
+.live-pcard.team-a{border-left:3px solid var(--a)}
+.live-pcard.team-b{border-left:3px solid var(--b)}
+.live-pname{font-size:12px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.live-pname .role{font-size:9px;color:var(--muted);font-family:var(--font-head);letter-spacing:.1em;font-weight:500}
+.live-pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-family:var(--font-num)}
+.live-pstat{text-align:center;padding:4px 2px;background:var(--surface);border-radius:5px}
+.live-pstat-val{font-size:14px;font-weight:800;line-height:1}
+.live-pstat-lbl{font-size:8px;color:var(--muted);letter-spacing:.05em;margin-top:2px;font-family:var(--font-head)}
+.live-pstat.highlight .live-pstat-val{color:var(--b)}
+
+/* ミス内訳 */
+.live-sec{margin-bottom:12px}
+.live-sec-head{font-family:var(--font-head);font-size:10px;letter-spacing:.15em;color:var(--muted);margin-bottom:6px;padding:0 2px;text-transform:uppercase}
+.live-miss-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.live-miss-card{background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:7px 9px}
+.live-miss-card.team-a{border-left:3px solid var(--a)}
+.live-miss-card.team-b{border-left:3px solid var(--b)}
+.live-miss-name{font-size:11px;font-weight:700;margin-bottom:4px}
+.live-miss-row{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;font-family:var(--font-num)}
+.live-miss-chip{background:var(--surface);padding:2px 6px;border-radius:3px;border:1px solid var(--border);white-space:nowrap}
+.live-miss-chip .v{font-weight:800;margin-left:3px}
+
+/* コース傾向 */
+.live-course-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.live-court{background:var(--s2);border:1.5px solid var(--border);border-radius:8px;padding:8px;position:relative}
+.live-court.team-a{border-left:3px solid var(--a)}
+.live-court.team-b{border-left:3px solid var(--b)}
+.live-court-lbl{font-size:10px;font-weight:700;margin-bottom:6px;text-align:center;font-family:var(--font-head);letter-spacing:.1em}
+.live-court-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;font-size:10px;font-family:var(--font-num)}
+.live-court-cell{padding:8px 4px;text-align:center;background:var(--surface);border-radius:3px;border:1px solid var(--border)}
+.live-court-cell.heat-0{opacity:.35}
+.live-court-cell.heat-1{background:#fef0f0}
+.live-court-cell.heat-2{background:#fbc9c9}
+.live-court-cell.heat-3{background:#f58b8b;color:#fff}
+.live-court-cell.heat-4{background:#c42e2e;color:#fff;font-weight:800}
+.live-court-cname{font-size:7px;color:var(--muted);letter-spacing:.05em}
+.live-court-cval{font-weight:700;font-size:11px}
+
+/* ラリー分布 */
+.live-rally-wrap{display:flex;align-items:flex-end;gap:4px;height:60px}
+.live-rally-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.live-rally-bar{width:100%;background:var(--green);border-radius:3px 3px 0 0;min-height:2px;display:flex;align-items:flex-start;justify-content:center;color:#fff;font-size:10px;font-weight:700;font-family:var(--font-num);padding-top:2px}
+.live-rally-bar.empty{background:var(--border);color:var(--muted)}
+.live-rally-lbl{font-size:9px;color:var(--muted);font-family:var(--font-num)}
+
+/* 分析ボタン */
+.btn.analysis{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn.analysis:hover{background:#5a3388}
+.live-empty{padding:20px 10px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}
 </style>
 </head>
 <body>
@@ -562,6 +624,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <div class="action-bar">
         <button class="btn sm" onclick="undoPt()">↩ 戻す</button>
         <button class="btn sm" onclick="toggleServe()">🔄 サーブ</button>
+        <button class="btn sm analysis" onclick="openLiveAnalysis()">📊 分析</button>
         <button class="btn sm" id="mode-btn" onclick="toggleMode()" style="margin-left:auto">📝 詳細入力</button>
         <button class="btn sm danger" onclick="endEarly()">試合終了</button>
       </div>
@@ -625,6 +688,17 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       </select>
     </div>
     <div id="stats-charts"></div>
+  </div>
+</div>
+
+<!-- リアルタイム分析モーダル -->
+<div class="live-modal-bg" id="live-modal-bg" onclick="closeLiveAnalysis(event)">
+  <div class="live-modal" onclick="event.stopPropagation()">
+    <div class="live-head">
+      <h3>📊 試合中分析</h3>
+      <button class="live-close" onclick="closeLiveAnalysis()">閉じる</button>
+    </div>
+    <div class="live-body" id="live-body"></div>
   </div>
 </div>
 
@@ -1580,6 +1654,228 @@ function endEarly() {
   resetFlow();
   const coachTab = document.querySelectorAll('.nav-tab')[1];
   showPage('coach', coachTab);
+}
+
+// ============================================================
+// リアルタイム分析（試合中）
+// ============================================================
+function openLiveAnalysis() {
+  if (!M || M.finished) {
+    alert('試合中のみ使用できます');
+    return;
+  }
+  renderLiveAnalysis();
+  document.getElementById('live-modal-bg').classList.add('show');
+}
+
+function closeLiveAnalysis(e) {
+  if (e && e.target.id !== 'live-modal-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('live-modal-bg').classList.remove('show');
+}
+
+function renderLiveAnalysis() {
+  const body = document.getElementById('live-body');
+  if (!M) { body.innerHTML = ''; return; }
+
+  const log = M.pointLog || [];
+  const [a1n, a2n] = (M.teams.a.players || '後衛A / 前衛A').split(' / ');
+  const [b1n, b2n] = (M.teams.b.players || '後衛B / 前衛B').split(' / ');
+  const pName = {a1:a1n, a2:a2n, b1:b1n, b2:b2n};
+
+  if (log.length === 0) {
+    body.innerHTML = `<div class="live-empty">まだポイントが記録されていません<br><small>簡易入力モードのポイントは分析に含まれません</small></div>`;
+    return;
+  }
+
+  let html = '';
+
+  // === ① 選手別サマリー ===
+  html += renderLivePlayers(log, pName);
+
+  // === ② ミス内訳 ===
+  html += renderLiveMiss(log, pName);
+
+  // === ③ 相手チームの打ったコース傾向 ===
+  html += renderLiveCourse(log, M.teams);
+
+  // === ④ ラリー本数分布 ===
+  html += renderLiveRally(log);
+
+  body.innerHTML = html;
+}
+
+function renderLivePlayers(log, pName) {
+  // 各選手の pts / miss / 1stサーブ率 を pointLog から集計
+  const p = {a1:{pts:0,miss:0,srv1i:0,srv1t:0}, a2:{pts:0,miss:0,srv1i:0,srv1t:0},
+             b1:{pts:0,miss:0,srv1i:0,srv1t:0}, b2:{pts:0,miss:0,srv1i:0,srv1t:0}};
+  
+  // pointLogにはserverKeyがないので、stats.players から直接取る
+  const sa = M.stats?.a?.players || {};
+  const sb = M.stats?.b?.players || {};
+  
+  ['a1','a2'].forEach(k => {
+    const ps = sa[k] || {};
+    p[k].pts = ps.pts || 0;
+    p[k].miss = ps.miss || 0;
+    p[k].srv1i = ps.srv1in || 0;
+    p[k].srv1t = ps.srv1tot || 0;
+  });
+  ['b1','b2'].forEach(k => {
+    const ps = sb[k] || {};
+    p[k].pts = ps.pts || 0;
+    p[k].miss = ps.miss || 0;
+    p[k].srv1i = ps.srv1in || 0;
+    p[k].srv1t = ps.srv1tot || 0;
+  });
+
+  const card = (key, name, role, team) => {
+    const d = p[key];
+    const rate = d.srv1t > 0 ? Math.round(d.srv1i/d.srv1t*100) + '%' : '-';
+    const missClass = d.miss >= 3 ? ' highlight' : '';
+    return `<div class="live-pcard team-${team}">
+      <div class="live-pname">${name}<span class="role">${role}</span></div>
+      <div class="live-pstats">
+        <div class="live-pstat"><div class="live-pstat-val">${d.pts}</div><div class="live-pstat-lbl">PT</div></div>
+        <div class="live-pstat${missClass}"><div class="live-pstat-val">${d.miss}</div><div class="live-pstat-lbl">MISS</div></div>
+        <div class="live-pstat"><div class="live-pstat-val">${rate}</div><div class="live-pstat-lbl">1ST</div></div>
+      </div>
+    </div>`;
+  };
+
+  return `<div class="live-sec">
+    <div class="live-sec-head">🎾 SCORE スコア ${M.gamesWon.a}-${M.gamesWon.b}${M.isFinal?' (F)':''}  現在 ${M.isFinal?M.finalPts.a:M.pts.a}-${M.isFinal?M.finalPts.b:M.pts.b}</div>
+    <div class="live-players">
+      ${card('a1', pName.a1, '後衛', 'a')}
+      ${card('b1', pName.b1, '後衛', 'b')}
+      ${card('a2', pName.a2, '前衛', 'a')}
+      ${card('b2', pName.b2, '前衛', 'b')}
+    </div>
+  </div>`;
+}
+
+function renderLiveMiss(log, pName) {
+  // 選手ごとのミス種類集計
+  const missCounts = {a1:{N:0,SO:0,BO:0,T:0,DF:0,Re:0}, a2:{N:0,SO:0,BO:0,T:0,DF:0,Re:0},
+                      b1:{N:0,SO:0,BO:0,T:0,DF:0,Re:0}, b2:{N:0,SO:0,BO:0,T:0,DF:0,Re:0}};
+  
+  log.forEach(p => {
+    if (p.type !== 'miss' || !p.player) return;
+    if (!missCounts[p.player]) return;
+    if (p.miss === 'DF') missCounts[p.player].DF++;
+    else if (p.base === 'Re') {
+      missCounts[p.player].Re++;
+      if (p.miss && missCounts[p.player][p.miss] !== undefined) missCounts[p.player][p.miss]++;
+    } else if (p.miss && missCounts[p.player][p.miss] !== undefined) {
+      missCounts[p.player][p.miss]++;
+    }
+  });
+
+  const missLbl = {N:'N', SO:'SO', BO:'BO', T:'T', DF:'DF', Re:'Re'};
+  
+  const card = (key, name, team) => {
+    const m = missCounts[key];
+    const total = m.N + m.SO + m.BO + m.T + m.DF;
+    if (total === 0) {
+      return `<div class="live-miss-card team-${team}">
+        <div class="live-miss-name">${name}</div>
+        <div class="live-miss-row" style="color:var(--muted)">ミスなし</div>
+      </div>`;
+    }
+    let chips = '';
+    ['N','SO','BO','T','DF'].forEach(k => {
+      if (m[k] > 0) chips += `<span class="live-miss-chip">${missLbl[k]}<span class="v">${m[k]}</span></span>`;
+    });
+    if (m.Re > 0) chips += `<span class="live-miss-chip" style="background:#fff3e0">Re<span class="v">${m.Re}</span></span>`;
+    return `<div class="live-miss-card team-${team}">
+      <div class="live-miss-name">${name}</div>
+      <div class="live-miss-row">${chips}</div>
+    </div>`;
+  };
+
+  return `<div class="live-sec">
+    <div class="live-sec-head">❌ ミス傾向（N=ネット SO=サイドアウト BO=バックアウト T=チップ）</div>
+    <div class="live-miss-grid">
+      ${card('a1', pName.a1, 'a')}
+      ${card('b1', pName.b1, 'b')}
+      ${card('a2', pName.a2, 'a')}
+      ${card('b2', pName.b2, 'b')}
+    </div>
+  </div>`;
+}
+
+function renderLiveCourse(log, teams) {
+  // 各チームが打ったコースの集計（type=point or miss でcourseがあるもの）
+  // レシーブエース・SA・通常ポイント・通常ミスのコースを集める
+  const courseCount = {a:{C:0,Co:0,M:0,RST:0,LST:0}, b:{C:0,Co:0,M:0,RST:0,LST:0}};
+  
+  log.forEach(p => {
+    if (!p.course || !p.player) return;
+    const team = p.player.startsWith('a') ? 'a' : 'b';
+    if (courseCount[team][p.course] !== undefined) courseCount[team][p.course]++;
+  });
+
+  const heatClass = (v, max) => {
+    if (v === 0) return 'heat-0';
+    const r = v / max;
+    if (r <= 0.25) return 'heat-1';
+    if (r <= 0.5) return 'heat-2';
+    if (r <= 0.75) return 'heat-3';
+    return 'heat-4';
+  };
+
+  const courtHtml = (team, teamName) => {
+    const c = courseCount[team];
+    const max = Math.max(1, c.C, c.Co, c.M, c.RST, c.LST);
+    // 3x2グリッド: 上段[Co, M, C]、下段[LST, _, RST]
+    // ソフトテニスのコース配置を簡易表示
+    const cell = (key, name) => {
+      const v = c[key];
+      return `<div class="live-court-cell ${heatClass(v, max)}">
+        <div class="live-court-cname">${name}</div>
+        <div class="live-court-cval">${v}</div>
+      </div>`;
+    };
+    return `<div class="live-court team-${team}">
+      <div class="live-court-lbl">${teamName}が打った球</div>
+      <div class="live-court-grid">
+        ${cell('Co','逆クロス')}${cell('M','ミドル')}${cell('C','クロス')}
+        ${cell('LST','左ST')}<div></div>${cell('RST','右ST')}
+      </div>
+    </div>`;
+  };
+
+  return `<div class="live-sec">
+    <div class="live-sec-head">🎯 コース傾向（決着ショットのみ）</div>
+    <div class="live-course-wrap">
+      ${courtHtml('a', teams.a.name || 'Aペア')}
+      ${courtHtml('b', teams.b.name || 'Bペア')}
+    </div>
+  </div>`;
+}
+
+function renderLiveRally(log) {
+  // ラリー本数の分布
+  const rally = {'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0};
+  log.forEach(p => {
+    if (p.miss === 'DF') return; // DFはラリー対象外
+    const r = p.rally;
+    if (r && rally[r] !== undefined) rally[r]++;
+  });
+  const max = Math.max(1, ...Object.values(rally));
+  
+  const cols = Object.keys(rally).map(k => {
+    const v = rally[k];
+    const h = v === 0 ? 0 : Math.max(15, Math.round(v / max * 55));
+    return `<div class="live-rally-col">
+      <div class="live-rally-bar ${v===0?'empty':''}" style="height:${h}px">${v>0?v:''}</div>
+      <div class="live-rally-lbl">${k}${k==='6+'?'':'本'}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="live-sec">
+    <div class="live-sec-head">📈 ラリー本数分布（何球目で決着したか）</div>
+    <div class="live-rally-wrap">${cols}</div>
+  </div>`;
 }
 
 // ============================================================
