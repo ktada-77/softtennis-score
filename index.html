@@ -567,10 +567,10 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
           </div>
         </div>
         <div class="two-col">
-          <div><label>チームA 後衛</label><input type="text" id="s-a1" placeholder="氏名"></div>
-          <div><label>チームA 前衛</label><input type="text" id="s-a2" placeholder="氏名"></div>
-          <div><label>チームB 後衛</label><input type="text" id="s-b1" placeholder="氏名"></div>
-          <div><label>チームB 前衛</label><input type="text" id="s-b2" placeholder="氏名"></div>
+          <div><label>チームA 後衛</label><input type="text" id="s-a1" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
+          <div><label>チームA 前衛</label><input type="text" id="s-a2" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
+          <div><label>チームB 後衛</label><input type="text" id="s-b1" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
+          <div><label>チームB 前衛</label><input type="text" id="s-b2" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
         </div>
         <div class="opt-row">
           <div class="opt-group">
@@ -588,7 +588,47 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
             </div>
           </div>
         </div>
-        <button class="btn green" style="width:100%;padding:14px;font-size:15px;font-weight:700" onclick="startMatch()">試合開始</button>
+
+        <!-- 途中から開始オプション -->
+        <div style="margin-top:12px;padding:10px 12px;border:1.5px dashed var(--border);border-radius:8px;background:var(--s2)">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+            <input type="checkbox" id="resume-mode" onchange="toggleResumeMode()" style="width:18px;height:18px;cursor:pointer">
+            <span>途中から記録を始める</span>
+          </label>
+          <div id="resume-fields" style="display:none;margin-top:10px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:8px">現在の試合状況を入力してください</div>
+            <div class="two-col" style="margin-bottom:8px">
+              <div>
+                <label>ゲームスコア A</label>
+                <input type="number" id="resume-ga" min="0" max="4" value="0" style="font-family:var(--font-num);font-size:16px;text-align:center">
+              </div>
+              <div>
+                <label>ゲームスコア B</label>
+                <input type="number" id="resume-gb" min="0" max="4" value="0" style="font-family:var(--font-num);font-size:16px;text-align:center">
+              </div>
+            </div>
+            <div class="two-col" style="margin-bottom:8px">
+              <div>
+                <label>現在ポイント A</label>
+                <input type="number" id="resume-pa" min="0" max="20" value="0" style="font-family:var(--font-num);font-size:16px;text-align:center">
+              </div>
+              <div>
+                <label>現在ポイント B</label>
+                <input type="number" id="resume-pb" min="0" max="20" value="0" style="font-family:var(--font-num);font-size:16px;text-align:center">
+              </div>
+            </div>
+            <label style="font-size:12px">今サーブを打っている選手</label>
+            <div class="rbtn-row" id="resume-server-row" style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <button type="button" class="rbtn" id="rs-a1" onclick="setResumeServer('a1',this)">Aペア 後衛</button>
+              <button type="button" class="rbtn" id="rs-a2" onclick="setResumeServer('a2',this)">Aペア 前衛</button>
+              <button type="button" class="rbtn" id="rs-b1" onclick="setResumeServer('b1',this)">Bペア 後衛</button>
+              <button type="button" class="rbtn" id="rs-b2" onclick="setResumeServer('b2',this)">Bペア 前衛</button>
+            </div>
+            <div style="font-size:10px;color:var(--muted);margin-top:6px">※ 現在のサーバーを選ぶと、最初の先サーブと過去のサーブ順序は自動計算されます</div>
+          </div>
+        </div>
+
+        <button class="btn green" style="width:100%;padding:14px;font-size:15px;font-weight:700;margin-top:12px" onclick="startMatch()">試合開始</button>
       </div>
     </div>
   </div>
@@ -985,12 +1025,54 @@ function resetCfg() {
   const bOpp = document.getElementById('team-b-opp');
   if (aOwn) { aOwn.classList.add('on'); aOpp.classList.remove('on'); }
   if (bOwn) { bOwn.classList.add('on'); bOpp.classList.remove('on'); }
+  // 途中開始モードのリセット
+  const resumeMode = document.getElementById('resume-mode');
+  if (resumeMode) {
+    resumeMode.checked = false;
+    document.getElementById('resume-fields').style.display = 'none';
+  }
+  ['resume-ga','resume-gb','resume-pa','resume-pb'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '0';
+  });
+  document.querySelectorAll('#resume-server-row .rbtn').forEach(b => b.classList.remove('on'));
+  window.resumeServerKey = null;
 }
 
 function setTeamType(team, isOwn, btn) {
   if (team === 'a') cfg.isOwnA = isOwn;
   else cfg.isOwnB = isOwn;
   btn.closest('.rbtn-row').querySelectorAll('.rbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// 途中開始モード切替
+function toggleResumeMode() {
+  const enabled = document.getElementById('resume-mode').checked;
+  document.getElementById('resume-fields').style.display = enabled ? 'block' : 'none';
+  if (enabled) updateResumeServerLabels();
+}
+
+// 途中開始モード時、選手名入力に応じてボタンラベル更新
+function updateResumeServerLabels() {
+  const a1 = document.getElementById('s-a1').value.trim() || 'Aペア後衛';
+  const a2 = document.getElementById('s-a2').value.trim() || 'Aペア前衛';
+  const b1 = document.getElementById('s-b1').value.trim() || 'Bペア後衛';
+  const b2 = document.getElementById('s-b2').value.trim() || 'Bペア前衛';
+  const ra1 = document.getElementById('rs-a1');
+  const ra2 = document.getElementById('rs-a2');
+  const rb1 = document.getElementById('rs-b1');
+  const rb2 = document.getElementById('rs-b2');
+  if (ra1) ra1.textContent = a1;
+  if (ra2) ra2.textContent = a2;
+  if (rb1) rb1.textContent = b1;
+  if (rb2) rb2.textContent = b2;
+}
+
+// 現在のサーバー選択
+function setResumeServer(key, btn) {
+  window.resumeServerKey = key;
+  document.querySelectorAll('#resume-server-row .rbtn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
 }
 
@@ -1038,6 +1120,58 @@ function startMatch() {
   const b1 = document.getElementById('s-b1').value.trim() || '後衛B';
   const b2 = document.getElementById('s-b2').value.trim() || '前衛B';
 
+  // 途中開始モードの値を取得
+  const resumeMode = document.getElementById('resume-mode')?.checked || false;
+  let initialServing = cfg.serve;
+  let initialGames = { a: 0, b: 0 };
+  let initialPts = { a: 0, b: 0 };
+  let initialIsFinal = false;
+  let initialFinalPts = { a: 0, b: 0 };
+
+  if (resumeMode) {
+    const ga = Math.max(0, parseInt(document.getElementById('resume-ga').value) || 0);
+    const gb = Math.max(0, parseInt(document.getElementById('resume-gb').value) || 0);
+    const pa = Math.max(0, parseInt(document.getElementById('resume-pa').value) || 0);
+    const pb = Math.max(0, parseInt(document.getElementById('resume-pb').value) || 0);
+    const currentServer = window.resumeServerKey;
+    
+    if (!currentServer) {
+      alert('現在のサーバーを選んでください');
+      return;
+    }
+
+    const winGames = Math.ceil(cfg.match / 2);
+    const finalThreshold = winGames - 1; // 7G→3, 5G→2, 9G→4
+    
+    initialGames = { a: ga, b: gb };
+    
+    // ファイナル判定
+    if (ga === finalThreshold && gb === finalThreshold) {
+      initialIsFinal = true;
+      initialFinalPts = { a: pa, b: pb };
+      initialPts = { a: 0, b: 0 };
+    } else {
+      initialPts = { a: pa, b: pb };
+    }
+
+    // 現在のサーバーから「先サーブ」を逆算
+    const currentTeam = currentServer.startsWith('a') ? 'a' : 'b';
+    
+    if (initialIsFinal) {
+      // ファイナル: cycle = Math.floor(ptsTotal/2) % 4
+      // cycle 0,2 → first(=serving), cycle 1,3 → second
+      const ptsTotal = pa + pb;
+      const cycle = Math.floor(ptsTotal / 2) % 4;
+      const isFirstTeam = (cycle === 0 || cycle === 2);
+      // currentTeam が first か second かで初期サーバーを決定
+      initialServing = isFirstTeam ? currentTeam : (currentTeam === 'a' ? 'b' : 'a');
+    } else {
+      // 通常ゲーム: M.serving は「現在ゲームのサーブ権チーム」を指す
+      // 過去ゲームのサーブ権交代は新規ポイント追加時のwinGameで自動的に切り替わる
+      initialServing = currentTeam;
+    }
+  }
+
   M = {
     courtId: currentCourt,
     teams: {
@@ -1046,13 +1180,13 @@ function startMatch() {
     },
     matchGames: cfg.match,
     winGames: Math.ceil(cfg.match / 2),
-    serving: cfg.serve,         
-    servePointCount: 0,         
-    gamesWon: { a: 0, b: 0 },
+    serving: initialServing,
+    servePointCount: 0,
+    gamesWon: initialGames,
     gameLog: [],
-    pts: { a: 0, b: 0 },
-    isFinal: false,
-    finalPts: { a: 0, b: 0 },
+    pts: initialPts,
+    isFinal: initialIsFinal,
+    finalPts: initialFinalPts,
     pointLog: [],
     stats: {
       a: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
@@ -1073,7 +1207,8 @@ function startMatch() {
            rally:{'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0} }
     },
     finished: false, winner: null, aiFeedback: null,
-    startTime: new Date().toISOString()
+    startTime: new Date().toISOString(),
+    resumed: resumeMode  // 途中開始フラグ
   };
   stk = [];
   simpleMode = true;
@@ -1179,9 +1314,7 @@ function renderFlow() {
   const serverTeam = isTeamA ? tA : tB;
   const boxColor = isTeamA ? 'var(--a)' : 'var(--b)';
 
-  // ============ ⑪ サーブ種別 + ラリー本数を同時表示 ============
-  // サーブ: デフォルトは1st（⑪: 1stボタン削除、2ndとDFのみ）
-  // ラリー本数を同時に表示
+  // ============ サーブ種別を最優先で選択（必須） ============
   const serveSel = flow.serve;
   const rallySel = flow.rally;
 
@@ -1189,28 +1322,18 @@ function renderFlow() {
     🎾 サーバー: ${serverName} (${serverTeam})
   </div>`;
 
-  // サーブ種別（⑪: 2ndとDFのみ。何も押さなければ1st扱い）
-  html += `<div class="serve-rally-row">
-    <div class="sr-section">
-      <div class="sr-label">サーブ</div>
-      <div class="choice-grid">
-        <button class="choice-btn${serveSel==='2nd'?' selected':''}" onclick="setServeRally('serve','2nd')">2nd</button>
-        <button class="choice-btn${serveSel==='fault'?' fault selected':''}" onclick="setFlow('serve','fault')">DF</button>
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px">※ 押さなければ1st扱い</div>
-    </div>
-    <div class="sr-section">
-      <div class="sr-label">ラリー本数</div>
-      <div class="choice-grid">
-        <button class="choice-btn${rallySel==='1'?' selected':''}" onclick="setServeRally('rally','1')">1</button>
-        <button class="choice-btn${rallySel==='2'?' selected':''}" onclick="setServeRally('rally','2')">2</button>
-        <button class="choice-btn${rallySel==='3'?' selected':''}" onclick="setServeRally('rally','3')">3</button>
-        <button class="choice-btn${rallySel==='4'?' selected':''}" onclick="setServeRally('rally','4')">4</button>
-        <button class="choice-btn${rallySel==='5'?' selected':''}" onclick="setServeRally('rally','5')">5</button>
-        <button class="choice-btn${rallySel==='6+'?' selected':''}" onclick="setServeRally('rally','6+')">6+</button>
-      </div>
+  // ステップ1: サーブ種別（1st / 2nd / DF を必ず選ぶ）
+  html += `<div class="sr-section" style="margin-bottom:10px">
+    <div class="sr-label">${!serveSel?'<strong>① サーブを選んでください</strong>':'① サーブ'}</div>
+    <div class="choice-grid" style="grid-template-columns:repeat(3,1fr)">
+      <button class="choice-btn${serveSel==='1st'?' selected':''}" onclick="setFlow('serve','1st')" style="padding:14px 0;font-size:15px;font-weight:700">1st</button>
+      <button class="choice-btn${serveSel==='2nd'?' selected':''}" onclick="setFlow('serve','2nd')" style="padding:14px 0;font-size:15px;font-weight:700">2nd</button>
+      <button class="choice-btn${serveSel==='fault'?' fault selected':''}" onclick="setFlow('serve','fault')" style="padding:14px 0;font-size:15px;font-weight:700">DF</button>
     </div>
   </div>`;
+
+  // サーブが未選択なら、ここで止める
+  if (!flow.serve) { el.innerHTML = html; return; }
 
   // --- DF選択時: 即確定 ---
   if (flow.serve === 'fault') {
@@ -1221,11 +1344,21 @@ function renderFlow() {
     el.innerHTML = html; return;
   }
 
+  // ステップ2: ラリー本数
+  html += `<div class="sr-section" style="margin-bottom:10px">
+    <div class="sr-label">${!rallySel?'<strong>② ラリー本数を選んでください</strong>':'② ラリー本数'}</div>
+    <div class="choice-grid">
+      <button class="choice-btn${rallySel==='1'?' selected':''}" onclick="setFlow('rally','1')">1</button>
+      <button class="choice-btn${rallySel==='2'?' selected':''}" onclick="setFlow('rally','2')">2</button>
+      <button class="choice-btn${rallySel==='3'?' selected':''}" onclick="setFlow('rally','3')">3</button>
+      <button class="choice-btn${rallySel==='4'?' selected':''}" onclick="setFlow('rally','4')">4</button>
+      <button class="choice-btn${rallySel==='5'?' selected':''}" onclick="setFlow('rally','5')">5</button>
+      <button class="choice-btn${rallySel==='6+'?' selected':''}" onclick="setFlow('rally','6+')">6+</button>
+    </div>
+  </div>`;
+
   // ラリーが未選択なら待つ
   if (!flow.rally) { el.innerHTML = html; return; }
-
-  // サーブが未選択なら「1st」として扱う（⑪デフォルト論理）
-  if (!flow.serve) flow.serve = '1st';
 
   // ============ ⑥ SA自動確定: 1stサーブ + ラリー1本 → SA即確定 ============
   if (flow.serve === '1st' && flow.rally === '1') {
