@@ -665,6 +665,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
         <button class="btn sm" onclick="undoPt()">↩ 戻す</button>
         <button class="btn sm" onclick="toggleServe()">🔄 サーブ</button>
         <button class="btn sm analysis" onclick="openLiveAnalysis()">📊 分析</button>
+        <button class="btn sm" onclick="openEditPlayers()">✏ 選手名</button>
         <button class="btn sm" id="mode-btn" onclick="toggleMode()" style="margin-left:auto">📝 詳細入力</button>
         <button class="btn sm danger" onclick="endEarly()">試合終了</button>
       </div>
@@ -710,9 +711,12 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 
 <div class="page" id="page-stats">
   <div id="stats-list-view">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div class="sec-title">📊 プレーヤースタッツ</div>
-      <button class="btn sm green" onclick="loadStatsPlayerList()">🔄 更新</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap">
+      <div class="sec-title" style="margin-bottom:0">📊 プレーヤースタッツ</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="openPlayerMaster()">👥 選手整理</button>
+        <button class="btn sm green" onclick="loadStatsPlayerList()">🔄 更新</button>
+      </div>
     </div>
     <div id="stats-filter"></div>
     <div id="stats-player-list"></div>
@@ -739,6 +743,35 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <button class="live-close" onclick="closeLiveAnalysis()">閉じる</button>
     </div>
     <div class="live-body" id="live-body"></div>
+  </div>
+</div>
+
+<!-- 選手名編集モーダル -->
+<div class="live-modal-bg" id="edit-players-bg" onclick="closeEditPlayers(event)">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="live-head">
+      <h3>✏ 選手名を編集</h3>
+      <button class="live-close" onclick="closeEditPlayers()">閉じる</button>
+    </div>
+    <div class="live-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">空欄のままだと自動で「後衛A」などのデフォルト名になります</div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--a)">チームA 後衛</label><input type="text" id="ep-a1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--a)">チームA 前衛</label><input type="text" id="ep-a2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 後衛</label><input type="text" id="ep-b1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 前衛</label><input type="text" id="ep-b2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <button class="btn green" style="width:100%;padding:11px;font-size:14px;font-weight:700" onclick="saveEditPlayers()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 選手マスター（統合）モーダル -->
+<div class="live-modal-bg" id="player-master-bg" onclick="closePlayerMaster(event)">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="live-head">
+      <h3>👥 選手名の統合・整理</h3>
+      <button class="live-close" onclick="closePlayerMaster()">閉じる</button>
+    </div>
+    <div class="live-body" id="player-master-body" style="max-height:70vh;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -1191,7 +1224,7 @@ function startMatch() {
     stats: {
       a: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
            base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
-           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
            course:{ C:0, Co:0, M:0, RST:0, LST:0 },
            miss_type:{ N:0, SO:0, BO:0, T:0 },
            players:{ a1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
@@ -1199,7 +1232,7 @@ function startMatch() {
            rally:{'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0} },
       b: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
            base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
-           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
            course:{ C:0, Co:0, M:0, RST:0, LST:0 },
            miss_type:{ N:0, SO:0, BO:0, T:0 },
            players:{ b1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
@@ -1473,7 +1506,8 @@ function renderFlow() {
     html += buildStep(step++, 'ショット種類', flow.shotType !== null, [
       { val:'St', label:'St ストローク' }, { val:'S',  label:'S スライス' },
       { val:'V',  label:'V ボレー' },      { val:'LV', label:'LV ローボレー' },
-      { val:'Hv', label:'Hv ハイボレー' }, { val:'Sm', label:'Sm スマッシュ' }
+      { val:'Hv', label:'Hv ハイボレー' }, { val:'Sm', label:'Sm スマッシュ' },
+      { val:'Tp', label:'Tp トップ打ち' }
     ], 'shotType', flow.shotType);
     if (!flow.shotType) { el.innerHTML = html; return; }
 
@@ -1504,7 +1538,8 @@ function renderFlow() {
     html += buildStep(step++, 'ショット種類', flow.shotType !== null, [
       { val:'St', label:'St ストローク' }, { val:'S',  label:'S スライス' },
       { val:'V',  label:'V ボレー' },      { val:'LV', label:'LV ローボレー' },
-      { val:'Hv', label:'Hv ハイボレー' }, { val:'Sm', label:'Sm スマッシュ' }
+      { val:'Hv', label:'Hv ハイボレー' }, { val:'Sm', label:'Sm スマッシュ' },
+      { val:'Tp', label:'Tp トップ打ち' }
     ], 'shotType', flow.shotType);
     if (!flow.shotType) { el.innerHTML = html; return; }
 
@@ -1787,6 +1822,221 @@ function endEarly() {
   resetFlow();
   const coachTab = document.querySelectorAll('.nav-tab')[1];
   showPage('coach', coachTab);
+}
+
+// ============================================================
+// 選手名編集（試合中・後）
+// ============================================================
+function openEditPlayers() {
+  if (!M) return;
+  const [a1, a2] = (M.teams.a.players || ' / ').split(' / ');
+  const [b1, b2] = (M.teams.b.players || ' / ').split(' / ');
+  document.getElementById('ep-a1').value = a1 || '';
+  document.getElementById('ep-a2').value = a2 || '';
+  document.getElementById('ep-b1').value = b1 || '';
+  document.getElementById('ep-b2').value = b2 || '';
+  document.getElementById('edit-players-bg').classList.add('show');
+}
+
+function closeEditPlayers(e) {
+  if (e && e.target.id !== 'edit-players-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('edit-players-bg').classList.remove('show');
+}
+
+function saveEditPlayers() {
+  if (!M) return;
+  const a1 = document.getElementById('ep-a1').value.trim() || '後衛A';
+  const a2 = document.getElementById('ep-a2').value.trim() || '前衛A';
+  const b1 = document.getElementById('ep-b1').value.trim() || '後衛B';
+  const b2 = document.getElementById('ep-b2').value.trim() || '前衛B';
+  
+  M.teams.a.name = `${a1}・${a2}`;
+  M.teams.a.players = `${a1} / ${a2}`;
+  M.teams.b.name = `${b1}・${b2}`;
+  M.teams.b.players = `${b1} / ${b2}`;
+  
+  if (window.fbSave) window.fbSave(currentCourt, M);
+  if (typeof renderScore === 'function') renderScore();
+  if (typeof renderFlow === 'function') renderFlow();
+  closeEditPlayers();
+}
+
+// ============================================================
+// 選手マスター（名前統合）
+// ============================================================
+function openPlayerMaster() {
+  document.getElementById('player-master-bg').classList.add('show');
+  renderPlayerMaster();
+}
+
+function closePlayerMaster(e) {
+  if (e && e.target.id !== 'player-master-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('player-master-bg').classList.remove('show');
+}
+
+async function renderPlayerMaster() {
+  const body = document.getElementById('player-master-body');
+  body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">読み込み中...</div>`;
+  
+  // 全イベント・全試合から選手名を集める
+  try {
+    const allData = await xhrRequest('GET', 'events');
+    if (!allData) {
+      body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">選手データがありません</div>`;
+      return;
+    }
+    const nameCount = {}; // 名前 → 出現回数
+    
+    Object.keys(allData).forEach(eid => {
+      const ev = allData[eid];
+      if (!ev || !ev.history) return;
+      Object.values(ev.history).forEach(d => {
+        if (!d || !d.teams) return;
+        const names = [];
+        if (d.teams.a && d.teams.a.players) names.push(...d.teams.a.players.split(' / '));
+        if (d.teams.b && d.teams.b.players) names.push(...d.teams.b.players.split(' / '));
+        names.forEach(n => {
+          const name = (n || '').trim();
+          if (!name) return;
+          nameCount[name] = (nameCount[name] || 0) + 1;
+        });
+      });
+    });
+    
+    const allNames = Object.keys(nameCount).sort((a,b) => a.localeCompare(b, 'ja'));
+    if (allNames.length === 0) {
+      body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">選手データがありません</div>`;
+      return;
+    }
+    
+    window._pmSelected = new Set();
+    
+    let html = `<div style="padding:10px 4px;color:var(--muted);font-size:12px;line-height:1.6">
+      同じ選手と思われる名前を2つ以上選んで「統合」を押すと、すべての試合データの名前を1つに揃えます。<br>
+      <strong style="color:var(--b)">※ この操作は元に戻せません</strong>
+    </div>`;
+    
+    html += `<div style="margin-bottom:10px">
+      <input type="text" id="pm-filter" placeholder="🔍 名前で絞り込み" oninput="filterPlayerMasterList()" style="width:100%;padding:8px;font-size:13px;border:1.5px solid var(--border);border-radius:6px">
+    </div>`;
+    
+    html += `<div id="pm-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">`;
+    allNames.forEach(name => {
+      const count = nameCount[name];
+      const escName = escapeHtml(name);
+      const safeName = escName.replace(/'/g, "\\'");
+      html += `<label class="pm-row" data-name="${escName}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;background:#fff">
+        <input type="checkbox" onchange="togglePmSelect('${safeName}')" style="width:17px;height:17px;cursor:pointer">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${escName}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-num)">${count}試合</div>
+        </div>
+      </label>`;
+    });
+    html += `</div>`;
+    
+    html += `<div id="pm-action" style="position:sticky;bottom:0;background:var(--surface);padding:12px 0 4px;margin-top:14px;border-top:1px solid var(--border);display:none">
+      <div style="font-size:12px;margin-bottom:8px"><span id="pm-selected-count">0</span>件選択中</div>
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">統合後の正しい名前</label>
+      <input type="text" id="pm-target-name" placeholder="例: 田中花子" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-bottom:10px">
+      <button class="btn green" style="width:100%;padding:11px;font-weight:700" onclick="mergeSelectedPlayers()">統合する</button>
+    </div>`;
+    
+    body.innerHTML = html;
+  } catch (e) {
+    body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--b);font-size:13px">読み込みエラー: ${escapeHtml(e.message || '')}</div>`;
+  }
+}
+
+function filterPlayerMasterList() {
+  const q = (document.getElementById('pm-filter').value || '').toLowerCase();
+  document.querySelectorAll('#pm-list .pm-row').forEach(row => {
+    const name = (row.dataset.name || '').toLowerCase();
+    row.style.display = !q || name.includes(q) ? '' : 'none';
+  });
+}
+
+function togglePmSelect(name) {
+  if (!window._pmSelected) window._pmSelected = new Set();
+  if (window._pmSelected.has(name)) window._pmSelected.delete(name);
+  else window._pmSelected.add(name);
+  const c = window._pmSelected.size;
+  document.getElementById('pm-selected-count').textContent = c;
+  document.getElementById('pm-action').style.display = c >= 2 ? 'block' : 'none';
+  // 1つだけ選んでいる場合は、それを統合先の初期値に
+  if (c === 1) {
+    const first = Array.from(window._pmSelected)[0];
+    const t = document.getElementById('pm-target-name');
+    if (t && !t.value) t.value = first;
+  }
+}
+
+async function mergeSelectedPlayers() {
+  const selected = Array.from(window._pmSelected || []);
+  if (selected.length < 2) { alert('2つ以上選んでください'); return; }
+  const target = (document.getElementById('pm-target-name').value || '').trim();
+  if (!target) { alert('統合後の名前を入力してください'); return; }
+  
+  const sources = selected.filter(n => n !== target);
+  if (sources.length === 0) { alert('置き換える名前がありません'); return; }
+  
+  if (!confirm(`以下の名前を「${target}」に統一します。よろしいですか？\n\n${selected.join('\n')}`)) return;
+  
+  // getAllEventsHistoryは combined（eid_mid キー）を返すので、再取得して event/match の構造で扱う
+  let allData;
+  try {
+    allData = await xhrRequest('GET', 'events');
+  } catch(e) {
+    alert('データ読み込みエラー: ' + (e.message || ''));
+    return;
+  }
+  
+  if (!allData) { alert('データがありません'); return; }
+  
+  const updates = []; // [{eid, mid, teams}]
+  Object.keys(allData).forEach(eid => {
+    const ev = allData[eid];
+    if (!ev || !ev.history) return;
+    Object.entries(ev.history).forEach(([mid, d]) => {
+      if (!d || !d.teams) return;
+      let changed = false;
+      ['a','b'].forEach(t => {
+        if (!d.teams[t] || !d.teams[t].players) return;
+        const parts = d.teams[t].players.split(' / ');
+        const newParts = parts.map(n => sources.includes((n || '').trim()) ? target : n);
+        if (newParts.join(' / ') !== d.teams[t].players) {
+          d.teams[t].players = newParts.join(' / ');
+          d.teams[t].name = newParts.join('・');
+          changed = true;
+        }
+      });
+      if (changed) updates.push({eid, mid, teams: d.teams});
+    });
+  });
+  
+  if (updates.length === 0) {
+    alert('変更対象の試合が見つかりませんでした');
+    return;
+  }
+  
+  // 1件ずつ更新
+  let okCount = 0;
+  for (const u of updates) {
+    try {
+      await xhrRequest('PUT', `events/${u.eid}/history/${u.mid}/teams`, u.teams);
+      okCount++;
+    } catch (e) {
+      console.warn('update failed:', u, e);
+    }
+  }
+  
+  alert(`${okCount}件の試合データを更新しました（${updates.length}件中）`);
+  window._pmSelected = new Set();
+  renderPlayerMaster();
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
 // ============================================================
@@ -2540,8 +2790,8 @@ function renderStatsDetail() {
 
 // ① ショット別 × ミス原因（積み上げ横棒グラフ）
 function buildChart1_ShotMiss(points) {
-  const shotTypes = ['St','S','V','LV','Hv','Sm','Re','DF'];
-  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Re:'レシーブ',DF:'ダブルフォルト'};
+  const shotTypes = ['St','S','V','LV','Hv','Sm','Tp','Re','DF'];
+  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Re:'レシーブ',DF:'ダブルフォルト'};
   const missTypes = ['N','SO','BO','T','DF'];
   const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ',DF:'DF'};
   const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0',DF:'#888888'};
@@ -2602,8 +2852,8 @@ function buildChart1_ShotMiss(points) {
 function buildChart2_HeatMatrix(points) {
   const bases = ['F','B'];
   const baseLabels = {F:'フォア',B:'バック'};
-  const shotTypes = ['St','S','V','LV','Hv','Sm'];
-  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ'};
+  const shotTypes = ['St','S','V','LV','Hv','Sm','Tp'];
+  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち'};
   const courses = ['C','Co','M','RST','LST'];
   const courseLabels = {C:'クロス',Co:'逆クロス',M:'ミドル',RST:'右ST',LST:'左ST'};
 
