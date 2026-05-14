@@ -49,12 +49,15 @@ function loadFirebase() {
 const QUEUE_KEY = 'st_queue_v4';
 const LOCAL_KEY = 'st_local_v4';
 const EVENTS_KEY = 'st_events_v4';
+const RANK_SNAPSHOT_KEY = 'st_rank_snapshot_v1';  // ⭐ 順位変動の比較用
 function getQueue() { return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); }
 function saveQueue(q) { localStorage.setItem(QUEUE_KEY,JSON.stringify(q)); }
 function getLocal() { return JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}'); }
 function saveLocal(d) { localStorage.setItem(LOCAL_KEY,JSON.stringify(d)); }
 function getLocalEvents() { return JSON.parse(localStorage.getItem(EVENTS_KEY)||'{}'); }
 function saveLocalEvents(d) { localStorage.setItem(EVENTS_KEY,JSON.stringify(d)); }
+function getRankSnapshots() { return JSON.parse(localStorage.getItem(RANK_SNAPSHOT_KEY)||'{}'); }
+function saveRankSnapshots(s) { localStorage.setItem(RANK_SNAPSHOT_KEY,JSON.stringify(s)); }
 
 let currentEventId = null;
 
@@ -349,16 +352,30 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .rank-list{padding:6px 0}
 .rank-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border)}
 .rank-row:last-child{border-bottom:none}
-.rank-pos{font-family:var(--font-num);font-size:18px;font-weight:800;width:28px;text-align:center;flex-shrink:0}
+.rank-pos-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;width:34px;flex-shrink:0}
+.rank-pos{font-family:var(--font-num);font-size:18px;font-weight:800;text-align:center;line-height:1}
 .rank-pos.p1{color:#c9a227}
 .rank-pos.p2{color:#9e9e9e}
 .rank-pos.p3{color:#a0522d}
+.rank-arrow{display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--font-num);font-weight:700;line-height:1;gap:1px;min-height:11px}
+.rank-arrow-up{color:#ffb800;text-shadow:0 0 5px rgba(255,184,0,.5)}
+.rank-arrow-down{color:#5a5a5a}
+.rank-arrow-same{color:var(--muted);opacity:.55;font-weight:600}
+.rank-arrow-new{color:var(--purple);font-size:11px}
+.rank-arrow-diff{font-size:9px;margin-left:1px;font-weight:800}
 .rank-name{flex:1;font-size:14px;font-weight:600}
 .rank-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--font-num)}
 .rank-val{font-family:var(--font-num);font-size:20px;font-weight:800;color:var(--green)}
 .rank-val-unit{font-size:10px;color:var(--muted);font-family:var(--font-num)}
 .rank-bar-wrap{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
 .rank-bar-fill{height:100%;background:var(--green);border-radius:3px;transition:width .5s}
+.rank-row-hidden{display:none}
+.rank-section.rank-expanded .rank-row-hidden{display:flex}
+.rank-expand-btn-wrap{padding:8px 12px;border-top:1px solid var(--border);background:var(--s2)}
+.rank-expand-btn{width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-family:var(--font-num);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.rank-expand-btn:hover{background:var(--bg);color:var(--ink)}
+.rank-expand-btn:active{transform:scale(.98)}
+.rank-section-note{padding:5px 14px;font-size:10px;color:var(--muted);font-family:var(--font-num);background:#fdf6e8;border-bottom:1px solid var(--border)}
 .rank-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;background:var(--surface);border-radius:12px 12px 0 0;overflow:hidden}
 .rank-tab{flex:1;padding:11px 8px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;font-family:var(--font-num)}
 .rank-tab.active{color:var(--green);border-bottom-color:var(--green);background:#f5fdf5}
@@ -2972,10 +2989,12 @@ async function loadRanking() {
   const individuals = {}; 
   const pairs = {};
   const playerWinLoss = {};
+  const matchIdsUsed = [];  // ⭐ フィンガープリント用
 
-  Object.values(history).forEach(d => {
+  Object.entries(history).forEach(([mid, d]) => {
     if (!d || !d.teams || !d.stats) return;
     if (!matchPassesDateFilter(d)) return;
+    matchIdsUsed.push(mid);  // ⭐ フィルタを通った試合IDを記録
 
     const tA = d.teams.a;
     const tB = d.teams.b;
@@ -3001,7 +3020,8 @@ async function loadRanking() {
     
     if (aIsOwn) {
       const pairA = tA.name;
-      if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, ptBreakdown:{} };
+      if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, matches:0, ptBreakdown:{} };
+      pairs[pairA].matches += 1;  // ⭐ 参加試合数
       // 個人ポイントの合計（決定打を打ったポイント）
       const aPlayerPts = (sa.players?.a1?.pts||0) + (sa.players?.a2?.pts||0);
       pairs[pairA].pts += aPlayerPts;
@@ -3014,7 +3034,8 @@ async function loadRanking() {
 
     if (bIsOwn) {
       const pairB = tB.name;
-      if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, ptBreakdown:{} };
+      if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, matches:0, ptBreakdown:{} };
+      pairs[pairB].matches += 1;  // ⭐ 参加試合数
       const bPlayerPts = (sb.players?.b1?.pts||0) + (sb.players?.b2?.pts||0);
       pairs[pairB].pts += bPlayerPts;
       pairs[pairB].srv1in += sb.srv1in || 0;
@@ -3094,7 +3115,10 @@ async function loadRanking() {
     <div id="rank-body"></div>
   `;
 
-  renderRankBody(individuals, pairs, playerWinLoss);
+  // ⭐ フィンガープリント（試合IDをソートして連結）
+  const fingerprint = matchIdsUsed.sort().join('|') || 'empty';
+
+  renderRankBody(individuals, pairs, playerWinLoss, fingerprint);
 }
 
 function setRankMode(mode, el) {
@@ -3104,7 +3128,7 @@ function setRankMode(mode, el) {
   loadRanking();
 }
 
-function renderRankBody(individuals, pairs, playerWinLoss) {
+function renderRankBody(individuals, pairs, playerWinLoss, fingerprint) {
   const el = document.getElementById('rank-body');
   if (!el) return;
 
@@ -3118,70 +3142,194 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
     const entries = shotOrder.filter(k => bd[k] > 0).map(k => `${shotLabels[k]||k}${bd[k]}`);
     return entries.length ? entries.join('・') : '';
   };
+
+  // ⭐ 順位変動比較用：前回のスナップショットを取得
+  const ctxKey = currentRankFilterKey();
+  const snapshots = getRankSnapshots();
+  const prev = snapshots[ctxKey];
+  // データが変わってない場合はprevRanks=null（矢印を出さない）にしてもよいが、
+  // 「同データ→矢印フラット」も自然なので、prevRanksとして使う
+  const prevRanks = prev ? prev.ranks : null;
+  const dataChanged = !prev || prev.fingerprint !== fingerprint;
+
+  // 現在の順位スナップショット（カテゴリ別 name → rank）
+  const newRanks = {};
+  const buildRankMap = (list, key) => {
+    newRanks[key] = {};
+    list.forEach((x, i) => { newRanks[key][x.name] = i + 1; });
+  };
   
   if (rankMode === 'individual') {
     const names = Object.keys(individuals);
     if (!names.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>個人データがありません</div>'; return; }
 
-    // ③ 上位3名まで表示
-    const byPts = names.map(n => ({name:n, ...individuals[n]})).sort((a,b) => (b.pts||0) - (a.pts||0)).slice(0,3);
-    const bySrv = names.map(n => ({name:n, ...individuals[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot)).slice(0,3);
-
-    // ⑤ 勝率ランキング（上位6名）
+    // フルソート（slice(0,3)しない）
+    const byPts = names.map(n => ({name:n, ...individuals[n]})).sort((a,b) => (b.pts||0) - (a.pts||0));
+    const bySrv = names.map(n => ({name:n, ...individuals[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot));
+    
     const wlNames = Object.keys(playerWinLoss).filter(n => playerWinLoss[n].total > 0);
     const byWinRate = wlNames.map(n => ({
       name: n,
       wins: playerWinLoss[n].wins,
       total: playerWinLoss[n].total,
       rate: Math.round(playerWinLoss[n].wins / playerWinLoss[n].total * 100)
-    })).sort((a,b) => b.rate - a.rate || b.wins - a.wins).slice(0, 6);
+    })).sort((a,b) => b.rate - a.rate || b.wins - a.wins);
+
+    // ⭐ ミスの少ない順（1試合以上参加した人のみ）
+    const byMiss = names
+      .filter(n => playerWinLoss[n] && playerWinLoss[n].total > 0)
+      .map(n => ({
+        name: n,
+        miss: individuals[n].miss || 0,
+        matches: playerWinLoss[n].total,
+        permatch: playerWinLoss[n].total > 0 ? (individuals[n].miss||0) / playerWinLoss[n].total : 0
+      }))
+      .sort((a,b) => a.miss - b.miss || b.matches - a.matches);  // ミス昇順、同数なら試合数多い順
+    const maxMissVal = Math.max(1, ...byMiss.map(x => x.miss));
+
+    buildRankMap(byPts,     'ind_pts');
+    buildRankMap(bySrv,     'ind_srv');
+    buildRankMap(byWinRate, 'ind_winrate');
+    buildRankMap(byMiss,    'ind_miss');
 
     el.innerHTML = [
-      buildRankSection('🏆 ポイント獲得数', byPts, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPts[0]?.pts||1),
-      buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100),
-      buildRankSection('📊 プレーヤー勝率', byWinRate, x => ({val:x.rate+'%', unit:'', sub:`${x.wins}勝/${x.total}試合`}), 100)
+      buildRankSection('ind_pts', '🏆 ポイント獲得数', byPts, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPts[0]?.pts||1, prevRanks?.ind_pts, {}),
+      buildRankSection('ind_srv', '🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100, prevRanks?.ind_srv, {}),
+      buildRankSection('ind_winrate', '📊 プレーヤー勝率', byWinRate, x => ({val:x.rate+'%', unit:'', sub:`${x.wins}勝/${x.total}試合`}), 100, prevRanks?.ind_winrate, {}),
+      buildRankSection('ind_miss', '🛡️ ミスの少ない順', byMiss, x => ({val:x.miss, unit:'回', sub:`${x.matches}試合（1試合あたり${x.permatch.toFixed(1)}回）`}), maxMissVal, prevRanks?.ind_miss, {barColor:'#c07800', valColor:'#1a4f8a', subNote:'※ バーが短いほど良い'})
     ].join('');
 
   } else {
     const pnames = Object.keys(pairs);
     if (!pnames.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>ペアデータがありません</div>'; return; }
 
-    // ③ 上位3名まで
-    const byPtsP = pnames.map(n => ({name:n, ...pairs[n]})).sort((a,b) => (b.pts||0) - (a.pts||0)).slice(0,3);
-    const bySrv = pnames.map(n => ({name:n, ...pairs[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot)).slice(0,3);
-    // ④ ミスランキング削除
+    const byPtsP = pnames.map(n => ({name:n, ...pairs[n]})).sort((a,b) => (b.pts||0) - (a.pts||0));
+    const bySrv  = pnames.map(n => ({name:n, ...pairs[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot));
+
+    // ⭐ ミスの少ない順（ペア）
+    const byMissP = pnames
+      .filter(n => (pairs[n].matches||0) > 0)
+      .map(n => ({
+        name: n,
+        miss: pairs[n].miss || 0,
+        matches: pairs[n].matches || 0,
+        permatch: (pairs[n].matches||0) > 0 ? (pairs[n].miss||0) / pairs[n].matches : 0
+      }))
+      .sort((a,b) => a.miss - b.miss || b.matches - a.matches);
+    const maxMissValP = Math.max(1, ...byMissP.map(x => x.miss));
+
+    buildRankMap(byPtsP,  'pair_pts');
+    buildRankMap(bySrv,   'pair_srv');
+    buildRankMap(byMissP, 'pair_miss');
 
     el.innerHTML = [
-      buildRankSection('🏆 ポイント獲得数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPtsP[0]?.pts||1),
-      buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100)
+      buildRankSection('pair_pts', '🏆 ポイント獲得数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPtsP[0]?.pts||1, prevRanks?.pair_pts, {}),
+      buildRankSection('pair_srv', '🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100, prevRanks?.pair_srv, {}),
+      buildRankSection('pair_miss', '🛡️ ミスの少ない順', byMissP, x => ({val:x.miss, unit:'回', sub:`${x.matches}試合（1試合あたり${x.permatch.toFixed(1)}回）`}), maxMissValP, prevRanks?.pair_miss, {barColor:'#c07800', valColor:'#1a4f8a', subNote:'※ バーが短いほど良い'})
     ].join('');
+  }
+
+  // ⭐ データが変わったときだけスナップショットを更新
+  // （前回と同じデータなら更新せず、次に試合が追加されたときに「前回」と比較できる）
+  if (dataChanged) {
+    const merged = (prev && prev.ranks) ? Object.assign({}, prev.ranks, newRanks) : newRanks;
+    snapshots[ctxKey] = { fingerprint, ranks: merged, savedAt: Date.now() };
+    saveRankSnapshots(snapshots);
   }
 }
 
-function buildRankSection(title, list, valFn, maxVal) {
-  const medal = (i) => ['🥇','🥈','🥉','4','5','6'][i]||'';
+// 現在のフィルタコンテキストキー（イベント/全期間/期間指定別にスナップショットを分離）
+function currentRankFilterKey() {
+  if (dateFilterMode === 'event') return 'event:' + (currentEventId || 'default');
+  if (dateFilterMode === 'all') return 'all';
+  if (dateFilterMode === 'custom') return `custom:${dateFilterFrom||''}:${dateFilterTo||''}`;
+  return dateFilterMode;
+}
+
+// 順位変動の矢印HTMLを返す
+function getRankArrow(currentRank, prevRank) {
+  if (prevRank === undefined || prevRank === null) {
+    return `<span class="rank-arrow rank-arrow-new" title="初登場">✦</span>`;
+  }
+  if (currentRank < prevRank) {
+    const diff = prevRank - currentRank;
+    return `<span class="rank-arrow rank-arrow-up" title="${diff}位アップ">▲<span class="rank-arrow-diff">${diff}</span></span>`;
+  }
+  if (currentRank > prevRank) {
+    const diff = currentRank - prevRank;
+    return `<span class="rank-arrow rank-arrow-down" title="${diff}位ダウン">▼<span class="rank-arrow-diff">${diff}</span></span>`;
+  }
+  return `<span class="rank-arrow rank-arrow-same" title="変動なし">─</span>`;
+}
+
+function toggleRankSection(id) {
+  const sec = document.getElementById('rank-sec-' + id);
+  if (!sec) return;
+  const isExpanded = sec.classList.toggle('rank-expanded');
+  const btn = sec.querySelector('.rank-expand-btn');
+  if (!btn) return;
+  if (isExpanded) {
+    btn.innerHTML = '▲ 折りたたむ';
+  } else {
+    const hidden = sec.querySelectorAll('.rank-row-hidden').length;
+    btn.innerHTML = `▼ 他${hidden}名を表示`;
+  }
+}
+
+function buildRankSection(id, title, list, valFn, maxVal, prevRankMap, options) {
+  options = options || {};
+  const barColor = options.barColor || 'var(--green)';
+  const valColor = options.valColor || 'var(--green)';
+  const subNote  = options.subNote  || '';
+
+  const medal = (i) => ['🥇','🥈','🥉'][i] || (i+1);
   const posCls = (i) => i===0?'p1':i===1?'p2':i===2?'p3':'';
-  const rows = list.length ? list.map((x,i) => {
+
+  if (!list || !list.length) {
+    return `<div class="rank-section" id="rank-sec-${id}">
+      <div class="rank-section-head"><span class="rank-medal">${title}</span></div>
+      <div class="rank-list"><div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);font-family:var(--font-num)">データがありません</div></div>
+    </div>`;
+  }
+
+  const rows = list.map((x, i) => {
     const v = valFn(x);
     const numVal = parseFloat(v.val) || 0;
-    const barW = maxVal > 0 ? Math.min(100, Math.round(numVal/maxVal*100)) : 0;
-    return `<div class="rank-row">
-      <div class="rank-pos ${posCls(i)}">${medal(i)||i+1}</div>
-      <div style="flex:1">
+    const barW = maxVal > 0 ? Math.min(100, Math.round(numVal / maxVal * 100)) : 0;
+    const hiddenCls = i >= 3 ? ' rank-row-hidden' : '';
+    const prevRank = prevRankMap ? prevRankMap[x.name] : undefined;
+    const arrow = getRankArrow(i + 1, prevRank);
+    return `<div class="rank-row${hiddenCls}">
+      <div class="rank-pos-wrap">
+        <div class="rank-pos ${posCls(i)}">${i<3 ? medal(i) : (i+1)}</div>
+        ${arrow}
+      </div>
+      <div style="flex:1;min-width:0">
         <div class="rank-name">${x.name}</div>
         <div class="rank-sub">${v.sub}</div>
-        <div class="rank-bar-wrap"><div class="rank-bar-fill" style="width:${barW}%"></div></div>
+        <div class="rank-bar-wrap"><div class="rank-bar-fill" style="width:${barW}%;background:${barColor}"></div></div>
       </div>
-      <div style="text-align:right">
-        <div class="rank-val">${v.val}</div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="rank-val" style="color:${valColor}">${v.val}</div>
         <div class="rank-val-unit">${v.unit}</div>
       </div>
     </div>`;
-  }).join('') : `<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);font-family:var(--font-num)">データがありません</div>`;
+  }).join('');
 
-  return `<div class="rank-section">
+  const hiddenCount = Math.max(0, list.length - 3);
+  const expandBtn = hiddenCount > 0
+    ? `<div class="rank-expand-btn-wrap"><button class="rank-expand-btn" onclick="toggleRankSection('${id}')">▼ 他${hiddenCount}名を表示</button></div>`
+    : '';
+
+  const noteHtml = subNote
+    ? `<div class="rank-section-note">${subNote}</div>`
+    : '';
+
+  return `<div class="rank-section" id="rank-sec-${id}">
     <div class="rank-section-head"><span class="rank-medal">${title}</span></div>
+    ${noteHtml}
     <div class="rank-list">${rows}</div>
+    ${expandBtn}
   </div>`;
 }
 
