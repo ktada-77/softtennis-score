@@ -681,6 +681,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
         <button class="btn sm" onclick="undoPt()">↩ 戻す</button>
         <button class="btn sm" onclick="toggleServe()">🔄 サーブ</button>
         <button class="btn sm analysis" onclick="openLiveAnalysis()">📊 分析</button>
+        <button class="btn sm" onclick="openMatchComment()">💬 一言</button>
         <button class="btn sm" onclick="openEditPlayers()">✏ 選手名</button>
         <button class="btn sm" id="mode-btn" onclick="toggleMode()" style="margin-left:auto">📝 詳細入力</button>
         <button class="btn sm danger" onclick="endEarly()">試合終了</button>
@@ -839,6 +840,53 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       </div>
 
       <button class="btn green" style="width:100%;padding:12px;font-size:14px;font-weight:700" onclick="saveQuickResult()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 試合結果の選手名編集モーダル -->
+<div class="live-modal-bg" id="match-players-bg" onclick="closeMatchPlayers(event)">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="live-head">
+      <h3>✏ この試合の選手名を編集</h3>
+      <button class="live-close" onclick="closeMatchPlayers()">閉じる</button>
+    </div>
+    <div class="live-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5">この試合のデータのみが変わります。他の試合は影響しません。</div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--a)">チームA 後衛</label><input type="text" id="mp-a1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--a)">チームA 前衛</label><input type="text" id="mp-a2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 後衛</label><input type="text" id="mp-b1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 前衛</label><input type="text" id="mp-b2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <button class="btn green" style="width:100%;padding:11px;font-weight:700" onclick="saveMatchPlayers()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 試合のポイント履歴モーダル -->
+<div class="live-modal-bg" id="match-history-bg" onclick="closeMatchHistory(event)">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:560px">
+    <div class="live-head">
+      <h3>📋 ポイント履歴</h3>
+      <button class="live-close" onclick="closeMatchHistory()">閉じる</button>
+    </div>
+    <div class="live-body" id="match-history-body" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- 一言コメントモーダル -->
+<div class="live-modal-bg" id="match-comment-bg" onclick="closeMatchComment(event)">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="live-head">
+      <h3>💬 試合への一言</h3>
+      <button class="live-close" onclick="closeMatchComment()">閉じる</button>
+    </div>
+    <div class="live-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">試合の感想やメモを残せます。試合結果に一緒に表示されます。</div>
+      <textarea id="match-comment-input" placeholder="例: ストロークが安定していた / 風が強くて2ndサーブが入らなかった" style="width:100%;min-height:100px;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;resize:vertical;font-family:inherit;line-height:1.6"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn sm" style="flex:1" onclick="clearMatchComment()">クリア</button>
+        <button class="btn green" style="flex:2" onclick="saveMatchComment()">保存</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2105,21 +2153,27 @@ async function renderPlayerMaster() {
       const count = nameCount[name];
       const escName = escapeHtml(name);
       const safeName = escName.replace(/'/g, "\\'");
-      html += `<label class="pm-row" data-name="${escName}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;background:#fff">
-        <input type="checkbox" onchange="togglePmSelect('${safeName}')" style="width:17px;height:17px;cursor:pointer">
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:600">${escName}</div>
-          <div style="font-size:10px;color:var(--muted);font-family:var(--font-num)">${count}試合</div>
-        </div>
-      </label>`;
+      html += `<div class="pm-row" data-name="${escName}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);background:#fff">
+        <label style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0">
+          <input type="checkbox" onchange="togglePmSelect('${safeName}')" style="width:17px;height:17px;cursor:pointer;flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis">${escName}</div>
+            <div style="font-size:10px;color:var(--muted);font-family:var(--font-num)">${count}試合</div>
+          </div>
+        </label>
+        <button onclick="deleteSinglePlayer('${safeName}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 9px;border-radius:5px;font-size:11px;cursor:pointer;flex-shrink:0">🗑</button>
+      </div>`;
     });
     html += `</div>`;
     
     html += `<div id="pm-action" style="position:sticky;bottom:0;background:var(--surface);padding:12px 0 4px;margin-top:14px;border-top:1px solid var(--border);display:none">
       <div style="font-size:12px;margin-bottom:8px"><span id="pm-selected-count">0</span>件選択中</div>
-      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">統合後の正しい名前</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn sm danger" style="flex:1;padding:9px" onclick="deleteSelectedPlayers()">🗑 選択を削除</button>
+      </div>
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">統合後の正しい名前（統合する場合）</label>
       <input type="text" id="pm-target-name" placeholder="例: 田中花子" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-bottom:10px">
-      <button class="btn green" style="width:100%;padding:11px;font-weight:700" onclick="mergeSelectedPlayers()">統合する</button>
+      <button class="btn green" style="width:100%;padding:11px;font-weight:700" onclick="mergeSelectedPlayers()">🔗 統合する</button>
     </div>`;
     
     body.innerHTML = html;
@@ -2149,6 +2203,72 @@ function togglePmSelect(name) {
     const t = document.getElementById('pm-target-name');
     if (t && !t.value) t.value = first;
   }
+}
+
+// 単独削除（行の🗑ボタン）
+async function deleteSinglePlayer(name) {
+  if (!confirm(`「${name}」を全試合データから削除しますか？\n\n（試合データ自体は残り、選手名のみ「（削除済み）」に置き換わります。元には戻せません。）`)) return;
+  await replacePlayerName([name], '（削除済み）');
+}
+
+// 複数削除（選択 → 「選択を削除」）
+async function deleteSelectedPlayers() {
+  const selected = Array.from(window._pmSelected || []);
+  if (selected.length === 0) { alert('1つ以上選んでください'); return; }
+  if (!confirm(`以下の${selected.length}名を全試合データから削除しますか？\n\n${selected.join('\n')}\n\n（試合データ自体は残り、選手名のみ「（削除済み）」に置き換わります。元には戻せません。）`)) return;
+  await replacePlayerName(selected, '（削除済み）');
+}
+
+// 共通: ソース名群を target に置換
+async function replacePlayerName(sources, target) {
+  let allData;
+  try {
+    allData = await xhrRequest('GET', 'events');
+  } catch(e) {
+    alert('データ読み込みエラー: ' + (e.message || ''));
+    return;
+  }
+  if (!allData) { alert('データがありません'); return; }
+  
+  const updates = [];
+  Object.keys(allData).forEach(eid => {
+    const ev = allData[eid];
+    if (!ev || !ev.history) return;
+    Object.entries(ev.history).forEach(([mid, d]) => {
+      if (!d || !d.teams) return;
+      let changed = false;
+      ['a','b'].forEach(t => {
+        if (!d.teams[t] || !d.teams[t].players) return;
+        const parts = d.teams[t].players.split(' / ');
+        const newParts = parts.map(n => sources.includes((n || '').trim()) ? target : n);
+        if (newParts.join(' / ') !== d.teams[t].players) {
+          d.teams[t].players = newParts.join(' / ');
+          d.teams[t].name = newParts.join('・');
+          changed = true;
+        }
+      });
+      if (changed) updates.push({eid, mid, teams: d.teams});
+    });
+  });
+  
+  if (updates.length === 0) {
+    alert('変更対象の試合が見つかりませんでした');
+    return;
+  }
+  
+  let okCount = 0;
+  for (const u of updates) {
+    try {
+      await xhrRequest('PUT', `events/${u.eid}/history/${u.mid}/teams`, u.teams);
+      okCount++;
+    } catch (e) {
+      console.warn('update failed:', u, e);
+    }
+  }
+  
+  alert(`${okCount}件の試合データを更新しました（${updates.length}件中）`);
+  window._pmSelected = new Set();
+  renderPlayerMaster();
 }
 
 async function mergeSelectedPlayers() {
@@ -2566,7 +2686,9 @@ function buildHistoryCard(d, mid) {
   wrap.innerHTML = `
     <div class="ms-head">
       <span class="ms-court-label">${isResultOnly ? '📝 結果のみ' : '終了'}: ${timeStr} (${d.matchGames}Gマッチ)</span>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="viewMatchHistory('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">📋 履歴</button>
+        <button onclick="editMatchPlayers('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">✏ 選手名</button>
         <button onclick="editMatchSchool('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🏫 学校名</button>
         <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🗑 削除</button>
       </div>
@@ -2582,6 +2704,11 @@ function buildHistoryCard(d, mid) {
       ${playerBlock(a2n, '前衛', 'pb-team-a', sa, 'a2')}
       ${playerBlock(b2n, '前衛', 'pb-team-b', sb, 'b2')}
     </div>`}
+    ${d.comment ? `
+    <div style="margin-top:10px;padding:10px 12px;background:#fffbea;border-left:3px solid #f0a030;border-radius:6px">
+      <div style="font-size:10px;color:var(--muted);font-family:var(--font-head);letter-spacing:.1em;margin-bottom:4px">💬 一言コメント</div>
+      <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${escapeHtml(d.comment)}</div>
+    </div>` : ''}
     ${d.reflect ? `
     <div class="rv">
       <div class="ai-head"><span class="ai-badge" style="background:var(--green)">生徒の振り返り</span></div>
@@ -2618,6 +2745,164 @@ async function editMatchSchool(mid) {
   } catch (e) {
     alert('更新に失敗しました: ' + (e.message || ''));
   }
+}
+
+async function editMatchPlayers(mid) {
+  const eid = currentEventId || 'default';
+  try {
+    const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    if (!d || !d.teams) { alert('試合データを取得できませんでした'); return; }
+    const [a1, a2] = (d.teams.a?.players || ' / ').split(' / ');
+    const [b1, b2] = (d.teams.b?.players || ' / ').split(' / ');
+    document.getElementById('mp-a1').value = a1 || '';
+    document.getElementById('mp-a2').value = a2 || '';
+    document.getElementById('mp-b1').value = b1 || '';
+    document.getElementById('mp-b2').value = b2 || '';
+    window._mpEditingMid = mid;
+    document.getElementById('match-players-bg').classList.add('show');
+  } catch (e) {
+    alert('読み込みエラー: ' + (e.message || ''));
+  }
+}
+
+function closeMatchPlayers(e) {
+  if (e && e.target.id !== 'match-players-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('match-players-bg').classList.remove('show');
+}
+
+async function saveMatchPlayers() {
+  const mid = window._mpEditingMid;
+  if (!mid) return;
+  const eid = currentEventId || 'default';
+  const a1 = document.getElementById('mp-a1').value.trim() || '後衛A';
+  const a2 = document.getElementById('mp-a2').value.trim() || '前衛A';
+  const b1 = document.getElementById('mp-b1').value.trim() || '後衛B';
+  const b2 = document.getElementById('mp-b2').value.trim() || '前衛B';
+  
+  try {
+    const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    if (!d || !d.teams) { alert('試合データを取得できませんでした'); return; }
+    d.teams.a.players = `${a1} / ${a2}`;
+    d.teams.a.name = `${a1}・${a2}`;
+    d.teams.b.players = `${b1} / ${b2}`;
+    d.teams.b.name = `${b1}・${b2}`;
+    await xhrRequest('PUT', `events/${eid}/history/${mid}/teams`, d.teams);
+    closeMatchPlayers();
+    loadDashboard();
+  } catch (e) {
+    alert('保存に失敗しました: ' + (e.message || ''));
+  }
+}
+
+// ============================================================
+// 試合のポイント履歴を表示
+// ============================================================
+async function viewMatchHistory(mid) {
+  const eid = currentEventId || 'default';
+  const body = document.getElementById('match-history-body');
+  body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">読み込み中...</div>`;
+  document.getElementById('match-history-bg').classList.add('show');
+  
+  try {
+    const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    if (!d || !d.pointLog || d.pointLog.length === 0) {
+      body.innerHTML = `<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6">この試合にはポイント履歴がありません<br><small>（簡易入力モード、または結果のみ記録の試合）</small></div>`;
+      return;
+    }
+    
+    const [a1n, a2n] = (d.teams?.a?.players || ' / ').split(' / ');
+    const [b1n, b2n] = (d.teams?.b?.players || ' / ').split(' / ');
+    const playerNames = { a1: a1n || 'a1', a2: a2n || 'a2', b1: b1n || 'b1', b2: b2n || 'b2' };
+    const teamNameA = d.teams?.a?.name || 'Aペア';
+    const teamNameB = d.teams?.b?.name || 'Bペア';
+    
+    const serveLbl = {'1st':'1st', '2nd':'2nd', 'fault':'DF'};
+    const baseLbl = {F:'フォア', B:'バック', Re:'レシーブ', SA:'サーブエース', ReA:'レシーブエース'};
+    const shotLbl = {St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち'};
+    const courseLbl = {C:'クロス', Co:'逆クロス', M:'ミドル', RST:'右ST', LST:'左ST'};
+    const missLbl = {N:'ネット', SO:'サイドアウト', BO:'バックアウト', T:'チップ', DF:'DF'};
+    
+    let html = `<div style="padding:0 2px 10px;font-size:11px;color:var(--muted);line-height:1.5">
+      ${d.pointLog.length}ポイントの記録があります。表示は確認用です。
+    </div>`;
+    
+    html += `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">`;
+    
+    let prevScore = '0-0';
+    d.pointLog.forEach((p, i) => {
+      const winnerTeam = p.winner === 'a' ? 'a' : 'b';
+      const winnerColor = winnerTeam === 'a' ? 'var(--a)' : 'var(--b)';
+      const score = `${p.scoreA||0}-${p.scoreB||0}`;
+      const game = `(G ${p.gameA||0}-${p.gameB||0})`;
+      
+      const player = p.player ? (playerNames[p.player] || p.player) : '';
+      const serveText = p.serve ? serveLbl[p.serve] || p.serve : '';
+      const rallyText = p.rally ? `${p.rally}球` : '';
+      const baseText = p.base ? baseLbl[p.base] || p.base : '';
+      const shotText = p.shotType ? shotLbl[p.shotType] || p.shotType : '';
+      const courseText = p.course ? courseLbl[p.course] || p.course : '';
+      const missText = p.miss ? missLbl[p.miss] || p.miss : '';
+      const typeText = p.type === 'point' ? '✔ ポイント' : '✘ ミス';
+      
+      let details = [];
+      if (serveText) details.push(serveText);
+      if (rallyText) details.push(rallyText);
+      if (player) details.push(player);
+      if (baseText && p.miss !== 'DF') details.push(baseText);
+      if (shotText) details.push(shotText);
+      if (courseText) details.push(courseText);
+      if (missText) details.push(missText);
+      
+      html += `<div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#fff">
+        <div style="font-size:11px;color:var(--muted);font-family:var(--font-num);min-width:32px">#${i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:${winnerColor};font-weight:700;margin-bottom:2px">
+            ${typeText} → ${winnerTeam==='a' ? teamNameA : teamNameB} ポイント
+          </div>
+          <div style="font-size:11px;color:var(--ink);line-height:1.4">${details.join(' › ') || '（情報なし）'}</div>
+        </div>
+        <div style="font-family:var(--font-num);text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:700">${score}</div>
+          <div style="font-size:9px;color:var(--muted)">${game}</div>
+        </div>
+      </div>`;
+    });
+    
+    html += `</div>`;
+    body.innerHTML = html;
+  } catch (e) {
+    body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--b);font-size:13px">読み込みエラー: ${escapeHtml(e.message || '')}</div>`;
+  }
+}
+
+function closeMatchHistory(e) {
+  if (e && e.target.id !== 'match-history-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('match-history-bg').classList.remove('show');
+}
+
+// ============================================================
+// 一言コメント
+// ============================================================
+function openMatchComment() {
+  if (!M) return;
+  document.getElementById('match-comment-input').value = M.comment || '';
+  document.getElementById('match-comment-bg').classList.add('show');
+}
+
+function closeMatchComment(e) {
+  if (e && e.target.id !== 'match-comment-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('match-comment-bg').classList.remove('show');
+}
+
+function clearMatchComment() {
+  document.getElementById('match-comment-input').value = '';
+}
+
+function saveMatchComment() {
+  if (!M) return;
+  M.comment = document.getElementById('match-comment-input').value.trim();
+  if (window.fbSave) window.fbSave(currentCourt, M);
+  closeMatchComment();
 }
 
 // ============================================================
@@ -2659,9 +2944,23 @@ async function loadRanking() {
     const bIsOwn = tB.isOwn !== false;
 
     // ペア集計（自チームのみ）
+    const collectPairBreakdown = (teamLetter, target) => {
+      const log = d.pointLog || [];
+      log.forEach(p => {
+        if (p.type !== 'point' || !p.player) return;
+        if (!p.player.startsWith(teamLetter)) return;
+        let cat;
+        if (p.base === 'SA') cat = 'SA';
+        else if (p.base === 'ReA') cat = 'ReA';
+        else if (p.shotType) cat = p.shotType;
+        else cat = 'その他';
+        target.ptBreakdown[cat] = (target.ptBreakdown[cat] || 0) + 1;
+      });
+    };
+    
     if (aIsOwn) {
       const pairA = tA.name;
-      if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
+      if (!pairs[pairA]) pairs[pairA] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, ptBreakdown:{} };
       // 個人ポイントの合計（決定打を打ったポイント）
       const aPlayerPts = (sa.players?.a1?.pts||0) + (sa.players?.a2?.pts||0);
       pairs[pairA].pts += aPlayerPts;
@@ -2669,17 +2968,19 @@ async function loadRanking() {
       pairs[pairA].srv1tot += sa.srv1tot || 0;
       pairs[pairA].df += sa.df || 0;
       pairs[pairA].miss += (sa.miss_type ? Object.values(sa.miss_type).reduce((s,v)=>s+v,0) : 0);
+      collectPairBreakdown('a', pairs[pairA]);
     }
 
     if (bIsOwn) {
       const pairB = tB.name;
-      if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
+      if (!pairs[pairB]) pairs[pairB] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, ptBreakdown:{} };
       const bPlayerPts = (sb.players?.b1?.pts||0) + (sb.players?.b2?.pts||0);
       pairs[pairB].pts += bPlayerPts;
       pairs[pairB].srv1in += sb.srv1in || 0;
       pairs[pairB].srv1tot += sb.srv1tot || 0;
       pairs[pairB].df += sb.df || 0;
       pairs[pairB].miss += (sb.miss_type ? Object.values(sb.miss_type).reduce((s,v)=>s+v,0) : 0);
+      collectPairBreakdown('b', pairs[pairB]);
     }
 
     // 個人集計（自チームのみ）
@@ -2687,8 +2988,8 @@ async function loadRanking() {
     const [b1name, b2name] = (tB.players || '').split(' / ');
 
     const addPlayer = (name, playerKey, stats) => {
-      if (!name || name.startsWith('後衛') || name.startsWith('前衛')) return;
-      if (!individuals[name]) individuals[name] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0 };
+      if (!name || name.startsWith('後衛') || name.startsWith('前衛') || name === '（削除済み）') return;
+      if (!individuals[name]) individuals[name] = { pts:0, srv1in:0, srv1tot:0, df:0, miss:0, ptBreakdown:{} };
       const ps = stats.players && stats.players[playerKey];
       if (ps) {
         individuals[name].pts     += ps.pts     || 0;
@@ -2697,6 +2998,18 @@ async function loadRanking() {
         individuals[name].df      += ps.df      || 0;
         individuals[name].miss    += ps.miss    || 0;
       }
+      // ポイント内訳（pointLogから集計）
+      const log = d.pointLog || [];
+      log.forEach(p => {
+        if (p.type !== 'point' || p.player !== playerKey) return;
+        // 分類: SA / ReA / shotType
+        let cat;
+        if (p.base === 'SA') cat = 'SA';
+        else if (p.base === 'ReA') cat = 'ReA';
+        else if (p.shotType) cat = p.shotType;
+        else cat = 'その他';
+        individuals[name].ptBreakdown[cat] = (individuals[name].ptBreakdown[cat] || 0) + 1;
+      });
     };
 
     if (aIsOwn) {
@@ -2718,7 +3031,7 @@ async function loadRanking() {
     ];
     allPlayers.forEach(p => {
       if (!p.isOwn) return;
-      if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛')) return;
+      if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛') || p.name === '（削除済み）') return;
       if (!playerWinLoss[p.name]) playerWinLoss[p.name] = { wins: 0, total: 0 };
       playerWinLoss[p.name].total += 1;
       if (matchWinner && p.team === matchWinner) {
@@ -2756,6 +3069,15 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
 
   const pct = (i, t) => t > 0 ? Math.round(i/t*100) : 0;
   
+  // ポイント内訳の整形（個人・ペア共通）
+  const shotLabels = {SA:'サーブエース',ReA:'レシーブエース',St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち'};
+  const shotOrder = ['SA','ReA','St','S','V','LV','Hv','Sm','Tp','その他'];
+  const formatPtBreakdown = (bd) => {
+    if (!bd) return '';
+    const entries = shotOrder.filter(k => bd[k] > 0).map(k => `${shotLabels[k]||k}${bd[k]}`);
+    return entries.length ? entries.join('・') : '';
+  };
+  
   if (rankMode === 'individual') {
     const names = Object.keys(individuals);
     if (!names.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>個人データがありません</div>'; return; }
@@ -2773,9 +3095,8 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
       rate: Math.round(playerWinLoss[n].wins / playerWinLoss[n].total * 100)
     })).sort((a,b) => b.rate - a.rate || b.wins - a.wins).slice(0, 6);
 
-    // ④ ミスランキング削除済み、DFランキング削除（②）
     el.innerHTML = [
-      buildRankSection('🏆 ポイント獲得数', byPts, x => ({val:x.pts||0, unit:'pt', sub:''}), byPts[0]?.pts||1),
+      buildRankSection('🏆 ポイント獲得数', byPts, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPts[0]?.pts||1),
       buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100),
       buildRankSection('📊 プレーヤー勝率', byWinRate, x => ({val:x.rate+'%', unit:'', sub:`${x.wins}勝/${x.total}試合`}), 100)
     ].join('');
@@ -2790,7 +3111,7 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
     // ④ ミスランキング削除
 
     el.innerHTML = [
-      buildRankSection('🏆 ポイント獲得数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:''}), byPtsP[0]?.pts||1),
+      buildRankSection('🏆 ポイント獲得数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPtsP[0]?.pts||1),
       buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100)
     ].join('');
   }
@@ -2863,7 +3184,7 @@ async function loadStatsPlayerList() {
     ];
     allP.forEach(p => {
       if (!p.isOwn) return;
-      if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛')) return;
+      if (!p.name || p.name.startsWith('後衛') || p.name.startsWith('前衛') || p.name === '（削除済み）') return;
       if (!playerMap[p.name]) playerMap[p.name] = { wins:0, total:0 };
       playerMap[p.name].total++;
       if (d.winner && p.team === d.winner) playerMap[p.name].wins++;
@@ -3046,6 +3367,69 @@ function renderStatsDetail() {
   el.appendChild(buildChart2_HeatMatrix(missPoints));
   el.appendChild(buildChart3_RallyHist(missPoints));
   el.appendChild(buildChart4_Donut(missPoints));
+  el.appendChild(buildChart5_ScoreContext(missPoints));
+}
+
+// ⑤ スコア状況別ミス（アップ/オール/ダウン）
+function buildChart5_ScoreContext(points) {
+  const ctx = { up: 0, tie: 0, down: 0 }; // up=アップ(リード), tie=オール(同点), down=ダウン(ビハインド)
+  
+  points.forEach(p => {
+    // p.player が a1/a2 ならチームA視点、b1/b2 ならチームB視点
+    if (!p.player) return;
+    const isTeamA = p.player.startsWith('a');
+    const myScore = isTeamA ? (p.scoreA || 0) : (p.scoreB || 0);
+    const oppScore = isTeamA ? (p.scoreB || 0) : (p.scoreA || 0);
+    // ミスを犯した直前のスコア = scoreA, scoreB はそのポイントの決着前のスコアなのでそのまま使う
+    if (myScore > oppScore) ctx.up++;
+    else if (myScore === oppScore) ctx.tie++;
+    else ctx.down++;
+  });
+  
+  const total = ctx.up + ctx.tie + ctx.down;
+  const card = document.createElement('div');
+  card.className = 'stats-card';
+  
+  if (total === 0) {
+    card.innerHTML = `<div class="stats-card-head">⑤ スコア状況別のミス</div>
+      <div class="stats-card-body"><div style="padding:14px;text-align:center;color:var(--muted);font-size:12px">データがありません</div></div>`;
+    return card;
+  }
+  
+  const pct = (v) => total > 0 ? Math.round(v / total * 100) : 0;
+  const items = [
+    { key: 'up', label: 'アップ', desc: 'リード時', color: '#2c9a4a', val: ctx.up },
+    { key: 'tie', label: 'オール', desc: '同点時', color: '#888888', val: ctx.tie },
+    { key: 'down', label: 'ダウン', desc: 'ビハインド時', color: '#c42e2e', val: ctx.down }
+  ];
+  
+  let bars = `<div style="display:grid;grid-template-columns:1fr;gap:8px;font-family:var(--font-num)">`;
+  items.forEach(it => {
+    const p = pct(it.val);
+    bars += `
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="min-width:90px">
+          <div style="font-size:13px;font-weight:700;color:${it.color}">${it.label}</div>
+          <div style="font-size:9px;color:var(--muted);font-family:var(--font-head);letter-spacing:.05em">${it.desc}</div>
+        </div>
+        <div style="flex:1;height:18px;background:var(--s2);border-radius:9px;overflow:hidden;position:relative">
+          <div style="height:100%;width:${p}%;background:${it.color};border-radius:9px;transition:width .3s"></div>
+        </div>
+        <div style="min-width:60px;text-align:right">
+          <span style="font-size:15px;font-weight:800">${it.val}</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:2px">回</span>
+          <div style="font-size:10px;color:var(--muted)">${p}%</div>
+        </div>
+      </div>`;
+  });
+  bars += `</div>`;
+  
+  card.innerHTML = `<div class="stats-card-head">⑤ スコア状況別のミス</div>
+    <div class="stats-card-body">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">どの場面でミスが多いかを集計します。<br>※「結果のみ記録」の試合は含まれません</div>
+      ${bars}
+    </div>`;
+  return card;
 }
 
 // ① ショット別 × ミス原因（積み上げ横棒グラフ）
