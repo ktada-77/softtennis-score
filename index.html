@@ -540,6 +540,16 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       </div>
       <div class="court-grid" id="court-grid"></div>
     </div>
+    
+    <div class="card" style="margin-top:14px;background:#fafafa">
+      <div class="card-head">
+        <span class="card-title" style="font-size:14px">📝 結果だけを記録</span>
+      </div>
+      <div style="padding:0 4px 4px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">分析できない試合の結果（スコアのみ）を後から記録します。<br>ランキング・勝率には反映されますが、スタッツには反映されません。</div>
+        <button class="btn green" style="width:100%;padding:11px;font-weight:700" onclick="openQuickResult()">+ 結果を入力する</button>
+      </div>
+    </div>
   </div>
 
   <div id="step-setup" style="display:none">
@@ -569,6 +579,12 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
         <div class="two-col">
           <div><label>チームA 後衛</label><input type="text" id="s-a1" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
           <div><label>チームA 前衛</label><input type="text" id="s-a2" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
+        </div>
+        <div style="margin-top:8px">
+          <label>対戦相手の学校名（任意）</label>
+          <input type="text" id="s-b-school" placeholder="例: ○○高校">
+        </div>
+        <div class="two-col" style="margin-top:8px">
           <div><label>チームB 後衛</label><input type="text" id="s-b1" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
           <div><label>チームB 前衛</label><input type="text" id="s-b2" placeholder="氏名" oninput="updateResumeServerLabels()"></div>
         </div>
@@ -757,6 +773,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">空欄のままだと自動で「後衛A」などのデフォルト名になります</div>
       <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--a)">チームA 後衛</label><input type="text" id="ep-a1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--a)">チームA 前衛</label><input type="text" id="ep-a2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--b)">対戦相手の学校名（任意）</label><input type="text" id="ep-school" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px" placeholder="例: ○○高校"></div>
       <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 後衛</label><input type="text" id="ep-b1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 前衛</label><input type="text" id="ep-b2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <button class="btn green" style="width:100%;padding:11px;font-size:14px;font-weight:700" onclick="saveEditPlayers()">保存</button>
@@ -772,6 +789,57 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <button class="live-close" onclick="closePlayerMaster()">閉じる</button>
     </div>
     <div class="live-body" id="player-master-body" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- 結果のみ入力モーダル -->
+<div class="live-modal-bg" id="quick-result-bg" onclick="closeQuickResult(event)">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="live-head">
+      <h3>📝 結果のみ記録</h3>
+      <button class="live-close" onclick="closeQuickResult()">閉じる</button>
+    </div>
+    <div class="live-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5">スコアだけを後から記録します。<br>ランキング・勝率には反映されます。</div>
+
+      <div style="background:rgba(26,79,138,.07);border-left:3px solid var(--a);padding:10px 12px;border-radius:6px;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.1em;margin-bottom:6px">自チーム (TAKADA.st)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label style="font-size:11px;font-weight:600">後衛</label><input type="text" id="qr-a1" placeholder="氏名" style="width:100%;padding:8px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;margin-top:3px"></div>
+          <div><label style="font-size:11px;font-weight:600">前衛</label><input type="text" id="qr-a2" placeholder="氏名" style="width:100%;padding:8px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;margin-top:3px"></div>
+        </div>
+      </div>
+
+      <div style="background:rgba(155,32,32,.07);border-left:3px solid var(--b);padding:10px 12px;border-radius:6px;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.1em;margin-bottom:6px">対戦相手</div>
+        <div style="margin-bottom:8px"><label style="font-size:11px;font-weight:600">学校名</label><input type="text" id="qr-school" placeholder="例: ○○高校" style="width:100%;padding:8px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;margin-top:3px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label style="font-size:11px;font-weight:600">後衛</label><input type="text" id="qr-b1" placeholder="氏名" style="width:100%;padding:8px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;margin-top:3px"></div>
+          <div><label style="font-size:11px;font-weight:600">前衛</label><input type="text" id="qr-b2" placeholder="氏名" style="width:100%;padding:8px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;margin-top:3px"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block">ゲームスコア</label>
+        <div style="display:flex;align-items:center;gap:10px;justify-content:center;font-family:var(--font-num)">
+          <input type="number" id="qr-ga" min="0" max="9" value="0" style="width:60px;padding:10px;font-size:22px;text-align:center;border:1.5px solid var(--border);border-radius:6px;font-weight:700;color:var(--a)">
+          <span style="font-size:24px;font-weight:700;color:var(--muted)">-</span>
+          <input type="number" id="qr-gb" min="0" max="9" value="0" style="width:60px;padding:10px;font-size:22px;text-align:center;border:1.5px solid var(--border);border-radius:6px;font-weight:700;color:var(--b)">
+        </div>
+        <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px">自チーム - 相手</div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block">マッチ形式</label>
+        <div class="rbtn-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <button type="button" class="rbtn" data-qr-match="5" onclick="setQrMatch(5,this)">5G</button>
+          <button type="button" class="rbtn on" data-qr-match="7" onclick="setQrMatch(7,this)">7G</button>
+          <button type="button" class="rbtn" data-qr-match="9" onclick="setQrMatch(9,this)">9G</button>
+        </div>
+      </div>
+
+      <button class="btn green" style="width:100%;padding:12px;font-size:14px;font-weight:700" onclick="saveQuickResult()">保存</button>
+    </div>
   </div>
 </div>
 
@@ -1011,10 +1079,10 @@ async function loadCourts() {
       sh = `<div class="court-status"><span class="sdot sd-empty"></span>データ不正</div>`;
     } else if (d.finished) {
       cls += ' finished';
-      sh = `<div class="court-status"><span class="sdot sd-done"></span>終了</div><div class="court-teams">${d.teams.a.name}<br>vs<br>${d.teams.b.name}</div>`;
+      sh = `<div class="court-status"><span class="sdot sd-done"></span>終了</div><div class="court-teams">${d.teams.a.name}<br>vs<br>${d.teams.b.school ? d.teams.b.school + ' ' : ''}${d.teams.b.name}</div>`;
     } else {
       cls += ' active-match';
-      sh = `<div class="court-status"><span class="sdot sd-active"></span>試合中</div><div class="court-teams">${d.teams.a.name}<br>vs<br>${d.teams.b.name}</div>`;
+      sh = `<div class="court-status"><span class="sdot sd-active"></span>試合中</div><div class="court-teams">${d.teams.a.name}<br>vs<br>${d.teams.b.school ? d.teams.b.school + ' ' : ''}${d.teams.b.name}</div>`;
     }
     div.className = cls;
     div.innerHTML = `<div class="court-num">${i}</div>${sh}`;
@@ -1038,7 +1106,7 @@ function selectCourt(id, d) {
     return;
   }
   document.getElementById('setup-label').textContent = `コート ${id} 設定`;
-  ['s-a1','s-a2','s-b1','s-b2'].forEach(x => document.getElementById(x).value = '');
+  ['s-a1','s-a2','s-b1','s-b2','s-b-school'].forEach(x => { const el = document.getElementById(x); if (el) el.value = ''; });
   resetCfg();
   goStep('setup');
 }
@@ -1133,7 +1201,7 @@ function startNewOnCourt(id) {
   if (old) old.remove();
   currentCourt = id;
   document.getElementById('setup-label').textContent = `コート ${id} 設定`;
-  ['s-a1','s-a2','s-b1','s-b2'].forEach(x => document.getElementById(x).value = '');
+  ['s-a1','s-a2','s-b1','s-b2','s-b-school'].forEach(x => { const el = document.getElementById(x); if (el) el.value = ''; });
   resetCfg();
   goStep('setup');
 }
@@ -1152,6 +1220,7 @@ function startMatch() {
   const a2 = document.getElementById('s-a2').value.trim() || '前衛A';
   const b1 = document.getElementById('s-b1').value.trim() || '後衛B';
   const b2 = document.getElementById('s-b2').value.trim() || '前衛B';
+  const bSchool = document.getElementById('s-b-school')?.value.trim() || '';
 
   // 途中開始モードの値を取得
   const resumeMode = document.getElementById('resume-mode')?.checked || false;
@@ -1209,7 +1278,7 @@ function startMatch() {
     courtId: currentCourt,
     teams: {
       a: { name: `${a1}・${a2}`, players: `${a1} / ${a2}`, isOwn: cfg.isOwnA !== false },
-      b: { name: `${b1}・${b2}`, players: `${b1} / ${b2}`, isOwn: cfg.isOwnB !== false }
+      b: { name: `${b1}・${b2}`, players: `${b1} / ${b2}`, isOwn: cfg.isOwnB !== false, school: bSchool }
     },
     matchGames: cfg.match,
     winGames: Math.ceil(cfg.match / 2),
@@ -1835,6 +1904,8 @@ function openEditPlayers() {
   document.getElementById('ep-a2').value = a2 || '';
   document.getElementById('ep-b1').value = b1 || '';
   document.getElementById('ep-b2').value = b2 || '';
+  const epSchool = document.getElementById('ep-school');
+  if (epSchool) epSchool.value = M.teams.b.school || '';
   document.getElementById('edit-players-bg').classList.add('show');
 }
 
@@ -1849,16 +1920,125 @@ function saveEditPlayers() {
   const a2 = document.getElementById('ep-a2').value.trim() || '前衛A';
   const b1 = document.getElementById('ep-b1').value.trim() || '後衛B';
   const b2 = document.getElementById('ep-b2').value.trim() || '前衛B';
+  const epSchool = document.getElementById('ep-school');
+  const school = epSchool ? epSchool.value.trim() : (M.teams.b.school || '');
   
   M.teams.a.name = `${a1}・${a2}`;
   M.teams.a.players = `${a1} / ${a2}`;
   M.teams.b.name = `${b1}・${b2}`;
   M.teams.b.players = `${b1} / ${b2}`;
+  M.teams.b.school = school;
   
   if (window.fbSave) window.fbSave(currentCourt, M);
   if (typeof renderScore === 'function') renderScore();
   if (typeof renderFlow === 'function') renderFlow();
   closeEditPlayers();
+}
+
+// ============================================================
+// 結果のみ入力
+// ============================================================
+let qrMatchGames = 7;
+
+function setQrMatch(g, btn) {
+  qrMatchGames = g;
+  document.querySelectorAll('[data-qr-match]').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function openQuickResult() {
+  // フォーム初期化
+  ['qr-a1','qr-a2','qr-b1','qr-b2','qr-school'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('qr-ga').value = '0';
+  document.getElementById('qr-gb').value = '0';
+  qrMatchGames = 7;
+  document.querySelectorAll('[data-qr-match]').forEach(b => {
+    b.classList.toggle('on', b.dataset.qrMatch === '7');
+  });
+  document.getElementById('quick-result-bg').classList.add('show');
+}
+
+function closeQuickResult(e) {
+  if (e && e.target.id !== 'quick-result-bg' && !e.target.classList.contains('live-close')) return;
+  document.getElementById('quick-result-bg').classList.remove('show');
+}
+
+async function saveQuickResult() {
+  const a1 = document.getElementById('qr-a1').value.trim();
+  const a2 = document.getElementById('qr-a2').value.trim();
+  const b1 = document.getElementById('qr-b1').value.trim();
+  const b2 = document.getElementById('qr-b2').value.trim();
+  const school = document.getElementById('qr-school').value.trim();
+  const ga = parseInt(document.getElementById('qr-ga').value) || 0;
+  const gb = parseInt(document.getElementById('qr-gb').value) || 0;
+
+  if (!a1 && !a2) { alert('自チームの選手名を入力してください'); return; }
+  if (!b1 && !b2) { alert('対戦相手の選手名を入力してください'); return; }
+  if (ga === gb) { alert('引き分けは記録できません'); return; }
+
+  const winGames = Math.ceil(qrMatchGames / 2);
+  if (ga > winGames || gb > winGames) {
+    if (!confirm(`${qrMatchGames}Gマッチで${ga}-${gb}は通常ありえない数値です。続行しますか？`)) return;
+  }
+
+  const winner = ga > gb ? 'a' : 'b';
+  const now = new Date();
+
+  const aP1 = a1 || '後衛A';
+  const aP2 = a2 || '前衛A';
+  const bP1 = b1 || '後衛B';
+  const bP2 = b2 || '前衛B';
+
+  const matchData = {
+    matchGames: qrMatchGames,
+    teams: {
+      a: { name: `${aP1}・${aP2}`, players: `${aP1} / ${aP2}`, isOwn: true },
+      b: { name: `${bP1}・${bP2}`, players: `${bP1} / ${bP2}`, isOwn: false, school: school }
+    },
+    gamesWon: { a: ga, b: gb },
+    pts: { a: 0, b: 0 },
+    finalPts: { a: 0, b: 0 },
+    isFinal: false,
+    finished: true,
+    winner: winner,
+    serving: 'a',
+    pointLog: [],
+    gameLog: [],
+    stats: {
+      a: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
+           base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
+           course:{ C:0, Co:0, M:0, RST:0, LST:0 },
+           miss_type:{ N:0, SO:0, BO:0, T:0 },
+           players:{ a1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
+                     a2:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0} },
+           rally:{'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0} },
+      b: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
+           base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
+           course:{ C:0, Co:0, M:0, RST:0, LST:0 },
+           miss_type:{ N:0, SO:0, BO:0, T:0 },
+           players:{ b1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
+                     b2:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0} },
+           rally:{'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0} }
+    },
+    startTime: now.toISOString(),
+    endTime: now.toISOString(),
+    resultOnly: true   // 結果のみ記録のフラグ
+  };
+
+  const eid = currentEventId || 'default';
+  const historyId = now.getTime() + '_qr';
+  try {
+    await xhrRequest('PUT', `events/${eid}/history/${historyId}`, matchData);
+    closeQuickResult();
+    alert('結果を保存しました');
+  } catch (e) {
+    alert('保存に失敗しました: ' + (e.message || ''));
+  }
 }
 
 // ============================================================
@@ -2380,23 +2560,28 @@ function buildHistoryCard(d, mid) {
 
   const [a1n, a2n] = (d.teams?.a?.players||'後衛A / 前衛A').split(' / ');
   const [b1n, b2n] = (d.teams?.b?.players||'後衛B / 前衛B').split(' / ');
+  const isResultOnly = d.resultOnly === true;
+  const teamADisplayName = d.teams?.a?.isOwn !== false ? 'TAKADA.st' : (d.teams?.a?.name || 'Aペア');
 
   wrap.innerHTML = `
     <div class="ms-head">
-      <span class="ms-court-label">終了: ${timeStr} (${d.matchGames}Gマッチ)</span>
-      <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🗑 削除</button>
+      <span class="ms-court-label">${isResultOnly ? '📝 結果のみ' : '終了'}: ${timeStr} (${d.matchGames}Gマッチ)</span>
+      <div style="display:flex;gap:6px">
+        <button onclick="editMatchSchool('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🏫 学校名</button>
+        <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🗑 削除</button>
+      </div>
     </div>
     <div class="score-line">
-      <div class="sl-team sl-a">${d.teams?.a?.name || 'Aペア'}</div>
+      <div class="sl-team sl-a">${isResultOnly ? `<span style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:2px">TAKADA.st</span>${a1n}・${a2n}` : (d.teams?.a?.name || 'Aペア')}</div>
       <div class="sl-score">${d.gamesWon?.a||0} - ${d.gamesWon?.b||0}</div>
-      <div class="sl-team sl-b">${d.teams?.b?.name || 'Bペア'}</div>
+      <div class="sl-team sl-b">${d.teams?.b?.school ? `<span style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:2px">${escapeHtml(d.teams.b.school)}</span>` : ''}${d.teams?.b?.name || 'Bペア'}</div>
     </div>
-    <div class="player-grid">
+    ${isResultOnly ? '' : `<div class="player-grid">
       ${playerBlock(a1n, '後衛', 'pb-team-a', sa, 'a1')}
       ${playerBlock(b1n, '後衛', 'pb-team-b', sb, 'b1')}
       ${playerBlock(a2n, '前衛', 'pb-team-a', sa, 'a2')}
       ${playerBlock(b2n, '前衛', 'pb-team-b', sb, 'b2')}
-    </div>
+    </div>`}
     ${d.reflect ? `
     <div class="rv">
       <div class="ai-head"><span class="ai-badge" style="background:var(--green)">生徒の振り返り</span></div>
@@ -2416,6 +2601,22 @@ async function deleteHistoryMatch(mid) {
     loadDashboard();
   } catch(e) {
     alert('削除に失敗しました');
+  }
+}
+
+async function editMatchSchool(mid) {
+  const eid = currentEventId || 'default';
+  try {
+    const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    if (!d || !d.teams || !d.teams.b) { alert('試合データを取得できませんでした'); return; }
+    const current = d.teams.b.school || '';
+    const newSchool = prompt('対戦相手の学校名を入力（空欄でクリア）', current);
+    if (newSchool === null) return; // キャンセル
+    d.teams.b.school = newSchool.trim();
+    await xhrRequest('PUT', `events/${eid}/history/${mid}/teams/b`, d.teams.b);
+    loadDashboard();
+  } catch (e) {
+    alert('更新に失敗しました: ' + (e.message || ''));
   }
 }
 
@@ -2730,13 +2931,17 @@ function openStatsDetail(name) {
     if (playerKey) {
       matchCount++;
       const timeStr = d.endTime ? new Date(d.endTime).toLocaleString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-      const vs = playerKey.startsWith('a') ? d.teams.b.name : d.teams.a.name;
+      const vsTeam = playerKey.startsWith('a') ? d.teams.b : d.teams.a;
+      const vs = (vsTeam.school ? vsTeam.school + ' ' : '') + (vsTeam.name || '');
       const won = d.winner === (playerKey.startsWith('a') ? 'a' : 'b');
+      const teamKey = playerKey.startsWith('a') ? 'a' : 'b';
+      const playerStats = d.stats?.[teamKey]?.players?.[playerKey] || {};
       statsPlayerMatches.push({
         matchId: mid,
         label: `第${matchCount}試合 ${timeStr} vs ${vs} ${won?'⭕':'❌'}`,
         pointLog: d.pointLog || [],
-        playerKey
+        playerKey,
+        playerStats
       });
     }
   });
@@ -2757,6 +2962,9 @@ function renderStatsDetail() {
 
   // 対象のpointLogとplayerKeyを集める
   let missPoints = [];
+  // サーブ統計集計
+  let srv1in = 0, srv1tot = 0, srv2in = 0, srv2tot = 0, df = 0, pts = 0, miss = 0;
+  
   if (filterVal === 'all') {
     statsPlayerMatches.forEach(m => {
       m.pointLog.forEach(p => {
@@ -2764,6 +2972,14 @@ function renderStatsDetail() {
           missPoints.push(p);
         }
       });
+      const ps = m.playerStats || {};
+      srv1in += ps.srv1in || 0;
+      srv1tot += ps.srv1tot || 0;
+      srv2in += ps.srv2in || 0;
+      srv2tot += ps.srv2tot || 0;
+      df += ps.df || 0;
+      pts += ps.pts || 0;
+      miss += ps.miss || 0;
     });
   } else {
     const m = statsPlayerMatches[parseInt(filterVal)];
@@ -2773,15 +2989,59 @@ function renderStatsDetail() {
           missPoints.push(p);
         }
       });
+      const ps = m.playerStats || {};
+      srv1in = ps.srv1in || 0;
+      srv1tot = ps.srv1tot || 0;
+      srv2in = ps.srv2in || 0;
+      srv2tot = ps.srv2tot || 0;
+      df = ps.df || 0;
+      pts = ps.pts || 0;
+      miss = ps.miss || 0;
     }
   }
+  
+  el.innerHTML = '';
+  
+  // サーブ統計サマリー（カード形式）
+  const srv1rate = srv1tot > 0 ? Math.round(srv1in / srv1tot * 100) : 0;
+  const srv2rate = srv2tot > 0 ? Math.round(srv2in / srv2tot * 100) : 0;
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'stats-card';
+  summaryCard.innerHTML = `
+    <div class="stats-card-head">📈 サーブ & 試合サマリー</div>
+    <div class="stats-card-body">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;font-family:var(--font-num)">
+        <div style="background:var(--s2);padding:10px;border-radius:8px;border-left:3px solid var(--green)">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px">1ST サーブ確率</div>
+          <div style="font-size:24px;font-weight:800;color:var(--green)">${srv1rate}<span style="font-size:14px">%</span></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${srv1in} / ${srv1tot} 本</div>
+        </div>
+        <div style="background:var(--s2);padding:10px;border-radius:8px;border-left:3px solid var(--a)">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px">2ND サーブ確率</div>
+          <div style="font-size:24px;font-weight:800;color:var(--a)">${srv2rate}<span style="font-size:14px">%</span></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${srv2in} / ${srv2tot} 本</div>
+        </div>
+        <div style="background:var(--s2);padding:10px;border-radius:8px;border-left:3px solid #888">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px">ダブルフォルト</div>
+          <div style="font-size:24px;font-weight:800;color:#666">${df}<span style="font-size:14px">本</span></div>
+        </div>
+        <div style="background:var(--s2);padding:10px;border-radius:8px;border-left:3px solid var(--b)">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px">獲得ポイント / ミス</div>
+          <div style="font-size:20px;font-weight:800"><span style="color:var(--green)">${pts}</span> / <span style="color:var(--b)">${miss}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+  el.appendChild(summaryCard);
 
   if (missPoints.length === 0) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">✨</div>ミスのデータがありません<br>（素晴らしい！）</div>';
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.innerHTML = '<div class="empty-icon">✨</div>ミスのデータがありません（素晴らしい！）';
+    el.appendChild(empty);
     return;
   }
 
-  el.innerHTML = '';
   el.appendChild(buildChart1_ShotMiss(missPoints));
   el.appendChild(buildChart2_HeatMatrix(missPoints));
   el.appendChild(buildChart3_RallyHist(missPoints));
