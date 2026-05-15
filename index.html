@@ -330,6 +330,63 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .sl-a{color:var(--a)} .sl-b{color:var(--b);text-align:right}
 .sl-score{font-family:var(--font-num);font-size:28px;font-weight:800;white-space:nowrap}
 
+/* === ① トータル戦績サマリーカード === */
+.match-summary-card{background:linear-gradient(135deg,#1a4f8a 0%,#2c6fbd 100%);color:#fff;border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 16px rgba(26,79,138,.2);animation:up .3s ease}
+.ms-summary-head{padding:10px 14px;background:rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+.ms-summary-icon{font-size:14px}
+.ms-summary-title{opacity:.95}
+.ms-summary-body{padding:12px 14px}
+.ms-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.13)}
+.ms-row:last-child{border-bottom:none}
+.ms-row-total{padding:6px 0 12px;border-bottom:1px solid rgba(255,255,255,.25)}
+.ms-row-sub{padding:7px 0;font-size:12px}
+.ms-row-vs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.ms-team-own{font-family:var(--font-head);font-weight:700;font-size:15px;letter-spacing:.04em}
+.ms-vs{font-family:var(--font-num);font-size:11px;opacity:.7;font-weight:600}
+.ms-vs-sub{font-family:var(--font-num);font-size:10px;opacity:.55;font-weight:500}
+.ms-team-opp{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.ms-team-opp-sub{font-size:12px;opacity:.92;overflow-wrap:anywhere}
+.ms-row-stats{display:flex;align-items:baseline;gap:10px;flex-shrink:0;font-family:var(--font-num)}
+.ms-record{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.ms-record-sub{font-size:13px;font-weight:700;opacity:.95}
+.ms-wins{color:#ffe07a;font-size:24px;text-shadow:0 1px 3px rgba(0,0,0,.2)}
+.ms-slash{margin:0 2px;opacity:.55;font-weight:500}
+.ms-total{opacity:.85}
+.ms-pct{font-size:14px;font-weight:700;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:10px;letter-spacing:.02em}
+.ms-pct-sub{font-size:11px;font-weight:600;opacity:.85}
+
+/* === ② ビュー切替トグル === */
+.coach-view-toggle{display:flex;align-items:stretch;gap:8px;margin-bottom:14px}
+.cv-tabs{display:flex;flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:hidden;box-shadow:var(--sh)}
+.cv-tab{flex:1;padding:10px 8px;background:transparent;border:none;font-family:var(--font-num);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;border-right:1px solid var(--border)}
+.cv-tab:last-child{border-right:none}
+.cv-tab.active{background:var(--ink);color:#fff}
+.cv-tab:hover:not(.active){background:var(--s2);color:var(--ink)}
+.cv-export-btn{padding:0 14px;background:var(--green);color:#fff;border:none;border-radius:9px;font-family:var(--font-num);font-size:12px;font-weight:700;cursor:pointer;box-shadow:var(--sh);transition:all .15s;white-space:nowrap}
+.cv-export-btn:hover{background:#1f6c2e}
+.cv-export-btn:active{transform:scale(.97)}
+
+/* === ② コンパクト一覧 === */
+.compact-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--sh)}
+.cl-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--font-main)}
+.cl-row:last-child{border-bottom:none}
+.cl-row-win{background:linear-gradient(90deg,rgba(40,130,58,.06) 0%,transparent 100%)}
+.cl-row-loss{background:linear-gradient(90deg,rgba(155,32,32,.05) 0%,transparent 100%)}
+.cl-time{font-family:var(--font-num);font-size:10px;color:var(--muted);width:78px;flex-shrink:0;line-height:1.3}
+.cl-vs{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.cl-side{flex:1;min-width:0}
+.cl-side.cl-own{text-align:right}
+.cl-side.cl-opp{text-align:left}
+.cl-name{font-size:13px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.cl-own .cl-name{color:var(--a)}
+.cl-opp .cl-name{color:var(--ink)}
+.cl-sub{font-size:10px;color:var(--muted);line-height:1.3;overflow-wrap:anywhere}
+.cl-score{font-family:var(--font-num);font-size:18px;font-weight:800;white-space:nowrap;flex-shrink:0;padding:0 4px;letter-spacing:-.02em}
+.cl-score-dash{margin:0 2px;color:var(--muted);font-weight:600}
+.cl-result{width:42px;flex-shrink:0;text-align:right}
+.cl-win{font-family:var(--font-num);font-size:11px;font-weight:800;color:var(--green);letter-spacing:.02em}
+.cl-loss{font-family:var(--font-num);font-size:11px;font-weight:700;color:var(--b);opacity:.75;letter-spacing:.02em}
+
 /* PLAYER BLOCKS - ② DF項目削除済み */
 .player-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
 .player-block{border-radius:9px;padding:11px 12px;border:1.5px solid var(--border)}
@@ -768,7 +825,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 
 <div class="page" id="page-coach">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div class="sec-title">全コート サマリー</div>
+    <div class="sec-title">📈 試合結果</div>
     <button class="btn sm green" onclick="loadDashboard()">🔄 更新</button>
   </div>
   <div id="coach-list"></div>
@@ -2685,6 +2742,13 @@ function saveReflect() {
 // ============================================================
 // DASHBOARD & HISTORY — ② DF項目削除
 // ============================================================
+let coachViewMode = 'detail';  // 'detail' or 'list'
+
+function setCoachView(mode) {
+  coachViewMode = mode;
+  loadDashboard();
+}
+
 async function loadDashboard() {
   const eid = currentEventId || 'default';
   const listEl = document.getElementById('coach-list');
@@ -2703,10 +2767,382 @@ async function loadDashboard() {
   const matchIds = Object.keys(history).sort((a, b) => b - a);
   listEl.innerHTML = '';
 
-  matchIds.forEach(mid => {
-    const m = history[mid];
-    listEl.appendChild(buildHistoryCard(m, mid));
+  // ① サマリーカード（最上部に常に表示）
+  const summary = calculateMatchSummary(history);
+  if (summary.totalMatches > 0) {
+    listEl.appendChild(buildMatchSummaryCard(summary));
+  }
+
+  // ② ビュー切替トグル
+  listEl.appendChild(buildCoachViewToggle());
+
+  // ビュー本体
+  if (coachViewMode === 'list') {
+    listEl.appendChild(buildMatchCompactList(history, matchIds));
+  } else {
+    matchIds.forEach(mid => {
+      listEl.appendChild(buildHistoryCard(history[mid], mid));
+    });
+  }
+}
+
+// ① TAKADA.st 視点の戦績集計
+function calculateMatchSummary(history) {
+  const perSchool = {};  // schoolName -> {wins, total, name}
+  let totalWins = 0, totalMatches = 0;
+
+  Object.values(history).forEach(d => {
+    if (!d || !d.teams) return;
+    const aIsOwn = d.teams.a?.isOwn !== false;
+    const bIsOwn = d.teams.b?.isOwn !== false;
+
+    // 自チーム対自チーム or どちらも他校 → 戦績集計から除外
+    if (aIsOwn === bIsOwn) return;
+
+    const takadaSide = aIsOwn ? 'a' : 'b';
+    const oppSide   = aIsOwn ? 'b' : 'a';
+    const oppTeam   = d.teams[oppSide] || {};
+    const schoolName = oppTeam.school || oppTeam.name || '名前なし';
+
+    if (!perSchool[schoolName]) perSchool[schoolName] = { wins: 0, total: 0 };
+    perSchool[schoolName].total += 1;
+    totalMatches += 1;
+
+    if (d.winner === takadaSide) {
+      perSchool[schoolName].wins += 1;
+      totalWins += 1;
+    }
   });
+
+  return { perSchool, totalWins, totalMatches };
+}
+
+function buildMatchSummaryCard(summary) {
+  const card = document.createElement('div');
+  card.className = 'match-summary-card';
+
+  const pct = summary.totalMatches > 0 ? Math.round(summary.totalWins / summary.totalMatches * 100) : 0;
+  const schools = Object.keys(summary.perSchool);
+  const multiSchool = schools.length > 1;
+
+  // 単一相手 → トータル行のみで対戦相手名も併記
+  // 複数相手 → 「全体」行 + 学校別ブレイクダウン
+  let rowsHtml = '';
+  if (multiSchool) {
+    // 全体
+    rowsHtml += `
+      <div class="ms-row ms-row-total">
+        <div class="ms-row-vs">
+          <span class="ms-team-own">TAKADA.st</span>
+          <span class="ms-vs">VS</span>
+          <span class="ms-team-opp">全対戦校</span>
+        </div>
+        <div class="ms-row-stats">
+          <span class="ms-record"><span class="ms-wins">${summary.totalWins}</span><span class="ms-slash">/</span><span class="ms-total">${summary.totalMatches}</span></span>
+          <span class="ms-pct">${pct}%</span>
+        </div>
+      </div>`;
+    // 各学校（試合数が多い順）
+    const sorted = schools.sort((a, b) => summary.perSchool[b].total - summary.perSchool[a].total);
+    sorted.forEach(sname => {
+      const s = summary.perSchool[sname];
+      const sp = s.total > 0 ? Math.round(s.wins / s.total * 100) : 0;
+      rowsHtml += `
+        <div class="ms-row ms-row-sub">
+          <div class="ms-row-vs">
+            <span class="ms-vs-sub">vs</span>
+            <span class="ms-team-opp-sub">${escapeHtml(sname)}</span>
+          </div>
+          <div class="ms-row-stats">
+            <span class="ms-record-sub">${s.wins}<span class="ms-slash">/</span>${s.total}</span>
+            <span class="ms-pct-sub">${sp}%</span>
+          </div>
+        </div>`;
+    });
+  } else {
+    const oppName = schools[0] || '対戦校';
+    rowsHtml += `
+      <div class="ms-row ms-row-total">
+        <div class="ms-row-vs">
+          <span class="ms-team-own">TAKADA.st</span>
+          <span class="ms-vs">VS</span>
+          <span class="ms-team-opp">${escapeHtml(oppName)}</span>
+        </div>
+        <div class="ms-row-stats">
+          <span class="ms-record"><span class="ms-wins">${summary.totalWins}</span><span class="ms-slash">/</span><span class="ms-total">${summary.totalMatches}</span></span>
+          <span class="ms-pct">${pct}%</span>
+        </div>
+      </div>`;
+  }
+
+  card.innerHTML = `
+    <div class="ms-summary-head">
+      <span class="ms-summary-icon">🏆</span>
+      <span class="ms-summary-title">トータル戦績</span>
+    </div>
+    <div class="ms-summary-body">
+      ${rowsHtml}
+    </div>
+  `;
+  return card;
+}
+
+function buildCoachViewToggle() {
+  const wrap = document.createElement('div');
+  wrap.className = 'coach-view-toggle';
+  wrap.innerHTML = `
+    <div class="cv-tabs">
+      <button class="cv-tab ${coachViewMode==='detail'?'active':''}" onclick="setCoachView('detail')">📋 試合カード</button>
+      <button class="cv-tab ${coachViewMode==='list'?'active':''}" onclick="setCoachView('list')">📑 全試合</button>
+    </div>
+    ${coachViewMode==='list' ? `<button class="cv-export-btn" onclick="exportMatchList()">📤 出力</button>` : ''}
+  `;
+  return wrap;
+}
+
+// ② コンパクト一覧ビュー
+function buildMatchCompactList(history, matchIds) {
+  const wrap = document.createElement('div');
+  wrap.className = 'compact-list';
+
+  // 古い順（時系列）で表示
+  const sortedIds = matchIds.slice().sort((a, b) => a - b);
+
+  let rowsHtml = '';
+  sortedIds.forEach(mid => {
+    const d = history[mid];
+    if (!d || !d.teams) return;
+
+    const aIsOwn = d.teams.a?.isOwn !== false;
+    const bIsOwn = d.teams.b?.isOwn !== false;
+    const tA = d.teams.a || {};
+    const tB = d.teams.b || {};
+
+    const timeStr = d.endTime
+      ? new Date(d.endTime).toLocaleString('ja-JP', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})
+      : '--';
+
+    const gA = d.gamesWon?.a || 0;
+    const gB = d.gamesWon?.b || 0;
+
+    // 自チームが a 側のときの表示 / b 側のときの表示
+    // 「TAKADA.st (田中・佐藤)  4-3  ●●高校 (Aペア)」
+    const ownPlayers = (s) => (s.players || '').replace(' / ', '・');
+    const oppLabel = (s) => {
+      const school = s.school ? s.school : '';
+      const name = s.name || '';
+      return school ? `${school} (${name})` : name;
+    };
+
+    let leftHtml, rightHtml, ownWin = false, indicator = '';
+    if (aIsOwn && !bIsOwn) {
+      leftHtml = `<div class="cl-side cl-own"><div class="cl-name">TAKADA.st</div><div class="cl-sub">${escapeHtml(ownPlayers(tA))}</div></div>`;
+      rightHtml = `<div class="cl-side cl-opp"><div class="cl-name">${escapeHtml(tB.school || tB.name || '対戦校')}</div><div class="cl-sub">${escapeHtml(tB.school ? (tB.name||'') : '')}</div></div>`;
+      ownWin = d.winner === 'a';
+    } else if (bIsOwn && !aIsOwn) {
+      leftHtml = `<div class="cl-side cl-own"><div class="cl-name">TAKADA.st</div><div class="cl-sub">${escapeHtml(ownPlayers(tB))}</div></div>`;
+      rightHtml = `<div class="cl-side cl-opp"><div class="cl-name">${escapeHtml(tA.school || tA.name || '対戦校')}</div><div class="cl-sub">${escapeHtml(tA.school ? (tA.name||'') : '')}</div></div>`;
+      ownWin = d.winner === 'b';
+    } else {
+      // 自対自 or 他対他
+      leftHtml = `<div class="cl-side"><div class="cl-name">${escapeHtml(tA.name||'Aペア')}</div><div class="cl-sub">${escapeHtml(tA.school||'')}</div></div>`;
+      rightHtml = `<div class="cl-side"><div class="cl-name">${escapeHtml(tB.name||'Bペア')}</div><div class="cl-sub">${escapeHtml(tB.school||'')}</div></div>`;
+      ownWin = null;
+    }
+
+    const scoreLeft  = aIsOwn ? gA : (bIsOwn ? gB : gA);
+    const scoreRight = aIsOwn ? gB : (bIsOwn ? gA : gB);
+
+    if (ownWin === true) indicator = '<span class="cl-win">⭕ 勝</span>';
+    else if (ownWin === false) indicator = '<span class="cl-loss">✕ 負</span>';
+    else indicator = '';
+
+    rowsHtml += `
+      <div class="cl-row ${ownWin===true?'cl-row-win':ownWin===false?'cl-row-loss':''}">
+        <div class="cl-time">${timeStr}${d.resultOnly?' 📝':''}</div>
+        <div class="cl-vs">
+          ${leftHtml}
+          <div class="cl-score">${scoreLeft}<span class="cl-score-dash">-</span>${scoreRight}</div>
+          ${rightHtml}
+        </div>
+        <div class="cl-result">${indicator}</div>
+      </div>`;
+  });
+
+  wrap.innerHTML = rowsHtml || `<div style="padding:20px;text-align:center;color:var(--muted)">試合がありません</div>`;
+  return wrap;
+}
+
+// ② テキスト出力
+async function exportMatchList() {
+  const eid = currentEventId || 'default';
+  const history = await xhrRequest('GET', `events/${eid}/history`);
+  if (!history || Object.keys(history).length === 0) {
+    alert('出力できる試合がありません');
+    return;
+  }
+
+  const matchIds = Object.keys(history).sort((a, b) => a - b);  // 古い順
+  const summary = calculateMatchSummary(history);
+
+  // イベント名を取得（任意）
+  let eventName = '';
+  try {
+    const events = await window.fbGetEvents();
+    if (events[eid] && events[eid].name) eventName = events[eid].name;
+  } catch(e) {}
+
+  // テキスト組み立て
+  const lines = [];
+  lines.push('═══════════════════════════');
+  lines.push('  TAKADA.st 試合結果');
+  if (eventName) lines.push(`  ${eventName}`);
+  lines.push('═══════════════════════════');
+  lines.push('');
+
+  // サマリー
+  const overallPct = summary.totalMatches > 0 ? Math.round(summary.totalWins / summary.totalMatches * 100) : 0;
+  lines.push(`【トータル戦績】 ${summary.totalWins}勝 / ${summary.totalMatches}試合 (${overallPct}%)`);
+  const schools = Object.keys(summary.perSchool);
+  if (schools.length > 1) {
+    const sorted = schools.sort((a, b) => summary.perSchool[b].total - summary.perSchool[a].total);
+    sorted.forEach(sn => {
+      const s = summary.perSchool[sn];
+      const sp = s.total > 0 ? Math.round(s.wins / s.total * 100) : 0;
+      lines.push(`  vs ${sn}: ${s.wins}勝 / ${s.total}試合 (${sp}%)`);
+    });
+  }
+  lines.push('');
+  lines.push('───────────────────────────');
+  lines.push('  全試合一覧');
+  lines.push('───────────────────────────');
+
+  matchIds.forEach(mid => {
+    const d = history[mid];
+    if (!d || !d.teams) return;
+    const aIsOwn = d.teams.a?.isOwn !== false;
+    const bIsOwn = d.teams.b?.isOwn !== false;
+    const tA = d.teams.a || {};
+    const tB = d.teams.b || {};
+    const gA = d.gamesWon?.a || 0;
+    const gB = d.gamesWon?.b || 0;
+    const timeStr = d.endTime
+      ? new Date(d.endTime).toLocaleString('ja-JP', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})
+      : '--';
+
+    const ownPlayers = (s) => (s.players || '').replace(' / ', '・');
+
+    let line = '';
+    if (aIsOwn && !bIsOwn) {
+      const oppLbl = tB.school ? `${tB.school} (${tB.name||'相手ペア'})` : (tB.name || '相手ペア');
+      const result = d.winner === 'a' ? '⭕勝' : '✕負';
+      line = `${timeStr}  TAKADA.st (${ownPlayers(tA)})  ${gA}-${gB}  ${oppLbl}  ${result}`;
+    } else if (bIsOwn && !aIsOwn) {
+      const oppLbl = tA.school ? `${tA.school} (${tA.name||'相手ペア'})` : (tA.name || '相手ペア');
+      const result = d.winner === 'b' ? '⭕勝' : '✕負';
+      line = `${timeStr}  TAKADA.st (${ownPlayers(tB)})  ${gB}-${gA}  ${oppLbl}  ${result}`;
+    } else {
+      line = `${timeStr}  ${tA.name||'Aペア'}  ${gA}-${gB}  ${tB.name||'Bペア'}`;
+    }
+    if (d.resultOnly) line += ' 📝';
+    lines.push(line);
+  });
+
+  lines.push('');
+  lines.push('═══════════════════════════');
+
+  const text = lines.join('\n');
+  showExportModal(text);
+}
+
+function showExportModal(text) {
+  // モーダル生成
+  let modal = document.getElementById('export-text-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'export-text-modal';
+    modal.className = 'live-modal-bg';
+    modal.innerHTML = `
+      <div class="live-modal" style="max-width:600px">
+        <div class="live-modal-head">
+          <h3>📤 試合結果を出力</h3>
+          <span class="live-close" onclick="closeExportModal()">×</span>
+        </div>
+        <div class="live-body" style="max-height:60vh;overflow-y:auto">
+          <textarea id="export-text-area" readonly style="width:100%;min-height:300px;font-family:ui-monospace,'SF Mono',Monaco,Consolas,monospace;font-size:12px;line-height:1.6;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--s2);color:var(--ink);white-space:pre;resize:vertical"></textarea>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn green" style="flex:1;min-width:120px" onclick="copyExportText()">📋 コピー</button>
+            <button class="btn" style="flex:1;min-width:120px" onclick="downloadExportText()">💾 ダウンロード</button>
+            <button class="btn" style="flex:1;min-width:120px" onclick="shareExportText()">📲 共有</button>
+          </div>
+          <div id="export-feedback" style="margin-top:10px;text-align:center;font-size:12px;color:var(--green);min-height:18px"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+      if (e.target.id === 'export-text-modal') closeExportModal();
+    });
+  }
+  document.getElementById('export-text-area').value = text;
+  document.getElementById('export-feedback').textContent = '';
+  modal.classList.add('show');
+}
+
+function closeExportModal() {
+  const m = document.getElementById('export-text-modal');
+  if (m) m.classList.remove('show');
+}
+
+async function copyExportText() {
+  const ta = document.getElementById('export-text-area');
+  const fb = document.getElementById('export-feedback');
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(ta.value);
+    } else {
+      ta.select();
+      ta.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+    if (fb) { fb.style.color = 'var(--green)'; fb.textContent = '✓ コピーしました'; }
+    setTimeout(() => { if (fb) fb.textContent = ''; }, 2500);
+  } catch(e) {
+    if (fb) { fb.style.color = 'var(--b)'; fb.textContent = 'コピーに失敗しました。長押しして手動でコピーしてください'; }
+  }
+}
+
+function downloadExportText() {
+  const ta = document.getElementById('export-text-area');
+  const text = ta.value;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const now = new Date();
+  const fname = `TAKADA_試合結果_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.txt`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const fb = document.getElementById('export-feedback');
+  if (fb) { fb.style.color = 'var(--green)'; fb.textContent = '✓ ダウンロード開始'; setTimeout(()=>{fb.textContent='';},2500); }
+}
+
+async function shareExportText() {
+  const ta = document.getElementById('export-text-area');
+  const text = ta.value;
+  const fb = document.getElementById('export-feedback');
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'TAKADA.st 試合結果', text });
+      if (fb) { fb.style.color = 'var(--green)'; fb.textContent = '✓ 共有しました'; setTimeout(()=>{fb.textContent='';},2500); }
+    } catch(e) {
+      if (e.name !== 'AbortError' && fb) { fb.style.color = 'var(--b)'; fb.textContent = '共有に失敗しました'; }
+    }
+  } else {
+    if (fb) { fb.style.color = 'var(--amber)'; fb.textContent = 'この端末は共有に対応していません。コピーまたはダウンロードをお使いください'; }
+  }
 }
 
 function buildHistoryCard(d, mid) {
