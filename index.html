@@ -3176,7 +3176,8 @@ function buildHistoryCard(d, mid) {
   const [a1n, a2n] = (d.teams?.a?.players||'後衛A / 前衛A').split(' / ');
   const [b1n, b2n] = (d.teams?.b?.players||'後衛B / 前衛B').split(' / ');
   const isResultOnly = d.resultOnly === true;
-  const teamADisplayName = d.teams?.a?.isOwn !== false ? 'TAKADA.st' : (d.teams?.a?.name || 'Aペア');
+  const aIsOwn = d.teams?.a?.isOwn !== false;
+  const bIsOwn = d.teams?.b?.isOwn !== false;
 
   wrap.innerHTML = `
     <div class="ms-head">
@@ -3186,12 +3187,19 @@ function buildHistoryCard(d, mid) {
         <button onclick="editMatchPlayers('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">✏ 選手名</button>
         <button onclick="editMatchSchool('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🏫 学校名</button>
         <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🗑 削除</button>
+        <button onclick="editMatchOwn('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${aIsOwn ? 'var(--a)' : bIsOwn ? 'var(--a)' : '#bbb'};background:${aIsOwn||bIsOwn ? 'rgba(26,79,138,.08)' : '#f5f5f5'};color:${aIsOwn||bIsOwn ? 'var(--a)' : '#999'};cursor:pointer;font-family:var(--font-num);font-weight:600;">⚑ 自チーム</button>
       </div>
     </div>
     <div class="score-line">
-      <div class="sl-team sl-a">${isResultOnly ? `<span style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:2px">TAKADA.st</span>${a1n}・${a2n}` : (d.teams?.a?.name || 'Aペア')}</div>
+      <div class="sl-team sl-a">
+        ${aIsOwn ? `<span style="font-size:11px;color:var(--a);font-weight:700;opacity:.8;display:block;margin-bottom:2px">▶ TAKADA.st</span>` : ''}
+        ${d.teams?.a?.name || 'Aペア'}
+      </div>
       <div class="sl-score">${d.gamesWon?.a||0} - ${d.gamesWon?.b||0}</div>
-      <div class="sl-team sl-b">${d.teams?.b?.school ? `<span style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:2px">${escapeHtml(d.teams.b.school)}</span>` : ''}${d.teams?.b?.name || 'Bペア'}</div>
+      <div class="sl-team sl-b">
+        ${bIsOwn ? `<span style="font-size:11px;color:var(--a);font-weight:700;opacity:.8;display:block;margin-bottom:2px">▶ TAKADA.st</span>` : (d.teams?.b?.school ? `<span style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:2px">${escapeHtml(d.teams.b.school)}</span>` : '')}
+        ${d.teams?.b?.name || 'Bペア'}
+      </div>
     </div>
     ${isResultOnly ? '' : `<div class="player-grid">
       ${playerBlock(a1n, '後衛', 'pb-team-a', sa, 'a1')}
@@ -3224,6 +3232,89 @@ async function deleteHistoryMatch(mid) {
   } catch(e) {
     alert('削除に失敗しました');
   }
+}
+
+async function editMatchOwn(mid) {
+  const eid = currentEventId || 'default';
+  let d;
+  try {
+    d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    if (!d || !d.teams) { alert('試合データを取得できませんでした'); return; }
+  } catch(e) {
+    alert('読み込みエラー: ' + (e.message || '')); return;
+  }
+
+  const aName = d.teams.a?.name || 'Aペア';
+  const bName = d.teams.b?.name || 'Bペア';
+  const aIsOwn = d.teams.a?.isOwn !== false;
+  const bIsOwn = d.teams.b?.isOwn !== false;
+
+  // 現在の状態を表示してどちらが自チームか選ばせるモーダルを動的に表示
+  const bg = document.createElement('div');
+  bg.className = 'live-modal-bg show';
+  bg.style.cssText = 'z-index:9999';
+  bg.innerHTML = `
+    <div class="live-modal" onclick="event.stopPropagation()" style="max-width:400px">
+      <div class="live-head">
+        <h3>⚑ TAKADA.st側を修正</h3>
+        <button class="live-close" id="own-modal-close">閉じる</button>
+      </div>
+      <div class="live-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+          どちらが <strong style="color:var(--a)">TAKADA.st</strong> の選手ですか？<br>
+          ランキング・勝率の集計に使われます。
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <button id="own-btn-a" style="
+            padding:14px 16px;border-radius:10px;border:2px solid ${aIsOwn&&!bIsOwn?'var(--a)':'var(--border)'};
+            background:${aIsOwn&&!bIsOwn?'rgba(26,79,138,.09)':'var(--surface)'};
+            font-size:14px;font-weight:700;text-align:left;cursor:pointer;
+            color:${aIsOwn&&!bIsOwn?'var(--a)':'var(--ink)'};line-height:1.4">
+            ${aIsOwn&&!bIsOwn?'✅ ':''}左側（${aName}）<br>
+            <span style="font-size:11px;font-weight:400;color:var(--muted)">左の選手がTAKADA.stです</span>
+          </button>
+          <button id="own-btn-b" style="
+            padding:14px 16px;border-radius:10px;border:2px solid ${bIsOwn&&!aIsOwn?'var(--a)':'var(--border)'};
+            background:${bIsOwn&&!aIsOwn?'rgba(26,79,138,.09)':'var(--surface)'};
+            font-size:14px;font-weight:700;text-align:left;cursor:pointer;
+            color:${bIsOwn&&!aIsOwn?'var(--a)':'var(--ink)'};line-height:1.4">
+            ${bIsOwn&&!aIsOwn?'✅ ':''}右側（${bName}）<br>
+            <span style="font-size:11px;font-weight:400;color:var(--muted)">右の選手がTAKADA.stです</span>
+          </button>
+          <button id="own-btn-none" style="
+            padding:14px 16px;border-radius:10px;border:2px solid ${!aIsOwn&&!bIsOwn?'#888':'var(--border)'};
+            background:${!aIsOwn&&!bIsOwn?'#f5f5f5':'var(--surface)'};
+            font-size:14px;font-weight:700;text-align:left;cursor:pointer;
+            color:${!aIsOwn&&!bIsOwn?'#444':'var(--ink)'};line-height:1.4">
+            ${!aIsOwn&&!bIsOwn?'✅ ':''}どちらでもない<br>
+            <span style="font-size:11px;font-weight:400;color:var(--muted)">他校同士の試合・記録のみ</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(bg);
+
+  const close = () => document.body.removeChild(bg);
+  document.getElementById('own-modal-close').onclick = close;
+  bg.addEventListener('click', e => { if (e.target === bg) close(); });
+
+  const save = async (aSide, bSide) => {
+    try {
+      d.teams.a.isOwn = aSide;
+      d.teams.b.isOwn = bSide;
+      await xhrRequest('PUT', `events/${eid}/history/${mid}/teams/a`, d.teams.a);
+      await xhrRequest('PUT', `events/${eid}/history/${mid}/teams/b`, d.teams.b);
+      close();
+      loadDashboard();
+    } catch(err) {
+      alert('保存に失敗しました: ' + (err.message || ''));
+    }
+  };
+
+  document.getElementById('own-btn-a').onclick    = () => save(true,  false);
+  document.getElementById('own-btn-b').onclick    = () => save(false, true);
+  document.getElementById('own-btn-none').onclick = () => save(false, false);
 }
 
 async function editMatchSchool(mid) {
