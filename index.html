@@ -3322,13 +3322,13 @@ function phGroupByGame(log) {
 }
 
 // 1ゲーム分のSVG折れ線を生成
-// 試合全体を1本の直線グラフで描画（ゲーム境界縦破線・Gラベルはゲーム中央）
+// 試合全体を1本の直線グラフで描画（ゲーム境界縦破線・Gラベル中央・スコアバッジ）
 function phBuildFullSVG(log, colors) {
-  const PT_R = 6, SVG_H = 108, PAD_L = 30, PAD_R = 14, PAD_T = 22, PAD_B = 14;
+  const PT_R = 6, SVG_H = 128, PAD_L = 30, PAD_R = 14, PAD_T = 22, PAD_B = 34;
   const n = log.length;
   if (n === 0) return '';
   const W = Math.max(320, n * 22 + PAD_L + PAD_R);
-  const innerH = SVG_H - PAD_T - PAD_B;
+  const innerH = SVG_H - PAD_T - PAD_B; // グラフ高さ72px（変わらず）
 
   // 累積点差（aチーム視点: +が自チームリード）
   let cA = 0, cB = 0;
@@ -3341,6 +3341,7 @@ function phBuildFullSVG(log, colors) {
   const toY = (v) => PAD_T + innerH * (1 - (v - minY) / rangeY);
   const zeroY = toY(0);
   const startX = PAD_L - 8;
+  const graphBottom = SVG_H - PAD_B; // グラフ下端 = 94
 
   const xy = rawY.map((v, i) => ({ x: toX(i), y: toY(v) }));
 
@@ -3363,7 +3364,7 @@ function phBuildFullSVG(log, colors) {
     return s;
   }
 
-  // ゲームラベルをゲーム中央に・区切り線はゲーム終端（最終ゲーム除く）
+  // Gラベル（ゲーム中央）と区切り縦破線（最終ゲーム除く）
   function gameDividers() {
     const games = phGroupByGame(log);
     let s = '';
@@ -3372,12 +3373,51 @@ function phBuildFullSVG(log, colors) {
       const firstIdx = offset;
       const lastIdx  = offset + g.pts.length - 1;
       const lx = xy[lastIdx].x;
-      // Gラベルはゲーム区間の水平中央
       const cx = (xy[firstIdx].x + lx) / 2;
       s += `<text x="${cx}" y="${PAD_T-6}" text-anchor="middle" font-size="9" font-weight="600" fill="#9a948a" font-family="var(--font-num)">G${gi+1}</text>`;
-      // 区切り縦破線（最終ゲームは不要）
       if (gi < games.length - 1) {
-        s += `<line x1="${lx}" y1="${PAD_T-14}" x2="${lx}" y2="${SVG_H-PAD_B}" stroke="#c0bab3" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+        // 縦破線はグラフ下端まで（スコアエリアには入らない）
+        s += `<line x1="${lx}" y1="${PAD_T-14}" x2="${lx}" y2="${graphBottom}" stroke="#c0bab3" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+      }
+      offset += g.pts.length;
+    });
+    return s;
+  }
+
+  // ゲームスコアバッジ（グラフ下のスコアエリアに表示）
+  // 勝者の得点 = 塗りつぶし丸バッジ、敗者の得点 = プレーンテキスト
+  function gameScores() {
+    const games = phGroupByGame(log);
+    const A_COLOR = '#1a4f8a', B_COLOR = '#b92020';
+    const sy = SVG_H - 11; // テキストのベースライン（バッジ中心は sy-3）
+    const GAP = 13;         // 中心からの数字のずれ
+    let s = '';
+    let offset = 0;
+    games.forEach((g, gi) => {
+      const firstIdx = offset;
+      const lastIdx  = offset + g.pts.length - 1;
+      const cx = (xy[firstIdx].x + xy[lastIdx].x) / 2;
+      const aP = g.pts.filter(p => p.winner === 'a').length;
+      const bP = g.pts.length - aP;
+      const aWon = aP > bP;
+      const ax = cx - GAP;
+      const bx = cx + GAP;
+
+      // 自チーム（A）の得点
+      if (aWon) {
+        s += `<circle cx="${ax}" cy="${sy-3}" r="9" fill="${A_COLOR}"/>`;
+        s += `<text x="${ax}" y="${sy+1}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="var(--font-num)">${aP}</text>`;
+      } else {
+        s += `<text x="${ax}" y="${sy+1}" text-anchor="middle" font-size="11" font-weight="600" fill="${A_COLOR}" opacity="0.7" font-family="var(--font-num)">${aP}</text>`;
+      }
+      // ダッシュ
+      s += `<text x="${cx}" y="${sy+1}" text-anchor="middle" font-size="10" fill="#c0bab3" font-family="var(--font-num)">-</text>`;
+      // 相手（B）の得点
+      if (!aWon) {
+        s += `<circle cx="${bx}" cy="${sy-3}" r="9" fill="${B_COLOR}"/>`;
+        s += `<text x="${bx}" y="${sy+1}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="var(--font-num)">${bP}</text>`;
+      } else {
+        s += `<text x="${bx}" y="${sy+1}" text-anchor="middle" font-size="11" font-weight="600" fill="${B_COLOR}" opacity="0.7" font-family="var(--font-num)">${bP}</text>`;
       }
       offset += g.pts.length;
     });
@@ -3415,6 +3455,7 @@ function phBuildFullSVG(log, colors) {
     ${segPaths()}
     ${dots()}
     ${aceLabels()}
+    ${gameScores()}
   </svg>`;
 }
 
