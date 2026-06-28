@@ -3322,14 +3322,17 @@ function phGroupByGame(log) {
 }
 
 // 1ゲーム分のSVG折れ線を生成
-function phBuildGameSVG(pts, colors, offset) {
-  const PT_R = 6, SVG_H = 96, PAD_L = 28, PAD_R = 12, PAD_T = 12, PAD_B = 18;
-  const n = pts.length;
-  const W = Math.max(300, n * 24 + PAD_L + PAD_R);
+// 試合全体を1本の直線グラフで描画（ゲーム境界は縦破線）
+function phBuildFullSVG(log, colors) {
+  const PT_R = 6, SVG_H = 112, PAD_L = 30, PAD_R = 14, PAD_T = 20, PAD_B = 18;
+  const n = log.length;
+  if (n === 0) return '';
+  const W = Math.max(320, n * 22 + PAD_L + PAD_R);
   const innerH = SVG_H - PAD_T - PAD_B;
 
+  // 累積点差（aチーム視点: +が自チームリード）
   let cA = 0, cB = 0;
-  const rawY = pts.map(p => { if (p.winner === 'a') cA++; else cB++; return cA - cB; });
+  const rawY = log.map(p => { if (p.winner === 'a') cA++; else cB++; return cA - cB; });
   const allY = [0, ...rawY];
   const minY = Math.min(...allY), maxY = Math.max(...allY);
   const rangeY = (maxY - minY) || 1;
@@ -3337,67 +3340,82 @@ function phBuildGameSVG(pts, colors, offset) {
   const toX = (i) => PAD_L + i * (W - PAD_L - PAD_R) / ((n - 1) || 1);
   const toY = (v) => PAD_T + innerH * (1 - (v - minY) / rangeY);
   const zeroY = toY(0);
-  const xStart = PAD_L - 10;
+  const startX = PAD_L - 8;
 
   const xy = rawY.map((v, i) => ({ x: toX(i), y: toY(v) }));
 
+  // 塗りつぶし（直線）
   function fillPath() {
-    let d = `M${xStart},${zeroY}`;
-    xy.forEach((pt, i) => {
-      if (i === 0) { const cx = (xStart + pt.x) / 2; d += ` C${cx},${zeroY} ${cx},${pt.y} ${pt.x},${pt.y}`; }
-      else { const prev = xy[i-1]; const cx = (prev.x + pt.x) / 2; d += ` C${cx},${prev.y} ${cx},${pt.y} ${pt.x},${pt.y}`; }
-    });
-    d += ` L${xy[xy.length-1].x},${zeroY} Z`;
+    let d = `M${startX},${zeroY} L${xy[0].x},${xy[0].y}`;
+    for (let i = 1; i < xy.length; i++) d += ` L${xy[i].x},${xy[i].y}`;
+    d += ` L${xy[n-1].x},${zeroY} Z`;
     return d;
   }
 
+  // 色付き直線セグメント
   function segPaths() {
     let s = '';
-    for (let i = 0; i < xy.length; i++) {
-      const c = colors[offset + i];
-      const x1 = i === 0 ? xStart : xy[i-1].x;
-      const y1 = i === 0 ? zeroY : xy[i-1].y;
-      const x2 = xy[i].x, y2 = xy[i].y;
-      const cx = (x1 + x2) / 2;
-      s += `<path d="M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}" stroke="${c}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    for (let i = 0; i < n; i++) {
+      const x1 = i === 0 ? startX : xy[i-1].x;
+      const y1 = i === 0 ? zeroY  : xy[i-1].y;
+      s += `<line x1="${x1}" y1="${y1}" x2="${xy[i].x}" y2="${xy[i].y}" stroke="${colors[i]}" stroke-width="2.5" stroke-linecap="round"/>`;
     }
     return s;
   }
 
-  function dots() {
-    return xy.map((pt, i) => {
-      const gi = offset + i;
-      return `<circle id="ph-pt-${gi}" cx="${pt.x}" cy="${pt.y}" r="${PT_R}" fill="${colors[gi]}" stroke="#fff" stroke-width="1.5" style="cursor:pointer" onclick="phShowDetail(${gi})"/>`;
-    }).join('');
+  // ゲーム境界の縦破線とラベル
+  function gameDividers() {
+    const games = phGroupByGame(log);
+    let s = `<text x="${PAD_L}" y="${PAD_T-4}" text-anchor="middle" font-size="8" fill="#9a948a" font-family="var(--font-num)">G1</text>`;
+    let offset = 0;
+    games.forEach((g, gi) => {
+      offset += g.pts.length;
+      if (gi < games.length - 1) {
+        const divX = (xy[offset-1].x + xy[offset].x) / 2;
+        s += `<line x1="${divX}" y1="${PAD_T-10}" x2="${divX}" y2="${SVG_H-PAD_B}" stroke="#c0bab3" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+        s += `<text x="${divX + (xy[offset].x - xy[offset-1].x)/4}" y="${PAD_T-4}" text-anchor="middle" font-size="8" fill="#9a948a" font-family="var(--font-num)">G${gi+2}</text>`;
+      }
+    });
+    return s;
   }
 
+  // タップ可能な点
+  function dots() {
+    return xy.map((pt, i) =>
+      `<circle id="ph-pt-${i}" cx="${pt.x}" cy="${pt.y}" r="${PT_R}" fill="${colors[i]}" stroke="#fff" stroke-width="1.5" style="cursor:pointer" onclick="phShowDetail(${i})"/>`
+    ).join('');
+  }
+
+  // エースラベル
   function aceLabels() {
     return xy.map((pt, i) => {
-      const p = pts[i];
-      if (p.base === 'SA' || p.base === 'ReA') return `<text x="${pt.x}" y="${pt.y-10}" text-anchor="middle" font-size="9" font-weight="700" fill="${colors[offset+i]}">A</text>`;
-      return '';
+      const p = log[i];
+      return (p.base === 'SA' || p.base === 'ReA')
+        ? `<text x="${pt.x}" y="${pt.y-10}" text-anchor="middle" font-size="9" font-weight="700" fill="${colors[i]}">A</text>` : '';
     }).join('');
   }
 
+  // X軸ポイント番号（5ごと）
   function xLabels() {
     return xy.map((pt, i) => {
-      const gi = offset + i + 1;
-      if (gi % 5 === 0 || i === 0 || i === xy.length - 1) return `<text x="${pt.x}" y="${SVG_H-3}" text-anchor="middle" font-size="8" fill="#aaa" font-family="var(--font-num)">${gi}</text>`;
-      return '';
+      const num = i + 1;
+      return (num % 5 === 0 || i === 0 || i === n - 1)
+        ? `<text x="${pt.x}" y="${SVG_H-3}" text-anchor="middle" font-size="8" fill="#aaa" font-family="var(--font-num)">${num}</text>` : '';
     }).join('');
   }
 
   return `<svg width="${W}" height="${SVG_H}" viewBox="0 0 ${W} ${SVG_H}" style="display:block">
     <defs>
-      <clipPath id="ph-above-${offset}"><rect x="0" y="0" width="${W}" height="${zeroY}"/></clipPath>
-      <clipPath id="ph-below-${offset}"><rect x="0" y="${zeroY}" width="${W}" height="${SVG_H-zeroY}"/></clipPath>
+      <clipPath id="ph-clip-above"><rect x="0" y="0" width="${W}" height="${zeroY}"/></clipPath>
+      <clipPath id="ph-clip-below"><rect x="0" y="${zeroY}" width="${W}" height="${SVG_H}"/></clipPath>
     </defs>
-    <path d="${fillPath()}" fill="rgba(26,79,138,.10)" clip-path="url(#ph-above-${offset})"/>
-    <path d="${fillPath()}" fill="rgba(185,32,32,.10)" clip-path="url(#ph-below-${offset})"/>
-    <line x1="${xStart}" y1="${zeroY}" x2="${xy[xy.length-1].x}" y2="${zeroY}" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>
-    <text x="${PAD_L-6}" y="${zeroY+3}" text-anchor="end" font-size="8" fill="#bbb" font-family="var(--font-num)">0</text>
-    ${maxY>0?`<text x="${PAD_L-6}" y="${toY(maxY)+3}" text-anchor="end" font-size="8" fill="#1a4f8a" font-family="var(--font-num)">+${maxY}</text>`:''}
-    ${minY<0?`<text x="${PAD_L-6}" y="${toY(minY)+3}" text-anchor="end" font-size="8" fill="#b92020" font-family="var(--font-num)">${minY}</text>`:''}
+    <path d="${fillPath()}" fill="rgba(26,79,138,.10)" clip-path="url(#ph-clip-above)"/>
+    <path d="${fillPath()}" fill="rgba(185,32,32,.10)" clip-path="url(#ph-clip-below)"/>
+    <line x1="${startX}" y1="${zeroY}" x2="${xy[n-1].x}" y2="${zeroY}" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="${PAD_L-8}" y="${zeroY+3}" text-anchor="end" font-size="8" fill="#bbb" font-family="var(--font-num)">0</text>
+    ${maxY>0?`<text x="${PAD_L-8}" y="${toY(maxY)+3}" text-anchor="end" font-size="8" fill="#1a4f8a" font-family="var(--font-num)">+${maxY}</text>`:''}
+    ${minY<0?`<text x="${PAD_L-8}" y="${toY(minY)+3}" text-anchor="end" font-size="8" fill="#b92020" font-family="var(--font-num)">${minY}</text>`:''}
+    ${gameDividers()}
     ${segPaths()}
     ${dots()}
     ${aceLabels()}
@@ -3486,26 +3504,13 @@ async function viewMatchHistory(mid) {
     _phMatch = { pointLog: log, playerNames, teamNameA, teamNameB };
 
     // ===== グラフ部 =====
-    const games = phGroupByGame(log);
     let graphHtml = `<div class="ph-legend">
       <span class="ph-leg"><span class="ph-leg-line" style="background:#1a4f8a"></span>2連続得点</span>
       <span class="ph-leg"><span class="ph-leg-line" style="background:#b92020"></span>2連続失点</span>
       <span class="ph-leg"><span class="ph-leg-line" style="background:#9a948a"></span>その他</span>
       <span class="ph-leg"><span style="font-size:9px;border:1.5px solid var(--ink);padding:0 3px;border-radius:2px;font-weight:700">A</span> エース</span>
     </div>`;
-    graphHtml += `<div class="ph-graph">`;
-    let offset = 0;
-    games.forEach((g, gi) => {
-      const last = g.pts[g.pts.length - 1];
-      const aW = g.pts.filter(p => p.winner === 'a').length;
-      const bW = g.pts.length - aW;
-      graphHtml += `<div class="ph-game">
-        <div class="ph-game-lbl">ゲーム${gi+1}　自${aW} - 相${bW}　<span style="color:var(--muted)">（最終 ${last.scoreA||0}-${last.scoreB||0}）</span></div>
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">${phBuildGameSVG(g.pts, colors, offset)}</div>
-      </div>`;
-      offset += g.pts.length;
-    });
-    graphHtml += `</div>`;
+    graphHtml += `<div class="ph-graph"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch">${phBuildFullSVG(log, colors)}</div></div>`;
 
     // ===== 詳細パネル（タップで更新）=====
     graphHtml += `<div class="ph-detail-panel" id="ph-detail"><div class="ph-none">グラフの●をタップすると<br>そのポイントの詳細が表示されます</div></div>`;
