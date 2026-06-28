@@ -3322,9 +3322,9 @@ function phGroupByGame(log) {
 }
 
 // 1ゲーム分のSVG折れ線を生成
-// 試合全体を1本の直線グラフで描画（ゲーム終端に縦破線・スコア・勝利リング）
+// 試合全体を1本の直線グラフで描画（ゲーム境界縦破線・Gラベルはゲーム中央）
 function phBuildFullSVG(log, colors) {
-  const PT_R = 6, SVG_H = 118, PAD_L = 30, PAD_R = 14, PAD_T = 30, PAD_B = 18;
+  const PT_R = 6, SVG_H = 108, PAD_L = 30, PAD_R = 14, PAD_T = 22, PAD_B = 14;
   const n = log.length;
   if (n === 0) return '';
   const W = Math.max(320, n * 22 + PAD_L + PAD_R);
@@ -3363,38 +3363,22 @@ function phBuildFullSVG(log, colors) {
     return s;
   }
 
-  // ゲーム最後のポイントに縦破線・G番号・スコア
+  // ゲームラベルをゲーム中央に・区切り線はゲーム終端（最終ゲーム除く）
   function gameDividers() {
     const games = phGroupByGame(log);
     let s = '';
     let offset = 0;
     games.forEach((g, gi) => {
-      const lastIdx = offset + g.pts.length - 1;
-      const lastPt = g.pts[g.pts.length - 1];
+      const firstIdx = offset;
+      const lastIdx  = offset + g.pts.length - 1;
       const lx = xy[lastIdx].x;
-      const wColor = lastPt.winner === 'a' ? '#1a4f8a' : '#b92020';
-      const score = `${lastPt.scoreA||0}-${lastPt.scoreB||0}`;
-      // 縦破線（ゲーム最後のポイントを通る）
-      s += `<line x1="${lx}" y1="${PAD_T-22}" x2="${lx}" y2="${SVG_H-PAD_B}" stroke="#c0bab3" stroke-width="1.5" stroke-dasharray="4,3"/>`;
-      // G番号ラベル
-      s += `<text x="${lx}" y="${PAD_T-22}" text-anchor="middle" font-size="8" fill="#9a948a" font-family="var(--font-num)">G${gi+1}</text>`;
-      // ゲームの最終スコア（勝者の色）
-      s += `<text x="${lx}" y="${PAD_T-10}" text-anchor="middle" font-size="9" font-weight="700" fill="${wColor}" font-family="var(--font-num)">${score}</text>`;
-      offset += g.pts.length;
-    });
-    return s;
-  }
-
-  // ゲームを取った方の最後のポイントにリング
-  function gameWinCircles() {
-    const games = phGroupByGame(log);
-    let s = '';
-    let offset = 0;
-    games.forEach((g) => {
-      const lastIdx = offset + g.pts.length - 1;
-      const lastPt = g.pts[g.pts.length - 1];
-      const wColor = lastPt.winner === 'a' ? '#1a4f8a' : '#b92020';
-      s += `<circle cx="${xy[lastIdx].x}" cy="${xy[lastIdx].y}" r="${PT_R + 5}" fill="none" stroke="${wColor}" stroke-width="2.5"/>`;
+      // Gラベルはゲーム区間の水平中央
+      const cx = (xy[firstIdx].x + lx) / 2;
+      s += `<text x="${cx}" y="${PAD_T-6}" text-anchor="middle" font-size="9" font-weight="600" fill="#9a948a" font-family="var(--font-num)">G${gi+1}</text>`;
+      // 区切り縦破線（最終ゲームは不要）
+      if (gi < games.length - 1) {
+        s += `<line x1="${lx}" y1="${PAD_T-14}" x2="${lx}" y2="${SVG_H-PAD_B}" stroke="#c0bab3" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+      }
       offset += g.pts.length;
     });
     return s;
@@ -3416,15 +3400,6 @@ function phBuildFullSVG(log, colors) {
     }).join('');
   }
 
-  // X軸ポイント番号（5ごと）
-  function xLabels() {
-    return xy.map((pt, i) => {
-      const num = i + 1;
-      return (num % 5 === 0 || i === 0 || i === n - 1)
-        ? `<text x="${pt.x}" y="${SVG_H-3}" text-anchor="middle" font-size="8" fill="#aaa" font-family="var(--font-num)">${num}</text>` : '';
-    }).join('');
-  }
-
   return `<svg width="${W}" height="${SVG_H}" viewBox="0 0 ${W} ${SVG_H}" style="display:block">
     <defs>
       <clipPath id="ph-clip-above"><rect x="0" y="0" width="${W}" height="${zeroY}"/></clipPath>
@@ -3439,9 +3414,7 @@ function phBuildFullSVG(log, colors) {
     ${gameDividers()}
     ${segPaths()}
     ${dots()}
-    ${gameWinCircles()}
     ${aceLabels()}
-    ${xLabels()}
   </svg>`;
 }
 
