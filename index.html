@@ -299,6 +299,35 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 
 .flow-summary{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--muted);font-family:var(--font-num);line-height:1.8;}
 .flow-summary span{color:var(--ink);font-weight:600}
+/* === ポイント履歴フローグラフ === */
+.ph-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;padding:0 2px}
+.ph-leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.ph-leg-line{width:18px;height:3px;border-radius:2px;flex-shrink:0}
+.ph-graph{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 8px 6px;margin-bottom:10px}
+.ph-game{margin-bottom:10px}
+.ph-game:last-child{margin-bottom:0}
+.ph-game-lbl{font-size:10px;color:var(--ink);font-weight:600;font-family:var(--font-num);margin-bottom:4px;padding-left:2px}
+.ph-detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.ph-none{padding:20px 12px;text-align:center;font-size:11px;color:var(--muted);line-height:1.7}
+.ph-dp-head{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.ph-dp-num{font-size:11px;color:var(--muted);width:28px;font-family:var(--font-num)}
+.ph-dp-team{font-size:13px;font-weight:700;flex:1;overflow-wrap:anywhere}
+.ph-dp-score{font-size:12px;color:var(--muted);font-family:var(--font-num);font-weight:700}
+.ph-dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:9px 12px}
+.ph-cell{background:var(--s2);border-radius:7px;padding:6px 9px}
+.ph-cell-lbl{font-size:9px;color:var(--muted);font-family:var(--font-head);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.ph-cell-val{font-size:13px;font-weight:600;color:var(--ink)}
+.ph-cell.ph-hi{background:rgba(26,79,138,.08);border:1px solid rgba(26,79,138,.18)}
+.ph-cell.ph-hi .ph-cell-lbl,.ph-cell.ph-hi .ph-cell-val{color:var(--a)}
+.ph-cell.ph-warn{background:rgba(185,32,32,.07);border:1px solid rgba(185,32,32,.18)}
+.ph-cell.ph-warn .ph-cell-lbl,.ph-cell.ph-warn .ph-cell-val{color:var(--b)}
+.ph-dp-foot{padding:8px 12px 10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.6}
+.ph-streak{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-right:5px;font-family:var(--font-num)}
+.ph-sb-a{background:rgba(26,79,138,.1);color:var(--a)}
+.ph-sb-b{background:rgba(185,32,32,.1);color:var(--b)}
+.ph-list-details{margin-top:4px}
+.ph-list-summary{font-size:12px;color:var(--muted);cursor:pointer;padding:8px 2px;font-weight:600;-webkit-tap-highlight-color:transparent}
+.ph-list-summary:hover{color:var(--ink)}
 .confirm-btn{width:100%;padding:14px;font-family:var(--font-main);font-size:16px;font-weight:700;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
 .confirm-btn:active{transform:scale(.97)}
 
@@ -3227,53 +3256,275 @@ async function saveMatchPlayers() {
 // ============================================================
 // 試合のポイント履歴を表示
 // ============================================================
+// ポイント履歴の表示用ラベル（共通）
+const PH_SERVE_LBL = {'1st':'1st', '2nd':'2nd', 'fault':'DF'};
+const PH_BASE_LBL = {F:'フォア', B:'バック', Re:'レシーブ', SA:'サーブエース', ReA:'レシーブエース'};
+const PH_SHOT_LBL = {St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち'};
+const PH_COURSE_LBL = {C:'クロス', Co:'逆クロス', M:'ミドル', RST:'右ST', LST:'左ST'};
+const PH_MISS_LBL = {N:'ネット', SO:'サイドアウト', BO:'バックアウト', T:'チップ', DF:'DF'};
+const PH_ROLE_LBL = {a1:'後衛', a2:'前衛', b1:'後衛', b2:'前衛'};
+
+// 表示中の試合データを保持（タップ詳細で参照）
+let _phMatch = null;
+
+// 各ポイントの色を決定：2連続以上の得点=自チーム色(紺)、2連続以上の失点=赤、それ以外=グレー
+function phCalcColors(log) {
+  const C_WIN = '#1a4f8a', C_LOSE = '#b92020', C_NEU = '#9a948a';
+  const colors = new Array(log.length).fill(C_NEU);
+  for (let i = 0; i < log.length; i++) {
+    const t = log[i].winner;
+    const prev = i > 0 && log[i-1].winner === t;
+    const next = i < log.length - 1 && log[i+1].winner === t;
+    if (prev || next) colors[i] = t === 'a' ? C_WIN : C_LOSE;
+  }
+  return colors;
+}
+
+// 指定ポイント時点での連続数
+function phStreak(log, idx) {
+  const t = log[idx].winner;
+  let c = 1;
+  for (let i = idx - 1; i >= 0; i--) { if (log[i].winner === t) c++; else break; }
+  return { team: t, c };
+}
+
+// スコア状況（自チームa視点：リード中/ビハインド/オール）
+function phCtx(p) {
+  const iA = p.player ? p.player.startsWith('a') : (p.winner === 'a');
+  const myPrev = p.winner === (iA ? 'a' : 'b') ? (iA ? p.scoreA - 1 : p.scoreB - 1) : (iA ? p.scoreA : p.scoreB);
+  const opPrev = p.winner === (iA ? 'b' : 'a') ? (iA ? p.scoreB - 1 : p.scoreA - 1) : (iA ? p.scoreB : p.scoreA);
+  return myPrev > opPrev ? 'リード中' : myPrev < opPrev ? 'ビハインド' : 'オール';
+}
+
+// 自動コメント
+function phComment(log, p, idx) {
+  const st = phStreak(log, idx);
+  if (p.base === 'SA') return 'サーブエース！';
+  if (p.base === 'ReA') return 'レシーブエース！';
+  if (parseInt(p.rally || 0) >= 8) return `${p.rally}球の長いラリーを制した。`;
+  if (p.type === 'point' && p.shotType === 'Sm') return 'スマッシュで仕留めた。前衛の仕事。';
+  if (p.type === 'point' && p.shotType === 'Tp') return 'トップ打ちで積極的に攻めた。';
+  if (p.type === 'miss' && phCtx(p) === 'ビハインド') return 'ビハインドでのミス。踏ん張りどころ。';
+  if (p.type === 'miss' && phCtx(p) === 'リード中') return 'リード中のミス。攻めすぎに注意。';
+  if (st.c >= 3) return `${st.c}連続！流れを引き寄せた。`;
+  return '';
+}
+
+// ゲームごとにポイントをグループ化
+function phGroupByGame(log) {
+  const gs = []; let cur = null;
+  log.forEach((p, i) => {
+    const k = `${p.gameA||0}-${p.gameB||0}`;
+    if (!cur || cur.k !== k) { cur = { k, gameA: p.gameA||0, gameB: p.gameB||0, pts: [] }; gs.push(cur); }
+    cur.pts.push(Object.assign({}, p, { gi: i }));
+  });
+  return gs;
+}
+
+// 1ゲーム分のSVG折れ線を生成
+function phBuildGameSVG(pts, colors, offset) {
+  const PT_R = 6, SVG_H = 96, PAD_L = 28, PAD_R = 12, PAD_T = 12, PAD_B = 18;
+  const n = pts.length;
+  const W = Math.max(300, n * 24 + PAD_L + PAD_R);
+  const innerH = SVG_H - PAD_T - PAD_B;
+
+  let cA = 0, cB = 0;
+  const rawY = pts.map(p => { if (p.winner === 'a') cA++; else cB++; return cA - cB; });
+  const allY = [0, ...rawY];
+  const minY = Math.min(...allY), maxY = Math.max(...allY);
+  const rangeY = (maxY - minY) || 1;
+
+  const toX = (i) => PAD_L + i * (W - PAD_L - PAD_R) / ((n - 1) || 1);
+  const toY = (v) => PAD_T + innerH * (1 - (v - minY) / rangeY);
+  const zeroY = toY(0);
+  const xStart = PAD_L - 10;
+
+  const xy = rawY.map((v, i) => ({ x: toX(i), y: toY(v) }));
+
+  function fillPath() {
+    let d = `M${xStart},${zeroY}`;
+    xy.forEach((pt, i) => {
+      if (i === 0) { const cx = (xStart + pt.x) / 2; d += ` C${cx},${zeroY} ${cx},${pt.y} ${pt.x},${pt.y}`; }
+      else { const prev = xy[i-1]; const cx = (prev.x + pt.x) / 2; d += ` C${cx},${prev.y} ${cx},${pt.y} ${pt.x},${pt.y}`; }
+    });
+    d += ` L${xy[xy.length-1].x},${zeroY} Z`;
+    return d;
+  }
+
+  function segPaths() {
+    let s = '';
+    for (let i = 0; i < xy.length; i++) {
+      const c = colors[offset + i];
+      const x1 = i === 0 ? xStart : xy[i-1].x;
+      const y1 = i === 0 ? zeroY : xy[i-1].y;
+      const x2 = xy[i].x, y2 = xy[i].y;
+      const cx = (x1 + x2) / 2;
+      s += `<path d="M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}" stroke="${c}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    }
+    return s;
+  }
+
+  function dots() {
+    return xy.map((pt, i) => {
+      const gi = offset + i;
+      return `<circle id="ph-pt-${gi}" cx="${pt.x}" cy="${pt.y}" r="${PT_R}" fill="${colors[gi]}" stroke="#fff" stroke-width="1.5" style="cursor:pointer" onclick="phShowDetail(${gi})"/>`;
+    }).join('');
+  }
+
+  function aceLabels() {
+    return xy.map((pt, i) => {
+      const p = pts[i];
+      if (p.base === 'SA' || p.base === 'ReA') return `<text x="${pt.x}" y="${pt.y-10}" text-anchor="middle" font-size="9" font-weight="700" fill="${colors[offset+i]}">A</text>`;
+      return '';
+    }).join('');
+  }
+
+  function xLabels() {
+    return xy.map((pt, i) => {
+      const gi = offset + i + 1;
+      if (gi % 5 === 0 || i === 0 || i === xy.length - 1) return `<text x="${pt.x}" y="${SVG_H-3}" text-anchor="middle" font-size="8" fill="#aaa" font-family="var(--font-num)">${gi}</text>`;
+      return '';
+    }).join('');
+  }
+
+  return `<svg width="${W}" height="${SVG_H}" viewBox="0 0 ${W} ${SVG_H}" style="display:block">
+    <defs>
+      <clipPath id="ph-above-${offset}"><rect x="0" y="0" width="${W}" height="${zeroY}"/></clipPath>
+      <clipPath id="ph-below-${offset}"><rect x="0" y="${zeroY}" width="${W}" height="${SVG_H-zeroY}"/></clipPath>
+    </defs>
+    <path d="${fillPath()}" fill="rgba(26,79,138,.10)" clip-path="url(#ph-above-${offset})"/>
+    <path d="${fillPath()}" fill="rgba(185,32,32,.10)" clip-path="url(#ph-below-${offset})"/>
+    <line x1="${xStart}" y1="${zeroY}" x2="${xy[xy.length-1].x}" y2="${zeroY}" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="${PAD_L-6}" y="${zeroY+3}" text-anchor="end" font-size="8" fill="#bbb" font-family="var(--font-num)">0</text>
+    ${maxY>0?`<text x="${PAD_L-6}" y="${toY(maxY)+3}" text-anchor="end" font-size="8" fill="#1a4f8a" font-family="var(--font-num)">+${maxY}</text>`:''}
+    ${minY<0?`<text x="${PAD_L-6}" y="${toY(minY)+3}" text-anchor="end" font-size="8" fill="#b92020" font-family="var(--font-num)">${minY}</text>`:''}
+    ${segPaths()}
+    ${dots()}
+    ${aceLabels()}
+    ${xLabels()}
+  </svg>`;
+}
+
+// タップされたポイントの詳細を表示
+function phShowDetail(idx) {
+  if (!_phMatch) return;
+  const log = _phMatch.pointLog;
+  const colors = _phSelColors;
+
+  // 前の選択を解除
+  if (window._phSelIdx != null) {
+    const prev = document.getElementById('ph-pt-' + window._phSelIdx);
+    if (prev) { prev.setAttribute('r', 6); prev.style.filter = ''; }
+  }
+  window._phSelIdx = idx;
+  const el = document.getElementById('ph-pt-' + idx);
+  if (el) { el.setAttribute('r', 8); el.style.filter = 'drop-shadow(0 0 3px rgba(0,0,0,.35))'; }
+
+  const p = log[idx];
+  const isA = p.winner === 'a';
+  const color = isA ? 'var(--a)' : 'var(--b)';
+  const team = isA ? _phMatch.teamNameA : _phMatch.teamNameB;
+  const shot = p.base === 'SA' ? 'サーブエース' : p.base === 'ReA' ? 'レシーブエース' : p.shotType ? (PH_SHOT_LBL[p.shotType]||p.shotType) : (PH_BASE_LBL[p.base]||p.base||'—');
+  const course = p.course ? (PH_COURSE_LBL[p.course]||p.course) : '—';
+  const miss = p.miss ? (PH_MISS_LBL[p.miss]||p.miss) : '—';
+  const serve = p.serve ? (PH_SERVE_LBL[p.serve]||p.serve) : '—';
+  const playerName = p.player ? (_phMatch.playerNames[p.player] || p.player) : team;
+  const role = p.player ? (PH_ROLE_LBL[p.player]||'') : '';
+  const st = phStreak(log, idx);
+  const comment = phComment(log, p, idx);
+
+  const missOrCourse = (p.type === 'miss' && p.miss)
+    ? `<div class="ph-cell ph-warn"><div class="ph-cell-lbl">ミス</div><div class="ph-cell-val">${miss}</div></div>`
+    : `<div class="ph-cell ph-hi"><div class="ph-cell-lbl">コース</div><div class="ph-cell-val">${course}</div></div>`;
+
+  const panel = document.getElementById('ph-detail');
+  if (!panel) return;
+  panel.innerHTML = `
+    <div class="ph-dp-head">
+      <div class="ph-dp-num">#${idx+1}</div>
+      <div class="ph-dp-team" style="color:${color}">${escapeHtml(team)}　<span style="font-size:10px;font-weight:400;color:var(--muted)">${p.type==='point'?'得点':'失点'}</span></div>
+      <div class="ph-dp-score">${p.scoreA||0}-${p.scoreB||0}</div>
+    </div>
+    <div class="ph-dp-grid">
+      <div class="ph-cell"><div class="ph-cell-lbl">選手・役割</div><div class="ph-cell-val">${escapeHtml(playerName)}${role?`<span style="font-size:10px;color:var(--muted)"> ${role}</span>`:''}</div></div>
+      <div class="ph-cell"><div class="ph-cell-lbl">サーブ</div><div class="ph-cell-val">${serve}</div></div>
+      <div class="ph-cell"><div class="ph-cell-lbl">ショット</div><div class="ph-cell-val">${shot}</div></div>
+      <div class="ph-cell"><div class="ph-cell-lbl">ラリー</div><div class="ph-cell-val">${p.rally?p.rally+'球':'—'}</div></div>
+      ${missOrCourse}
+      <div class="ph-cell"><div class="ph-cell-lbl">状況</div><div class="ph-cell-val">${phCtx(p)}</div></div>
+    </div>
+    <div class="ph-dp-foot">
+      <span class="ph-streak ${st.team==='a'?'ph-sb-a':'ph-sb-b'}">${escapeHtml(st.team==='a'?_phMatch.teamNameA:_phMatch.teamNameB)} ${st.c}連続</span>${comment?escapeHtml(comment):''}
+    </div>`;
+}
+
+let _phSelColors = null;
+
 async function viewMatchHistory(mid) {
   const eid = currentEventId || 'default';
   const body = document.getElementById('match-history-body');
   body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">読み込み中...</div>`;
   document.getElementById('match-history-bg').classList.add('show');
-  
+  window._phSelIdx = null;
+
   try {
     const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
     if (!d || !d.pointLog || d.pointLog.length === 0) {
       body.innerHTML = `<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6">この試合にはポイント履歴がありません<br><small>（簡易入力モード、または結果のみ記録の試合）</small></div>`;
       return;
     }
-    
+
     const [a1n, a2n] = (d.teams?.a?.players || ' / ').split(' / ');
     const [b1n, b2n] = (d.teams?.b?.players || ' / ').split(' / ');
     const playerNames = { a1: a1n || 'a1', a2: a2n || 'a2', b1: b1n || 'b1', b2: b2n || 'b2' };
     const teamNameA = d.teams?.a?.name || 'Aペア';
     const teamNameB = d.teams?.b?.name || 'Bペア';
-    
-    const serveLbl = {'1st':'1st', '2nd':'2nd', 'fault':'DF'};
-    const baseLbl = {F:'フォア', B:'バック', Re:'レシーブ', SA:'サーブエース', ReA:'レシーブエース'};
-    const shotLbl = {St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち'};
-    const courseLbl = {C:'クロス', Co:'逆クロス', M:'ミドル', RST:'右ST', LST:'左ST'};
-    const missLbl = {N:'ネット', SO:'サイドアウト', BO:'バックアウト', T:'チップ', DF:'DF'};
-    
-    let html = `<div style="padding:0 2px 10px;font-size:11px;color:var(--muted);line-height:1.5">
-      ${d.pointLog.length}ポイントの記録があります。表示は確認用です。
+
+    const log = d.pointLog;
+    const colors = phCalcColors(log);
+    _phSelColors = colors;
+    _phMatch = { pointLog: log, playerNames, teamNameA, teamNameB };
+
+    // ===== グラフ部 =====
+    const games = phGroupByGame(log);
+    let graphHtml = `<div class="ph-legend">
+      <span class="ph-leg"><span class="ph-leg-line" style="background:#1a4f8a"></span>2連続得点</span>
+      <span class="ph-leg"><span class="ph-leg-line" style="background:#b92020"></span>2連続失点</span>
+      <span class="ph-leg"><span class="ph-leg-line" style="background:#9a948a"></span>その他</span>
+      <span class="ph-leg"><span style="font-size:9px;border:1.5px solid var(--ink);padding:0 3px;border-radius:2px;font-weight:700">A</span> エース</span>
     </div>`;
-    
-    html += `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">`;
-    
-    let prevScore = '0-0';
-    d.pointLog.forEach((p, i) => {
+    graphHtml += `<div class="ph-graph">`;
+    let offset = 0;
+    games.forEach((g, gi) => {
+      const last = g.pts[g.pts.length - 1];
+      const aW = g.pts.filter(p => p.winner === 'a').length;
+      const bW = g.pts.length - aW;
+      graphHtml += `<div class="ph-game">
+        <div class="ph-game-lbl">ゲーム${gi+1}　自${aW} - 相${bW}　<span style="color:var(--muted)">（最終 ${last.scoreA||0}-${last.scoreB||0}）</span></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">${phBuildGameSVG(g.pts, colors, offset)}</div>
+      </div>`;
+      offset += g.pts.length;
+    });
+    graphHtml += `</div>`;
+
+    // ===== 詳細パネル（タップで更新）=====
+    graphHtml += `<div class="ph-detail-panel" id="ph-detail"><div class="ph-none">グラフの●をタップすると<br>そのポイントの詳細が表示されます</div></div>`;
+
+    // ===== テキスト一覧（折りたたみ）=====
+    let listHtml = `<details class="ph-list-details"><summary class="ph-list-summary">📋 全${log.length}ポイントの一覧を見る</summary><div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px">`;
+    log.forEach((p, i) => {
       const winnerTeam = p.winner === 'a' ? 'a' : 'b';
       const winnerColor = winnerTeam === 'a' ? 'var(--a)' : 'var(--b)';
       const score = `${p.scoreA||0}-${p.scoreB||0}`;
       const game = `(G ${p.gameA||0}-${p.gameB||0})`;
-      
       const player = p.player ? (playerNames[p.player] || p.player) : '';
-      const serveText = p.serve ? serveLbl[p.serve] || p.serve : '';
+      const serveText = p.serve ? PH_SERVE_LBL[p.serve] || p.serve : '';
       const rallyText = p.rally ? `${p.rally}球` : '';
-      const baseText = p.base ? baseLbl[p.base] || p.base : '';
-      const shotText = p.shotType ? shotLbl[p.shotType] || p.shotType : '';
-      const courseText = p.course ? courseLbl[p.course] || p.course : '';
-      const missText = p.miss ? missLbl[p.miss] || p.miss : '';
+      const baseText = p.base ? PH_BASE_LBL[p.base] || p.base : '';
+      const shotText = p.shotType ? PH_SHOT_LBL[p.shotType] || p.shotType : '';
+      const courseText = p.course ? PH_COURSE_LBL[p.course] || p.course : '';
+      const missText = p.miss ? PH_MISS_LBL[p.miss] || p.miss : '';
       const typeText = p.type === 'point' ? '✔ ポイント' : '✘ ミス';
-      
       let details = [];
       if (serveText) details.push(serveText);
       if (rallyText) details.push(rallyText);
@@ -3282,13 +3533,10 @@ async function viewMatchHistory(mid) {
       if (shotText) details.push(shotText);
       if (courseText) details.push(courseText);
       if (missText) details.push(missText);
-      
-      html += `<div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#fff">
+      listHtml += `<div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface)">
         <div style="font-size:11px;color:var(--muted);font-family:var(--font-num);min-width:32px">#${i+1}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:11px;color:${winnerColor};font-weight:700;margin-bottom:2px">
-            ${typeText} → ${winnerTeam==='a' ? teamNameA : teamNameB} ポイント
-          </div>
+          <div style="font-size:11px;color:${winnerColor};font-weight:700;margin-bottom:2px">${typeText} → ${escapeHtml(winnerTeam==='a' ? teamNameA : teamNameB)} ポイント</div>
           <div style="font-size:11px;color:var(--ink);line-height:1.4">${details.join(' › ') || '（情報なし）'}</div>
         </div>
         <div style="font-family:var(--font-num);text-align:right;flex-shrink:0">
@@ -3297,9 +3545,9 @@ async function viewMatchHistory(mid) {
         </div>
       </div>`;
     });
-    
-    html += `</div>`;
-    body.innerHTML = html;
+    listHtml += `</div></details>`;
+
+    body.innerHTML = graphHtml + listHtml;
   } catch (e) {
     body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--b);font-size:13px">読み込みエラー: ${escapeHtml(e.message || '')}</div>`;
   }
