@@ -357,6 +357,18 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .msd-plog-score{font-family:var(--font-num);text-align:right;flex-shrink:0}
 .msd-plog-sc{font-size:13px;font-weight:700}
 .msd-plog-game{font-size:9px;color:var(--muted)}
+/* === いいねボタン === */
+.like-row{padding:10px 14px 0;display:flex;justify-content:center}
+.like-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:22px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--ink);-webkit-tap-highlight-color:transparent;transition:transform .1s,border-color .2s,background .2s}
+.like-btn:active{transform:scale(.94)}
+.like-btn.liked{border-color:#f0a030;background:#fff8ec}
+.like-emoji{font-size:18px;display:inline-block;transform-origin:center}
+.like-emoji.like-pop{animation:likePop .4s ease}
+@keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.6) rotate(-12deg)}70%{transform:scale(.9) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+.like-label{font-size:12px}
+.like-count{min-width:20px;text-align:center;font-family:var(--font-num);font-weight:700;color:#f0a030;font-size:14px}
+.like-burst{position:fixed;font-size:22px;pointer-events:none;z-index:9999;animation:likeBurst .9s ease-out forwards}
+@keyframes likeBurst{0%{opacity:1;transform:translateY(0) scale(.6)}30%{opacity:1;transform:translateY(-24px) scale(1.2)}100%{opacity:0;transform:translateY(-60px) scale(1)}}
 .confirm-btn{width:100%;padding:14px;font-family:var(--font-main);font-size:16px;font-weight:700;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
 .confirm-btn:active{transform:scale(.97)}
 
@@ -1457,7 +1469,7 @@ function startMatch() {
     stats: {
       a: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
            base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
-           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0, Lb:0 },
            course:{ C:0, Co:0, M:0, RST:0, LST:0 },
            miss_type:{ N:0, SO:0, BO:0, T:0 },
            players:{ a1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
@@ -1465,7 +1477,7 @@ function startMatch() {
            rally:{'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0} },
       b: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
            base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
-           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0, Lb:0 },
            course:{ C:0, Co:0, M:0, RST:0, LST:0 },
            miss_type:{ N:0, SO:0, BO:0, T:0 },
            players:{ b1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
@@ -1698,6 +1710,7 @@ function renderFlow() {
         { val:'N',  label:'N ネット',       cls:'choice-miss' },
         { val:'SO', label:'SO サイドアウト', cls:'choice-miss' },
         { val:'BO', label:'BO バックアウト', cls:'choice-miss' },
+        { val:'NT', label:'NT ノータッチ',   cls:'choice-miss' },
         { val:'T',  label:'T チップ',       cls:'choice-miss' }
       ], 'miss', flow.miss);
       if (!flow.miss) { el.innerHTML = html; return; }
@@ -1740,7 +1753,7 @@ function renderFlow() {
       { val:'St', label:'St ストローク' }, { val:'S',  label:'S スライス' },
       { val:'V',  label:'V ボレー' },      { val:'LV', label:'LV ローボレー' },
       { val:'Hv', label:'Hv ハイボレー' }, { val:'Sm', label:'Sm スマッシュ' },
-      { val:'Tp', label:'Tp トップ打ち' }
+      { val:'Tp', label:'Tp トップ打ち' }, { val:'Lb', label:'Lb ロブ' }
     ], 'shotType', flow.shotType);
     if (!flow.shotType) { el.innerHTML = html; return; }
 
@@ -1772,7 +1785,7 @@ function renderFlow() {
       { val:'St', label:'St ストローク' }, { val:'S',  label:'S スライス' },
       { val:'V',  label:'V ボレー' },      { val:'LV', label:'LV ローボレー' },
       { val:'Hv', label:'Hv ハイボレー' }, { val:'Sm', label:'Sm スマッシュ' },
-      { val:'Tp', label:'Tp トップ打ち' }
+      { val:'Tp', label:'Tp トップ打ち' }, { val:'Lb', label:'Lb ロブ' }
     ], 'shotType', flow.shotType);
     if (!flow.shotType) { el.innerHTML = html; return; }
 
@@ -1788,6 +1801,7 @@ function renderFlow() {
       { val:'N',  label:'N ネット',       cls:'choice-miss' },
       { val:'SO', label:'SO サイドアウト', cls:'choice-miss' },
       { val:'BO', label:'BO バックアウト', cls:'choice-miss' },
+      { val:'NT', label:'NT ノータッチ',   cls:'choice-miss' },
       { val:'T',  label:'T チップ',       cls:'choice-miss' }
     ], 'miss', flow.miss);
     if (!flow.miss) { el.innerHTML = html; return; }
@@ -2174,7 +2188,7 @@ async function saveQuickResult() {
     stats: {
       a: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
            base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
-           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0, Lb:0 },
            course:{ C:0, Co:0, M:0, RST:0, LST:0 },
            miss_type:{ N:0, SO:0, BO:0, T:0 },
            players:{ a1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
@@ -2182,7 +2196,7 @@ async function saveQuickResult() {
            rally:{'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0} },
       b: { pts:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0, ace:0, win:0, miss:0,
            base:{ F:0, B:0, Re:0, SA:0, ReA:0 },
-           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0 },
+           shotType:{ St:0, S:0, V:0, Hv:0, Sm:0, LV:0, Tp:0, Lb:0 },
            course:{ C:0, Co:0, M:0, RST:0, LST:0 },
            miss_type:{ N:0, SO:0, BO:0, T:0 },
            players:{ b1:{pts:0,miss:0,srv1in:0,srv1tot:0,srv2in:0,srv2tot:0,df:0},
@@ -2569,7 +2583,7 @@ function renderLiveMiss(log, pName) {
     }
   });
 
-  const missLbl = {N:'N', SO:'SO', BO:'BO', T:'T', DF:'DF', Re:'Re'};
+  const missLbl = {N:'N', SO:'SO', BO:'BO', NT:'NT', T:'T', DF:'DF', Re:'Re'};
   
   const card = (key, name, team) => {
     const m = missCounts[key];
@@ -2581,7 +2595,7 @@ function renderLiveMiss(log, pName) {
       </div>`;
     }
     let chips = '';
-    ['N','SO','BO','T','DF'].forEach(k => {
+    ['N','SO','BO','NT','T','DF'].forEach(k => {
       if (m[k] > 0) chips += `<span class="live-miss-chip">${missLbl[k]}<span class="v">${m[k]}</span></span>`;
     });
     if (m.Re > 0) chips += `<span class="live-miss-chip" style="background:#fff3e0">Re<span class="v">${m.Re}</span></span>`;
@@ -2592,7 +2606,7 @@ function renderLiveMiss(log, pName) {
   };
 
   return `<div class="live-sec">
-    <div class="live-sec-head">❌ ミス傾向（N=ネット SO=サイドアウト BO=バックアウト T=チップ）</div>
+    <div class="live-sec-head">❌ ミス傾向（N=ネット SO=サイドアウト BO=バックアウト NT=ノータッチ T=チップ）</div>
     <div class="live-miss-grid">
       ${card('a1', pName.a1, 'a')}
       ${card('b1', pName.b1, 'b')}
@@ -3185,6 +3199,13 @@ function buildHistoryCard(d, mid) {
       <div class="sl-score">${d.gamesWon?.a||0} - ${d.gamesWon?.b||0}</div>
       <div class="sl-team sl-b">${d.teams?.b?.school ? `<span style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:2px">${escapeHtml(d.teams.b.school)}</span>` : ''}${d.teams?.b?.name || 'Bペア'}</div>
     </div>
+    <div class="like-row">
+      <button class="like-btn" id="like-btn-${mid}" onclick="tapLike('${mid}')">
+        <span class="like-emoji" id="like-emoji-${mid}">👍</span>
+        <span class="like-label">ナイスゲーム！</span>
+        <span class="like-count" id="like-count-${mid}">${d.likes||0}</span>
+      </button>
+    </div>
     ${isResultOnly ? '' : `<div class="player-grid">
       ${playerBlock(a1n, '後衛', 'pb-team-a', sa, 'a1')}
       ${playerBlock(b1n, '後衛', 'pb-team-b', sb, 'b1')}
@@ -3414,6 +3435,58 @@ function buildPointLogList(log, playerNames, teamA, teamB) {
     </div>`;
   }).join('');
 }
+// いいねボタン：連打対応・楽観的UI更新・デバウンス保存
+const _likeState = {};
+function tapLike(mid) {
+  const countEl = document.getElementById('like-count-' + mid);
+  const emojiEl = document.getElementById('like-emoji-' + mid);
+  const btnEl = document.getElementById('like-btn-' + mid);
+  if (!countEl) return;
+
+  // 楽観的に+1表示
+  const cur = parseInt(countEl.textContent || '0', 10) + 1;
+  countEl.textContent = cur;
+
+  // ポップアニメーション
+  if (emojiEl) {
+    emojiEl.classList.remove('like-pop');
+    void emojiEl.offsetWidth; // リフロー強制でアニメ再生
+    emojiEl.classList.add('like-pop');
+  }
+  if (btnEl) btnEl.classList.add('liked');
+
+  // ハート（👍）が飛ぶ演出
+  spawnLikeBurst(btnEl);
+
+  // デバウンスして保存（連打をまとめて1回書き込み）
+  _likeState[mid] = cur;
+  if (_likeTimers[mid]) clearTimeout(_likeTimers[mid]);
+  _likeTimers[mid] = setTimeout(() => saveLike(mid), 600);
+}
+const _likeTimers = {};
+async function saveLike(mid) {
+  const eid = currentEventId || 'default';
+  const val = _likeState[mid];
+  if (val == null) return;
+  try {
+    await xhrRequest('PUT', `events/${eid}/history/${mid}/likes`, val);
+  } catch (e) {
+    console.warn('いいねの保存に失敗:', e);
+  }
+}
+function spawnLikeBurst(btnEl) {
+  if (!btnEl) return;
+  const rect = btnEl.getBoundingClientRect();
+  const emojis = ['👍','🎾','🔥','💪','✨'];
+  const e = document.createElement('div');
+  e.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  e.className = 'like-burst';
+  e.style.left = (rect.left + rect.width / 2 + (Math.random() * 30 - 15)) + 'px';
+  e.style.top = (rect.top) + 'px';
+  document.body.appendChild(e);
+  setTimeout(() => e.remove(), 900);
+}
+
 async function deleteHistoryMatch(mid) {
   if(!confirm('この試合結果を削除しますか？')) return;
   const eid = currentEventId || 'default';
@@ -3494,9 +3567,9 @@ async function saveMatchPlayers() {
 // ポイント履歴の表示用ラベル（共通）
 const PH_SERVE_LBL = {'1st':'1st', '2nd':'2nd', 'fault':'DF'};
 const PH_BASE_LBL = {F:'フォア', B:'バック', Re:'レシーブ', SA:'サーブエース', ReA:'レシーブエース'};
-const PH_SHOT_LBL = {St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち'};
+const PH_SHOT_LBL = {St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち', Lb:'ロブ'};
 const PH_COURSE_LBL = {C:'クロス', Co:'逆クロス', M:'ミドル', RST:'右ST', LST:'左ST'};
-const PH_MISS_LBL = {N:'ネット', SO:'サイドアウト', BO:'バックアウト', T:'チップ', DF:'DF'};
+const PH_MISS_LBL = {N:'ネット', SO:'サイドアウト', BO:'バックアウト', NT:'ノータッチ', T:'チップ', DF:'DF'};
 const PH_ROLE_LBL = {a1:'後衛', a2:'前衛', b1:'後衛', b2:'前衛'};
 
 // 表示中の試合データを保持（タップ詳細で参照）
@@ -4024,8 +4097,8 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
   const pct = (i, t) => t > 0 ? Math.round(i/t*100) : 0;
   
   // ポイント内訳の整形（個人・ペア共通）
-  const shotLabels = {SA:'サーブエース',ReA:'レシーブエース',St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち'};
-  const shotOrder = ['SA','ReA','St','S','V','LV','Hv','Sm','Tp','その他'];
+  const shotLabels = {SA:'サーブエース',ReA:'レシーブエース',St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Lb:'ロブ'};
+  const shotOrder = ['SA','ReA','St','S','V','LV','Hv','Sm','Tp','Lb','その他'];
   const formatPtBreakdown = (bd) => {
     if (!bd) return '';
     const entries = shotOrder.filter(k => bd[k] > 0).map(k => `${shotLabels[k]||k}${bd[k]}`);
@@ -4443,7 +4516,7 @@ function buildProfileCard(playerName, allMatches) {
         if (p.base === 'SA') cat = 'サーブエース';
         else if (p.base === 'ReA') cat = 'レシーブエース';
         else if (p.shotType) {
-          const lbl = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち'};
+          const lbl = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Lb:'ロブ'};
           cat = lbl[p.shotType] || p.shotType;
         } else {
           cat = 'その他';
@@ -4460,13 +4533,13 @@ function buildProfileCard(playerName, allMatches) {
         let shotCat;
         if (p.miss === 'DF') shotCat = 'ダブルフォルト';
         else if (p.shotType) {
-          const lbl = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち'};
+          const lbl = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Lb:'ロブ'};
           shotCat = lbl[p.shotType] || p.shotType;
         } else if (p.base === 'Re') shotCat = 'レシーブ';
         else shotCat = 'その他';
         // ミス種類
         if (p.miss && p.miss !== 'DF') {
-          const mLbl = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ'};
+          const mLbl = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',NT:'ノータッチ',T:'チップ'};
           shotCat = `${shotCat}の${mLbl[p.miss]||p.miss}`;
         }
         missByShot[shotCat] = (missByShot[shotCat] || 0) + 1;
@@ -4786,8 +4859,8 @@ function buildChart5_ScoreContext(points) {
 function buildChart1_ShotMiss(points) {
   const shotTypes = ['St','S','V','LV','Hv','Sm','Tp','Re','DF'];
   const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Re:'レシーブ',DF:'ダブルフォルト'};
-  const missTypes = ['N','SO','BO','T','DF'];
-  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ',DF:'DF'};
+  const missTypes = ['N','SO','BO','NT','T','DF'];
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',NT:'ノータッチ',T:'チップ',DF:'DF'};
   const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0',DF:'#888888'};
 
   const data = {};
@@ -4847,7 +4920,7 @@ function buildChart2_HeatMatrix(points) {
   const bases = ['F','B'];
   const baseLabels = {F:'フォア',B:'バック'};
   const shotTypes = ['St','S','V','LV','Hv','Sm','Tp'];
-  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち'};
+  const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Lb:'ロブ'};
   const courses = ['C','Co','M','RST','LST'];
   const courseLabels = {C:'クロス',Co:'逆クロス',M:'ミドル',RST:'右ST',LST:'左ST'};
 
@@ -4951,8 +5024,8 @@ function buildChart3_RallyHist(points) {
 
 // ④ ミスの総合割合（ドーナツグラフ）
 function buildChart4_Donut(points) {
-  const missTypes = ['N','SO','BO','T','DF'];
-  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ',DF:'ダブルフォルト'};
+  const missTypes = ['N','SO','BO','NT','T','DF'];
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',NT:'ノータッチ',T:'チップ',DF:'ダブルフォルト'};
   const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0',DF:'#888888'};
 
   const data = {};
