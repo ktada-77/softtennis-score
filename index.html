@@ -328,6 +328,35 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .ph-list-details{margin-top:4px}
 .ph-list-summary{font-size:12px;color:var(--muted);cursor:pointer;padding:8px 2px;font-weight:600;-webkit-tap-highlight-color:transparent}
 .ph-list-summary:hover{color:var(--ink)}
+/* === 試合カード詳細スタッツ展開 === */
+.ms-detail-toggle{width:100%;margin-top:10px;padding:11px;background:var(--s2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink);-webkit-tap-highlight-color:transparent;transition:background .15s}
+.ms-detail-toggle:active{background:var(--border)}
+.ms-toggle-arrow{font-size:10px;color:var(--muted)}
+.ms-detail-body{margin-top:8px}
+.ms-detail-inner{display:flex;flex-direction:column;gap:14px}
+.msd-section{}
+.msd-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.msd-pstat-grid{display:flex;flex-direction:column;gap:6px}
+.msd-pstat{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.msd-pstat-name{font-size:13px;font-weight:600}
+.msd-pstat-vals{display:flex;gap:12px;font-size:11px;color:var(--muted);font-family:var(--font-num)}
+.msd-pstat-vals b{color:var(--ink);font-size:13px;font-weight:700}
+.msd-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.msd-bar-lbl{font-size:11px;color:var(--ink);width:78px;flex-shrink:0;text-align:right}
+.msd-bar-track{flex:1;height:14px;background:var(--s2);border-radius:4px;overflow:hidden}
+.msd-bar-fill{height:100%;border-radius:4px;min-width:3px;transition:width .3s}
+.msd-bar-val{font-size:12px;font-weight:700;font-family:var(--font-num);width:22px;text-align:right;flex-shrink:0}
+.msd-empty{font-size:11px;color:var(--muted);padding:4px 0 4px 86px}
+.msd-pointlog{border:1px solid var(--border);border-radius:8px;overflow:hidden;max-height:320px;overflow-y:auto}
+.msd-plog-row{padding:7px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--surface)}
+.msd-plog-row:last-child{border-bottom:none}
+.msd-plog-num{font-size:10px;color:var(--muted);font-family:var(--font-num);min-width:30px}
+.msd-plog-main{flex:1;min-width:0}
+.msd-plog-result{font-size:11px;font-weight:700;margin-bottom:2px}
+.msd-plog-detail{font-size:11px;color:var(--ink);line-height:1.4}
+.msd-plog-score{font-family:var(--font-num);text-align:right;flex-shrink:0}
+.msd-plog-sc{font-size:13px;font-weight:700}
+.msd-plog-game{font-size:9px;color:var(--muted)}
 .confirm-btn{width:100%;padding:14px;font-family:var(--font-main);font-size:16px;font-weight:700;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
 .confirm-btn:active{transform:scale(.97)}
 
@@ -3146,7 +3175,6 @@ function buildHistoryCard(d, mid) {
     <div class="ms-head">
       <span class="ms-court-label">${isResultOnly ? '📝 結果のみ' : '終了'}: ${timeStr} (${d.matchGames}Gマッチ)</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button onclick="viewMatchHistory('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">📋 履歴</button>
         <button onclick="editMatchPlayers('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">✏ 選手名</button>
         <button onclick="editMatchSchool('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🏫 学校名</button>
         <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🗑 削除</button>
@@ -3176,8 +3204,212 @@ function buildHistoryCard(d, mid) {
       ${d.reflect.improve?`<div class="rv-block">📝 ${d.reflect.improve}</div>`:''}
       ${d.reflect.goal?`<div class="rv-block">🎯 ${d.reflect.goal}</div>`:''}
     </div>` : ''}
+    ${isResultOnly ? '' : `
+    <button class="ms-detail-toggle" id="ms-toggle-${mid}" onclick="toggleMatchDetail('${mid}')">
+      <span>📊 この試合の詳細スタッツを見る</span>
+      <span class="ms-toggle-arrow" id="ms-arrow-${mid}">▼</span>
+    </button>
+    <div class="ms-detail-body" id="ms-detail-${mid}" style="display:none"></div>`}
   `;
   return wrap;
+}
+
+// 試合カードの詳細スタッツ展開/折りたたみ
+async function toggleMatchDetail(mid) {
+  const body = document.getElementById('ms-detail-' + mid);
+  const arrow = document.getElementById('ms-arrow-' + mid);
+  if (!body) return;
+  if (body.style.display !== 'none') {
+    body.style.display = 'none';
+    if (arrow) arrow.textContent = '▼';
+    return;
+  }
+  // 展開
+  if (arrow) arrow.textContent = '▲';
+  body.style.display = 'block';
+  if (body.dataset.loaded === '1') return; // 既に構築済み
+
+  body.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">読み込み中...</div>`;
+  const eid = currentEventId || 'default';
+  try {
+    const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    body.innerHTML = buildMatchDetailHTML(d, mid);
+    body.dataset.loaded = '1';
+    // フローグラフ用にデータをセット（タップ詳細で参照）
+    if (d.pointLog && d.pointLog.length) {
+      const [a1n, a2n] = (d.teams?.a?.players || ' / ').split(' / ');
+      const [b1n, b2n] = (d.teams?.b?.players || ' / ').split(' / ');
+      _phMatch = {
+        pointLog: d.pointLog,
+        playerNames: { a1: a1n||'a1', a2: a2n||'a2', b1: b1n||'b1', b2: b2n||'b2' },
+        teamNameA: d.teams?.a?.name || 'Aペア',
+        teamNameB: d.teams?.b?.name || 'Bペア'
+      };
+      _phSelColors = phCalcColors(d.pointLog);
+    }
+  } catch (e) {
+    body.innerHTML = `<div style="padding:16px;text-align:center;color:var(--b);font-size:12px">読み込みエラー: ${escapeHtml(e.message||'')}</div>`;
+  }
+}
+
+// 詳細スタッツHTML生成（集計 + フローグラフ + ポイント履歴一覧）
+function buildMatchDetailHTML(d, mid) {
+  const log = (d.pointLog || []);
+  const [a1n, a2n] = (d.teams?.a?.players || '後衛A / 前衛A').split(' / ');
+  const [b1n, b2n] = (d.teams?.b?.players || '後衛B / 前衛B').split(' / ');
+  const teamA = d.teams?.a?.name || 'TAKADA.st';
+  const teamB = d.teams?.b?.name || '相手';
+
+  // ポイントログが無い場合（簡易入力など）
+  if (log.length === 0) {
+    return `<div class="ms-detail-inner"><div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7">この試合は詳細データがありません<br><small>（簡易入力モード、または結果のみ記録）</small></div></div>`;
+  }
+
+  // === 集計 ===
+  // ポイントの取り方（自チーム視点：得点の決まり方／失点の原因）
+  const ownWins = log.filter(p => p.winner === 'a');
+  const oppWins = log.filter(p => p.winner === 'b');
+
+  // 自チームの得点内訳（type==point かつ winner==a → 自分で決めた / winner==a かつ相手ミス）
+  // pointLog は winner視点。playerが自チーム(a*)なら自分のアクション
+  function tally(arr, keyFn) {
+    const m = {};
+    arr.forEach(p => { const k = keyFn(p); if (k) m[k] = (m[k]||0) + 1; });
+    return m;
+  }
+
+  // 自チームの決定ショット（得点時、自チーム選手が打った）
+  const ownPointShots = tally(log.filter(p => p.winner === 'a' && p.type === 'point' && p.player && p.player.startsWith('a')),
+    p => p.base === 'SA' ? 'サーブエース' : p.base === 'ReA' ? 'レシーブエース' : (PH_SHOT_LBL[p.shotType] || PH_BASE_LBL[p.base] || 'その他'));
+  // 自チームのミス内訳（失点時、自チーム選手のミス）
+  const ownMisses = tally(log.filter(p => p.winner === 'b' && p.type === 'miss' && p.player && p.player.startsWith('a')),
+    p => PH_MISS_LBL[p.miss] || 'その他');
+  // コース分布（自チーム得点時）
+  const ownCourses = tally(log.filter(p => p.winner === 'a' && p.type === 'point' && p.course),
+    p => PH_COURSE_LBL[p.course] || p.course);
+  // ラリー分布
+  const rallyDist = { '1-2球': 0, '3-4球': 0, '5-7球': 0, '8球+': 0 };
+  log.forEach(p => {
+    const r = parseInt(p.rally || 0);
+    if (!r) return;
+    if (r <= 2) rallyDist['1-2球']++;
+    else if (r <= 4) rallyDist['3-4球']++;
+    else if (r <= 7) rallyDist['5-7球']++;
+    else rallyDist['8球+']++;
+  });
+
+  function barList(obj, color) {
+    const entries = Object.entries(obj).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+    if (entries.length === 0) return `<div class="msd-empty">データなし</div>`;
+    const max = Math.max(...entries.map(e => e[1]));
+    return entries.map(([k,v]) => `
+      <div class="msd-bar-row">
+        <div class="msd-bar-lbl">${k}</div>
+        <div class="msd-bar-track"><div class="msd-bar-fill" style="width:${Math.round(v/max*100)}%;background:${color}"></div></div>
+        <div class="msd-bar-val">${v}</div>
+      </div>`).join('');
+  }
+
+  // === プレイヤー別サーブ＆ポイント＆ミス ===
+  const sa = d.stats?.a || {};
+  const sb = d.stats?.b || {};
+  function pStat(stats, key, name, role) {
+    const ps = stats.players && stats.players[key];
+    const pts = ps ? (ps.pts||0) : 0;
+    const miss = ps ? (ps.miss||0) : 0;
+    const s1in = ps ? (ps.srv1in||0) : 0, s1tot = ps ? (ps.srv1tot||0) : 0;
+    const pct = s1tot > 0 ? Math.round(s1in/s1tot*100)+'%' : '-';
+    return `<div class="msd-pstat">
+      <div class="msd-pstat-name">${escapeHtml(name)} <span style="color:var(--muted);font-weight:400;font-size:10px">${role}</span></div>
+      <div class="msd-pstat-vals"><span>1st <b>${pct}</b></span><span>得点 <b>${pts}</b></span><span>ミス <b>${miss}</b></span></div>
+    </div>`;
+  }
+
+  return `<div class="ms-detail-inner">
+    <div class="msd-section">
+      <div class="msd-title">🎾 選手別スタッツ</div>
+      <div class="msd-pstat-grid">
+        ${pStat(sa, 'a1', a1n, '後衛')}
+        ${pStat(sa, 'a2', a2n, '前衛')}
+      </div>
+    </div>
+
+    <div class="msd-section">
+      <div class="msd-title">⚡ 得点の取り方（自チーム）</div>
+      ${barList(ownPointShots, 'var(--a)')}
+    </div>
+
+    <div class="msd-section">
+      <div class="msd-title">⚠️ ミスの内訳（自チーム）</div>
+      ${barList(ownMisses, 'var(--b)')}
+    </div>
+
+    <div class="msd-section">
+      <div class="msd-title">🎯 得点コース（自チーム）</div>
+      ${barList(ownCourses, '#3a8a5a')}
+    </div>
+
+    <div class="msd-section">
+      <div class="msd-title">🔁 ラリーの長さ分布</div>
+      ${barList(rallyDist, '#9a7a3a')}
+    </div>
+
+    <div class="msd-section">
+      <div class="msd-title">📈 試合の流れ（点差の推移）</div>
+      <div class="ph-legend">
+        <span class="ph-leg"><span class="ph-leg-line" style="background:#1a4f8a"></span>2連続得点</span>
+        <span class="ph-leg"><span class="ph-leg-line" style="background:#b92020"></span>2連続失点</span>
+        <span class="ph-leg"><span class="ph-leg-line" style="background:#9a948a"></span>その他</span>
+        <span class="ph-leg"><span style="font-size:9px;border:1.5px solid var(--ink);padding:0 3px;border-radius:2px;font-weight:700">A</span> エース</span>
+      </div>
+      <div class="ph-graph"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch">${phBuildFullSVG(log, phCalcColors(log))}</div></div>
+      <div class="ph-detail-panel" id="ph-detail"><div class="ph-none">グラフの●をタップすると<br>そのポイントの詳細が表示されます</div></div>
+    </div>
+
+    <div class="msd-section">
+      <div class="msd-title">📋 ポイント入力の履歴（全${log.length}ポイント）</div>
+      <div class="msd-pointlog">
+        ${buildPointLogList(log, { a1: a1n, a2: a2n, b1: b1n, b2: b2n }, teamA, teamB)}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ポイント入力履歴の一覧HTML（以前の入力履歴スタイル）
+function buildPointLogList(log, playerNames, teamA, teamB) {
+  return log.map((p, i) => {
+    const winA = p.winner === 'a';
+    const winnerColor = winA ? 'var(--a)' : 'var(--b)';
+    const score = `${p.scoreA||0}-${p.scoreB||0}`;
+    const game = `G${(p.gameA||0)}-${(p.gameB||0)}`;
+    const player = p.player ? (playerNames[p.player] || p.player) : '';
+    const serveText = p.serve ? (PH_SERVE_LBL[p.serve] || p.serve) : '';
+    const rallyText = p.rally ? `${p.rally}球` : '';
+    const baseText = p.base ? (PH_BASE_LBL[p.base] || p.base) : '';
+    const shotText = p.shotType ? (PH_SHOT_LBL[p.shotType] || p.shotType) : '';
+    const courseText = p.course ? (PH_COURSE_LBL[p.course] || p.course) : '';
+    const missText = p.miss ? (PH_MISS_LBL[p.miss] || p.miss) : '';
+    const typeText = p.type === 'point' ? '✔ ポイント' : '✘ ミス';
+    let details = [];
+    if (serveText) details.push(serveText);
+    if (rallyText) details.push(rallyText);
+    if (player) details.push(player);
+    if (baseText && p.miss !== 'DF') details.push(baseText);
+    if (shotText) details.push(shotText);
+    if (courseText) details.push(courseText);
+    if (missText) details.push(missText);
+    return `<div class="msd-plog-row">
+      <div class="msd-plog-num">#${i+1}</div>
+      <div class="msd-plog-main">
+        <div class="msd-plog-result" style="color:${winnerColor}">${typeText} → ${escapeHtml(winA ? teamA : teamB)}</div>
+        <div class="msd-plog-detail">${details.join(' › ') || '（情報なし）'}</div>
+      </div>
+      <div class="msd-plog-score">
+        <div class="msd-plog-sc">${score}</div>
+        <div class="msd-plog-game">${game}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 async function deleteHistoryMatch(mid) {
   if(!confirm('この試合結果を削除しますか？')) return;
