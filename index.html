@@ -332,21 +332,21 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .ms-detail-toggle{width:100%;margin-top:10px;padding:11px;background:var(--s2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink);-webkit-tap-highlight-color:transparent;transition:background .15s}
 .ms-detail-toggle:active{background:var(--border)}
 .ms-toggle-arrow{font-size:10px;color:var(--muted)}
-.ms-detail-body{margin-top:8px}
-.ms-detail-inner{display:flex;flex-direction:column;gap:14px}
+.ms-detail-body{margin-top:8px;padding:0 14px 14px}
+.ms-detail-inner{display:flex;flex-direction:column;gap:18px}
 .msd-section{}
-.msd-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.msd-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px}
 .msd-pstat-grid{display:flex;flex-direction:column;gap:6px}
-.msd-pstat{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.msd-pstat{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .msd-pstat-name{font-size:13px;font-weight:600}
-.msd-pstat-vals{display:flex;gap:12px;font-size:11px;color:var(--muted);font-family:var(--font-num)}
+.msd-pstat-vals{display:flex;gap:14px;font-size:11px;color:var(--muted);font-family:var(--font-num)}
 .msd-pstat-vals b{color:var(--ink);font-size:13px;font-weight:700}
-.msd-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.msd-bar-lbl{font-size:11px;color:var(--ink);width:78px;flex-shrink:0;text-align:right}
-.msd-bar-track{flex:1;height:14px;background:var(--s2);border-radius:4px;overflow:hidden}
-.msd-bar-fill{height:100%;border-radius:4px;min-width:3px;transition:width .3s}
-.msd-bar-val{font-size:12px;font-weight:700;font-family:var(--font-num);width:22px;text-align:right;flex-shrink:0}
-.msd-empty{font-size:11px;color:var(--muted);padding:4px 0 4px 86px}
+.msd-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;min-height:18px}
+.msd-bar-lbl{font-size:11px;color:var(--muted);width:88px;flex-shrink:0;text-align:right}
+.msd-blocks{flex:1;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.msd-block{width:16px;height:16px;border-radius:3px;flex-shrink:0}
+.msd-bar-val{font-size:13px;font-weight:700;color:var(--ink);font-family:var(--font-num);width:24px;text-align:right;flex-shrink:0}
+.msd-empty{font-size:11px;color:var(--muted);padding:2px 0 2px 98px}
 .msd-pointlog{border:1px solid var(--border);border-radius:8px;overflow:hidden;max-height:320px;overflow-y:auto}
 .msd-plog-row{padding:7px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--surface)}
 .msd-plog-row:last-child{border-bottom:none}
@@ -3301,13 +3301,16 @@ function buildMatchDetailHTML(d, mid) {
   function barList(obj, color) {
     const entries = Object.entries(obj).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
     if (entries.length === 0) return `<div class="msd-empty">データなし</div>`;
-    const max = Math.max(...entries.map(e => e[1]));
-    return entries.map(([k,v]) => `
+    return entries.map(([k,v]) => {
+      let blocks = '';
+      for (let i = 0; i < v; i++) blocks += `<span class="msd-block" style="background:${color}"></span>`;
+      return `
       <div class="msd-bar-row">
         <div class="msd-bar-lbl">${k}</div>
-        <div class="msd-bar-track"><div class="msd-bar-fill" style="width:${Math.round(v/max*100)}%;background:${color}"></div></div>
+        <div class="msd-blocks">${blocks}</div>
         <div class="msd-bar-val">${v}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
   // === プレイヤー別サーブ＆ポイント＆ミス ===
