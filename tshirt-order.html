@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ソフトテニス部 長袖Tシャツ注文フォーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --fabric:#EAF0EC; --card:#FBFCFA; --navy:#1C3A4A; --navy-2:#26576B;
+    --thread:#C25B3A; --mustard:#D9A441; --court:#2E7D5B; --ink:#1E2320;
+    --ink-soft:#5F6B63; --line:#C9D6CD; --danger:#A33A2E; --good:#3F6B4F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--fabric);
+    background-image:radial-gradient(circle at 1px 1px, rgba(28,58,74,0.06) 1px, transparent 0);
+    background-size:22px 22px; color:var(--ink);
+    font-family:'Zen Kaku Gothic New','Noto Sans JP',sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .page{max-width:600px; margin:0 auto; padding:32px 18px 64px;}
+
+  .conn-status{display:none; background:#FCEFE9; border:1px solid var(--thread); color:var(--thread); font-size:12px; padding:8px 12px; border-radius:8px; margin-bottom:16px; text-align:center;}
+
+  .tag-hero{display:flex; justify-content:center; margin-bottom:32px;}
+  .tag{
+    position:relative; background:var(--card); border:2px solid var(--navy); border-radius:14px;
+    padding:24px 32px 20px; transform:rotate(-2deg); transform-origin:top center;
+    box-shadow:0 14px 30px rgba(28,58,74,0.16); animation:swingIn .8s cubic-bezier(.2,.7,.3,1);
+  }
+  .tag::before{content:""; position:absolute; top:-11px; left:50%; width:16px; height:16px; margin-left:-8px; background:var(--fabric); border:2px solid var(--navy); border-radius:50%;}
+  .tag::after{content:""; position:absolute; top:-34px; left:50%; width:2px; height:26px; margin-left:-1px; background:var(--navy); transform:rotate(6deg);}
+  @keyframes swingIn{0%{transform:rotate(-9deg) translateY(-6px); opacity:0;} 60%{transform:rotate(1deg);} 100%{transform:rotate(-2deg); opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .tag{animation:none;} }
+  .tag-eyebrow{font-size:11px; letter-spacing:.16em; color:var(--ink-soft); margin-bottom:2px;}
+  .tag-title{font-size:26px; line-height:1.15; color:var(--navy); font-weight:900;}
+  .tag-sub{margin-top:6px; font-size:14px; font-weight:700;}
+  .tag-meta{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:11.5px; color:var(--ink-soft);}
+
+  .notice{font-size:12px; color:var(--ink-soft); background:rgba(28,58,74,0.05); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:20px; line-height:1.6;}
+
+  .ticket{position:relative; background:var(--card); border-radius:6px; padding:28px 20px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .ticket::after{content:""; position:absolute; inset:9px; border:1.5px dashed var(--line); border-radius:3px; pointer-events:none;}
+  .section-label{font-size:11px; letter-spacing:.1em; color:var(--thread); font-weight:600; margin:0 0 14px; display:flex; align-items:center; gap:8px;}
+  .section-label::after{content:""; flex:1; height:1px; background:var(--line);}
+  .field{margin-bottom:20px;}
+  .field-label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; font-weight:500;}
+  .req{color:var(--thread);}
+  .input, .select{width:100%; border:1.5px solid var(--navy); border-radius:7px; padding:11px 12px; font-size:15px; font-family:inherit; background:#fff; color:var(--ink);}
+  .select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231C3A4A' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:34px;}
+  .input:focus-visible, .select:focus-visible, .size-chip:focus-visible, button:focus-visible{outline:2.5px solid var(--mustard); outline-offset:2px;}
+
+  .builder{background:rgba(46,125,91,0.05); border:1px solid var(--line); border-radius:10px; padding:16px 14px; margin-bottom:16px;}
+  .builder-title{font-size:12px; font-weight:700; color:var(--court); margin:0 0 12px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:9px;}
+  .size-chip{width:50px; height:50px; border-radius:9px; border:2px solid var(--navy); background:#fff; font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--navy); cursor:pointer; transition:.15s;}
+  .size-chip:hover{background:rgba(28,58,74,.06);}
+  .size-chip.selected{background:var(--navy); color:#fff;}
+
+  .color-block{margin-top:16px;}
+  .color-group{margin-bottom:12px;}
+  .color-group-title{font-size:10.5px; color:var(--ink-soft); font-weight:600; margin:0 0 7px;}
+  .color-grid{display:flex; flex-wrap:wrap; gap:11px 9px;}
+  .color-swatch{display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:2px; width:56px;}
+  .swatch-dot{width:34px; height:34px; border-radius:50%; border:3px solid transparent; box-shadow:inset 0 0 0 1px rgba(0,0,0,.14); transition:.15s;}
+  .swatch-dot.sm{width:26px; height:26px;}
+  .color-swatch.selected .swatch-dot{border-color:var(--mustard); box-shadow:0 0 0 2px var(--navy);}
+  .swatch-label{font-size:9.5px; color:var(--ink-soft); text-align:center; line-height:1.3;}
+  .color-swatch.selected .swatch-label{color:var(--navy); font-weight:700;}
+  .tex-neon{box-shadow:inset 0 0 0 1px rgba(0,0,0,.1), 0 0 8px 1px currentColor;}
+  .tex-metallic{background-image:linear-gradient(135deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 35%, rgba(0,0,0,.15) 75%);}
+  .tex-glitter{background-image:radial-gradient(circle, rgba(255,255,255,.85) 1px, transparent 1.4px); background-size:6px 6px;}
+  .tex-foil{background-image:linear-gradient(120deg, rgba(255,255,255,.75) 8%, transparent 28%, transparent 68%, rgba(255,255,255,.75) 88%);}
+
+  .qty-row{display:flex; align-items:center; gap:14px; margin-top:14px;}
+  .qty-label{font-size:12px; color:var(--ink-soft);}
+  .qty-btn{width:36px; height:36px; border-radius:7px; border:1.5px solid var(--navy); background:#fff; font-size:18px; color:var(--navy); cursor:pointer; font-weight:700;}
+  .qty-btn:hover{background:rgba(28,58,74,.06);}
+  .qty-value{font-family:'Bebas Neue',sans-serif; font-size:22px; min-width:26px; text-align:center;}
+
+  .add-btn{width:100%; margin-top:16px; background:var(--court); color:#fff; border:none; border-radius:8px; padding:12px; font-size:14px; font-weight:700; cursor:pointer;}
+  .add-btn:hover{filter:brightness(1.07);}
+  .builder-error{color:var(--danger); font-size:12px; margin-top:8px; min-height:14px;}
+
+  .cart{margin-top:8px;}
+  .cart-empty{font-size:12.5px; color:var(--ink-soft); text-align:center; padding:14px; border:1px dashed var(--line); border-radius:8px;}
+  .cart-item{display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px;}
+  .cart-dots{display:flex; flex-shrink:0;}
+  .cart-dot{width:22px; height:22px; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);}
+  .cart-dot.logo{margin-left:-8px;}
+  .cart-info{flex:1; font-size:13px; line-height:1.5;}
+  .cart-info b{color:var(--navy);}
+  .cart-sub{font-size:11px; color:var(--ink-soft);}
+  .cart-qty{font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--court);}
+  .cart-remove{background:none; border:none; color:var(--danger); font-size:11.5px; cursor:pointer; text-decoration:underline;}
+  .cart-total{display:flex; justify-content:space-between; align-items:baseline; margin-top:12px; padding-top:12px; border-top:1.5px dashed var(--line); font-size:13px; color:var(--ink-soft);}
+  .cart-total b{font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--navy);}
+
+  .error-text{color:var(--danger); font-size:12.5px; margin-top:10px; min-height:16px;}
+  .submit-btn{width:100%; margin-top:8px; background:var(--navy); color:#fff; border:none; border-bottom:4px solid var(--thread); border-radius:8px; padding:15px; font-size:16px; font-weight:700; cursor:pointer; transition:.15s;}
+  .submit-btn:hover{background:var(--navy-2);}
+  .submit-btn:active{transform:translateY(2px); border-bottom-width:2px;}
+  .submit-btn:disabled{opacity:.6; cursor:not-allowed;}
+
+  .confirm-card{background:var(--card); border-radius:6px; padding:32px 24px; text-align:center;}
+  .confirm-stamp{display:inline-block; border:3px solid var(--good); color:var(--good); font-family:'Bebas Neue',sans-serif; font-size:20px; padding:6px 18px; border-radius:8px; transform:rotate(-4deg); margin-bottom:16px; letter-spacing:.08em;}
+  .confirm-id{font-size:12px; color:var(--ink-soft); margin-bottom:18px;}
+  .confirm-details{text-align:left; background:#fff; border:1px dashed var(--line); border-radius:8px; padding:14px 16px; font-size:13.5px; line-height:1.9; margin-bottom:20px;}
+  .confirm-details b{color:var(--navy);}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn-secondary{flex:1; min-width:130px; background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-secondary:hover{background:rgba(28,58,74,.06);}
+
+  .lookup-card{background:var(--card); border-radius:6px; padding:22px 20px; margin-top:14px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .lookup-row{display:flex; gap:8px; margin-top:10px;}
+  .lookup-row .select{flex:0 0 110px;}
+  .lookup-row .input{flex:1;}
+  .lookup-btn{background:var(--court); color:#fff; border:none; border-radius:7px; padding:0 16px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;}
+  .lookup-result{margin-top:14px;}
+
+  .toggle-link{display:block; width:100%; text-align:center; background:none; border:none; color:var(--navy-2); font-size:13px; margin-top:20px; padding:10px; cursor:pointer; text-decoration:underline;}
+
+  .roster-section{margin-top:14px;}
+  .admin-note{font-size:11px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;}
+  .roster-actions{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .refresh-btn{font-size:11.5px; color:var(--navy-2); background:none; border:none; text-decoration:underline; cursor:pointer;}
+  .action-btn{font-size:11.5px; color:var(--navy-2); background:#fff; border:1px solid var(--line); border-radius:6px; padding:6px 10px; cursor:pointer;}
+  .action-btn:hover{background:rgba(28,58,74,.06);}
+  .action-status{font-size:11.5px; color:var(--ink-soft); margin:-4px 0 10px; min-height:14px;}
+  .stats-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 8px; text-align:center;}
+  .stat-num{font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--navy);}
+  .stat-label{font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+  .breakdown{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:14px; font-size:13px;}
+  .breakdown-title{font-size:11px; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:8px;}
+  .breakdown-row{display:flex; justify-content:space-between; padding:3px 0;}
+  .order-list{display:flex; flex-direction:column; gap:8px;}
+  .order-row{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13px;}
+  .order-row-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .order-row-head b{color:var(--navy);}
+  .order-line{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-soft); padding:2px 0;}
+  .order-line .cart-dot{width:16px; height:16px;}
+  .delete-link{background:none; border:none; color:var(--danger); font-size:11.5px; cursor:pointer; text-decoration:underline; white-space:nowrap;}
+  .empty-state, .loading{text-align:center; color:var(--ink-soft); font-size:13px; padding:20px 0;}
+
+  footer{text-align:center; font-size:11px; color:var(--ink-soft); margin-top:36px;}
+
+  #printOnly{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printOnly, #printOnly *{visibility:visible;}
+    #printOnly{display:block; position:absolute; top:0; left:0; width:100%; padding:0;}
+    .print-title{font-size:15px; font-weight:700; margin-bottom:3px;}
+    .print-meta{font-size:10px; color:#555; margin-bottom:12px;}
+    .print-h{font-size:12px; font-weight:700; margin:16px 0 5px;}
+    .print-table{width:100%; border-collapse:collapse; font-size:10px; margin-bottom:8px;}
+    .print-table th, .print-table td{border:1px solid #999; padding:3px 5px; text-align:left;}
+    .print-table th{background:#eee;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="conn-status" id="connStatus">⚠ 通信エラー・オフラインかもしれません。もう一度お試しください。</div>
+
+  <div class="tag-hero">
+    <div class="tag">
+      <div class="tag-eyebrow">ORDER FORM · <span id="seasonLabel"></span></div>
+      <div class="tag-title" id="clubNameLabel"></div>
+      <div class="tag-sub" id="formTitleLabel"></div>
+      <div class="tag-meta">締切: <span id="deadlineLabel"></span></div>
+    </div>
+  </div>
+
+  <div class="notice">
+    Tシャツの色とロゴの色は自由に組み合わせできます。違う組み合わせを何枚でも追加できます。<br>
+    ※ 価格は注文確定後にお知らせします。<br>
+    ※ 内容を間違えたら、同じ学年・氏名でもう一度送信すれば上書きできます(二重には登録されません)。
+  </div>
+
+  <form class="ticket" id="orderForm" onsubmit="return false;">
+    <p class="section-label">注文者 <span class="req">*</span></p>
+    <div class="field">
+      <label class="field-label">学年 <span class="req">*</span></label>
+      <select class="select" id="grade">
+        <option value="">選択してください</option>
+        <option value="1年生">1年生</option>
+        <option value="2年生">2年生</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">氏名(フルネーム) <span class="req">*</span></label>
+      <input class="input" id="name" placeholder="例: 山田太郎(姓と名)">
+      <div style="font-size:11px; color:var(--ink-soft); margin-top:5px;">※ 集計で照合するため、必ずフルネームで入力してください。</div>
+    </div>
+
+    <p class="section-label">1枚ずつ作って追加</p>
+    <div class="builder">
+      <p class="builder-title">① サイズを選ぶ</p>
+      <div class="chip-row" id="sizeRow"></div>
+
+      <div class="color-block">
+        <p class="builder-title">② Tシャツ本体の色を選ぶ</p>
+        <div class="color-grid" id="tshirtColorRow"></div>
+      </div>
+
+      <div class="color-block">
+        <p class="builder-title">③ ロゴの色を選ぶ</p>
+        <div id="logoColorGroups"></div>
+      </div>
+
+      <div class="qty-row">
+        <span class="qty-label">④ この組み合わせの枚数</span>
+        <button type="button" class="qty-btn" id="qtyMinus">−</button>
+        <div class="qty-value mono" id="qtyValue">1</div>
+        <button type="button" class="qty-btn" id="qtyPlus">+</button>
+      </div>
+
+      <button type="button" class="add-btn" id="addBtn">＋ この組み合わせをリストに追加</button>
+      <div class="builder-error" id="builderError"></div>
+    </div>
+
+    <p class="section-label">注文リスト</p>
+    <div class="cart" id="cart"></div>
+
+    <div class="error-text" id="errorText"></div>
+    <button type="button" class="submit-btn" id="submitBtn">送信</button>
+  </form>
+
+  <div class="confirm-card" id="confirmCard" style="display:none;">
+    <div class="confirm-stamp">受付済み</div>
+    <div class="confirm-id mono" id="confirmId"></div>
+    <div class="confirm-details" id="confirmDetails"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="newOrderBtn">続けて別の人が注文する</button>
+      <button class="btn-secondary" id="editMineBtn">自分の注文を確認・修正する</button>
+    </div>
+  </div>
+
+  <button class="toggle-link" id="lookupToggle">▾ 自分の注文をあとで確認する</button>
+  <div class="lookup-card" id="lookupCard" style="display:none;">
+    <div style="font-size:12px; color:var(--ink-soft);">学年と氏名を入れると、自分の注文内容を色付きで確認できます。</div>
+    <div class="lookup-row">
+      <select class="select" id="lookupGrade">
+        <option value="1年生">1年生</option>
+        <option value="2年生">2年生</option>
+      </select>
+      <input class="input" id="lookupName" placeholder="氏名(登録したとおりに)">
+      <button class="lookup-btn" id="lookupBtn">確認</button>
+    </div>
+    <div class="lookup-result" id="lookupResult"></div>
+  </div>
+
+  <button class="toggle-link" id="rosterToggle">▾ 集計・発注用(先生用)を開く</button>
+  <div class="roster-section" id="rosterSection" style="display:none;">
+    <div id="adminGate">
+      <div class="admin-note">この画面は先生専用です。パスコードを入力してください。</div>
+      <div class="lookup-row" style="margin-top:0;">
+        <input class="input" id="adminPass" type="password" inputmode="numeric" placeholder="パスコード" style="flex:1;">
+        <button class="lookup-btn" id="adminPassBtn">開く</button>
+      </div>
+      <div class="action-status" id="adminGateError"></div>
+    </div>
+    <div id="adminContent" style="display:none;">
+      <div class="admin-note">部員全員の注文を集計します。Excelは「注文一覧・発注集計・集金表」の3シート構成で出力されます。</div>
+      <div class="roster-actions">
+        <button class="refresh-btn" id="refreshBtn">↻ 最新に更新</button>
+        <button class="action-btn" id="exportBtn">⬇ Excel(3シート)</button>
+        <button class="action-btn" id="printBtn">🖨 印刷</button>
+        <button class="action-btn" id="adminLockBtn">🔒 閉じる</button>
+      </div>
+      <div class="action-status" id="actionStatus"></div>
+      <div id="rosterBody"><div class="loading">読み込み中…</div></div>
+    </div>
+  </div>
+
+  <div id="printOnly"></div>
+  <footer id="footerNote"></footer>
+</div>
+
+<script>
+(function(){
+  // ===== 編集ポイント =====
+  const CONFIG = {
+    clubName: "ソフトテニス部",
+    formTitle: "長袖Tシャツ 注文フォーム",
+    season: "2026",
+    deadlineText: "7月15日(火)まで",
+    sizes: ["S","M","L","XL","XXL"],
+    adminPasscode: "1228",
+    fbProxy: "https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app",
+    ordersPath: "tshirtOrders",
+    tshirtColors: [
+      {code:"001", name:"ホワイト", hex:"#FFFFFF"},
+      {code:"002", name:"グレー", hex:"#8C8C88"},
+      {code:"187", name:"ダークグレー", hex:"#58585A"},
+      {code:"005", name:"ブラック", hex:"#1A1A1A"},
+      {code:"134", name:"ライトイエロー", hex:"#F5EFA0"},
+      {code:"165", name:"デイジー", hex:"#F2C230"},
+      {code:"015", name:"オレンジ", hex:"#E8631E"},
+      {code:"010", name:"レッド", hex:"#D91F1F"},
+      {code:"011", name:"ピンク", hex:"#F4A0BE"},
+      {code:"146", name:"ホットピンク", hex:"#E6197E"},
+      {code:"014", name:"パープル", hex:"#5B2D82"},
+      {code:"112", name:"バーガンディ", hex:"#7A1F2B"},
+      {code:"026", name:"ミントグリーン", hex:"#4FCBA0"},
+      {code:"024", name:"ライトグリーン", hex:"#B5D94C"},
+      {code:"025", name:"グリーン", hex:"#1E9E4A"},
+      {code:"037", name:"アーミーグリーン", hex:"#4B5320"},
+      {code:"133", name:"ライトブルー", hex:"#A9D6EA"},
+      {code:"034", name:"ターコイズ", hex:"#1FAEBE"},
+      {code:"032", name:"ロイヤルブルー", hex:"#1E3F9E"},
+      {code:"031", name:"ネイビー", hex:"#16213E"}
+    ],
+    logoColorGroups: [
+      {group:"ベーシック", colors:[
+        {name:"ホワイト", hex:"#FFFFFF"},{name:"ブラック", hex:"#1A1A1A"},
+        {name:"グレー", hex:"#9C9C97"},{name:"ベージュ", hex:"#E8CFA0"}
+      ]},
+      {group:"イエロー・オレンジ", colors:[
+        {name:"レモンイエロー", hex:"#F5E642"},{name:"ミディアムイエロー", hex:"#F5C518"},
+        {name:"イエロー", hex:"#FCD303"},{name:"オレンジ", hex:"#F07C1A"}
+      ]},
+      {group:"レッド・ピンク・パープル", colors:[
+        {name:"レッド", hex:"#E31E1E"},{name:"ワイン", hex:"#7A2434"},
+        {name:"フレームレッド", hex:"#E8431F"},{name:"カーディナルレッド", hex:"#C13A4C"},
+        {name:"ベビーピンク", hex:"#F4A8B6"},{name:"マゼンタ", hex:"#EF7A9A"},
+        {name:"パープル", hex:"#6E2E8E"},{name:"ローズピンク", hex:"#E23E7E"}
+      ]},
+      {group:"ブルー系", colors:[
+        {name:"スカイブルー", hex:"#B7D6E0"},{name:"ライトブルー", hex:"#3FB8E0"},
+        {name:"ロイヤルブルー", hex:"#223E93"},{name:"ネイビー", hex:"#1B2440"},
+        {name:"サファイヤ", hex:"#1197A8"}
+      ]},
+      {group:"グリーン・ブラウン", colors:[
+        {name:"ターコイズ", hex:"#12796F"},{name:"アップルグリーン", hex:"#9CCB1F"},
+        {name:"グリーン", hex:"#1E9E4A"},{name:"フォレストグリーン", hex:"#2F5233"},
+        {name:"ブラウン", hex:"#6B4A33"}
+      ]},
+      {group:"メタリック", colors:[
+        {name:"ゴールド", hex:"#C9A227"},{name:"シルバー", hex:"#B8B8B8"}
+      ]},
+      {group:"蛍光", colors:[
+        {name:"蛍光マゼンタ", hex:"#FF2D9E"},{name:"蛍光オレンジ", hex:"#FF7A00"},
+        {name:"蛍光イエロー", hex:"#F4F81C"},{name:"蛍光グリーン", hex:"#39FF14"}
+      ]},
+      {group:"ラメ", colors:[
+        {name:"ラメゴールド", hex:"#C9A227"},{name:"ラメシルバー", hex:"#B8B8B8"},
+        {name:"ラメブルー", hex:"#1E9ED1"},{name:"ラメグリーン", hex:"#1E9E4A"},
+        {name:"ラメピンク", hex:"#D8206E"}
+      ]},
+      {group:"フォイル・グリッター・箔", colors:[
+        {name:"メタリックフォイルゴールド", hex:"#C9A227"},{name:"メタリックフォイルシルバー", hex:"#C0C0C0"},
+        {name:"グリッターシルバー", hex:"#C0C0C0"},{name:"グリッターゴールド", hex:"#C9A227"},
+        {name:"箔ゴールド", hex:"#C9A227"},{name:"箔シルバー", hex:"#C0C0C0"}
+      ]}
+    ]
+  };
+
+  // ---- Firebase REST (xhrRequest パターン: score appと同一方式) ----
+  function xhrRequest(method, path, data){
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const url = `${CONFIG.fbProxy}/${path}.json?t=${Date.now()}`;
+      xhr.open(method, url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.timeout = 10000;
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setConnOk(true);
+          try { resolve(JSON.parse(xhr.responseText)); } catch(e) { resolve(null); }
+        } else {
+          setConnOk(false);
+          reject(new Error(`HTTP ${xhr.status}`));
+        }
+      };
+      xhr.onerror = () => { setConnOk(false); reject(new Error('network error')); };
+      xhr.ontimeout = () => { setConnOk(false); reject(new Error('timeout')); };
+      xhr.send(data !== undefined ? JSON.stringify(data) : null);
+    });
+  }
+  function setConnOk(ok){
+    const el = document.getElementById('connStatus');
+    el.style.display = ok ? 'none' : 'block';
+  }
+  async function fetchOrdersMap(){
+    const data = await xhrRequest('GET', CONFIG.ordersPath);
+    return data || {};
+  }
+
+  const fmtDate = ts => new Date(ts).toLocaleString('ja-JP', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  const escapeHtml = str => String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const textureClass = name => {
+    if(name.includes('蛍光')) return 'tex-neon';
+    if(name.includes('ラメ') || name.includes('グリッター')) return 'tex-glitter';
+    if(name.includes('箔') || name.includes('メタリックフォイル')) return 'tex-foil';
+    if(name === 'ゴールド' || name === 'シルバー') return 'tex-metallic';
+    return '';
+  };
+  const hexOfTshirt = name => (CONFIG.tshirtColors.find(c=>c.name===name)||{}).hex || '#ccc';
+  const hexOfLogo = name => { for(const g of CONFIG.logoColorGroups){ const f=g.colors.find(c=>c.name===name); if(f) return f.hex; } return '#ccc'; };
+
+  document.getElementById('seasonLabel').textContent = CONFIG.season;
+  document.getElementById('clubNameLabel').textContent = CONFIG.clubName;
+  document.getElementById('formTitleLabel').textContent = CONFIG.formTitle;
+  document.getElementById('deadlineLabel').textContent = CONFIG.deadlineText;
+  document.getElementById('footerNote').textContent = CONFIG.clubName + " · " + CONFIG.formTitle;
+
+  let builder = { size:null, tshirtColor:null, logoColor:null, qty:1 };
+  let cart = [];
+
+  const sizeRow = document.getElementById('sizeRow');
+  CONFIG.sizes.forEach(s=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='size-chip'; b.textContent=s;
+    b.addEventListener('click', ()=>{
+      builder.size=s;
+      [...sizeRow.children].forEach(c=>c.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+    sizeRow.appendChild(b);
+  });
+
+  const tshirtRow = document.getElementById('tshirtColorRow');
+  CONFIG.tshirtColors.forEach(c=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='color-swatch tshirt-swatch';
+    b.innerHTML = '<span class="swatch-dot" style="background-color:'+c.hex+'"></span><span class="swatch-label">'+c.code+'<br>'+c.name+'</span>';
+    b.addEventListener('click', ()=>{
+      builder.tshirtColor = c;
+      document.querySelectorAll('.tshirt-swatch').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+    tshirtRow.appendChild(b);
+  });
+
+  const logoGroupsEl = document.getElementById('logoColorGroups');
+  CONFIG.logoColorGroups.forEach(group=>{
+    const wrap = document.createElement('div'); wrap.className = 'color-group';
+    const title = document.createElement('p'); title.className='color-group-title'; title.textContent=group.group;
+    wrap.appendChild(title);
+    const grid = document.createElement('div'); grid.className='color-grid';
+    group.colors.forEach(c=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='color-swatch logo-swatch';
+      b.innerHTML = '<span class="swatch-dot sm '+textureClass(c.name)+'" style="background-color:'+c.hex+'; color:'+c.hex+'"></span><span class="swatch-label">'+c.name+'</span>';
+      b.addEventListener('click', ()=>{
+        builder.logoColor = c;
+        document.querySelectorAll('.logo-swatch').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+      grid.appendChild(b);
+    });
+    wrap.appendChild(grid); logoGroupsEl.appendChild(wrap);
+  });
+
+  const qtyValue = document.getElementById('qtyValue');
+  document.getElementById('qtyMinus').addEventListener('click', ()=>{ builder.qty=Math.max(1,builder.qty-1); qtyValue.textContent=builder.qty; });
+  document.getElementById('qtyPlus').addEventListener('click', ()=>{ builder.qty=Math.min(20,builder.qty+1); qtyValue.textContent=builder.qty; });
+
+  const builderError = document.getElementById('builderError');
+  document.getElementById('addBtn').addEventListener('click', ()=>{
+    builderError.textContent='';
+    if(!builder.size){ builderError.textContent='サイズを選んでください。'; return; }
+    if(!builder.tshirtColor){ builderError.textContent='Tシャツの色を選んでください。'; return; }
+    if(!builder.logoColor){ builderError.textContent='ロゴの色を選んでください。'; return; }
+    cart.push({
+      size: builder.size,
+      tshirtColor: builder.tshirtColor.name, tshirtColorCode: builder.tshirtColor.code,
+      logoColor: builder.logoColor.name,
+      qty: builder.qty
+    });
+    resetBuilder();
+    renderCart();
+  });
+
+  function resetBuilder(){
+    builder = { size:null, tshirtColor:null, logoColor:null, qty:1 };
+    qtyValue.textContent='1';
+    document.querySelectorAll('.size-chip, .tshirt-swatch, .logo-swatch').forEach(c=>c.classList.remove('selected'));
+  }
+
+  function renderCart(){
+    const el = document.getElementById('cart');
+    if(cart.length === 0){
+      el.innerHTML = '<div class="cart-empty">まだ追加されていません。上で1枚ずつ作って「リストに追加」してください。</div>';
+      return;
+    }
+    let html = '';
+    cart.forEach((it, i)=>{
+      html += '<div class="cart-item">'
+        + '<div class="cart-dots">'
+          + '<span class="cart-dot" style="background:'+hexOfTshirt(it.tshirtColor)+'"></span>'
+          + '<span class="cart-dot logo" style="background:'+hexOfLogo(it.logoColor)+'"></span>'
+        + '</div>'
+        + '<div class="cart-info"><b>'+it.size+'</b> ／ '+escapeHtml(it.tshirtColor)+' × '+escapeHtml(it.logoColor)
+          + '<div class="cart-sub">Tシャツ色 × ロゴ色</div></div>'
+        + '<div class="cart-qty">'+it.qty+'<span style="font-size:11px;">枚</span></div>'
+        + '<button type="button" class="cart-remove" data-i="'+i+'">削除</button>'
+        + '</div>';
+    });
+    const total = cart.reduce((s,it)=>s+it.qty,0);
+    html += '<div class="cart-total"><span>合計</span><b>'+total+' 枚</b></div>';
+    el.innerHTML = html;
+    el.querySelectorAll('.cart-remove').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ cart.splice(parseInt(btn.dataset.i),1); renderCart(); });
+    });
+  }
+  renderCart();
+
+  const errorText = document.getElementById('errorText');
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.addEventListener('click', async ()=>{
+    errorText.textContent='';
+    const grade = document.getElementById('grade').value;
+    const name = document.getElementById('name').value.trim();
+    if(!grade){ errorText.textContent='学年を選んでください。'; return; }
+    if(!name){ errorText.textContent='氏名を入力してください。'; return; }
+    if(cart.length === 0){ errorText.textContent='注文を1つ以上リストに追加してください。'; return; }
+
+    const order = {
+      grade, name,
+      items: cart.map(it=>({...it})),
+      totalQty: cart.reduce((s,it)=>s+it.qty,0),
+      ts: Date.now()
+    };
+    const displayId = 'ORD-' + order.ts.toString(36).toUpperCase();
+
+    submitBtn.disabled = true; submitBtn.textContent = '送信中…';
+    try{
+      const existing = await fetchOrdersMap();
+      const dupEntries = Object.entries(existing).filter(([k,v])=>v.grade===grade && v.name===name);
+      if(dupEntries.length){
+        const prev = dupEntries.sort((a,b)=>(b[1].ts||0)-(a[1].ts||0))[0][1];
+        submitBtn.disabled = false; submitBtn.textContent = '送信';
+        const ok = window.confirm(
+          '「'+grade+' '+name+'」さんの注文はすでに登録されています(合計'+prev.totalQty+'枚・'+fmtDate(prev.ts)+'受付)。\n\n' +
+          '今回の内容で上書きしますか?\n「OK」= 前の注文を消して置き換え\n「キャンセル」= 送信をやめる'
+        );
+        if(!ok){ return; }
+        submitBtn.disabled = true; submitBtn.textContent = '送信中…';
+        for(const [k] of dupEntries){ await xhrRequest('DELETE', CONFIG.ordersPath+'/'+k); }
+      }
+      await xhrRequest('POST', CONFIG.ordersPath, order);
+      showConfirmation(order, displayId);
+    }catch(err){
+      errorText.textContent = '送信に失敗しました。通信環境を確認してもう一度お試しください。';
+      submitBtn.disabled = false; submitBtn.textContent = '送信';
+    }
+  });
+
+  function itemLineHtml(it){
+    return '<div class="order-line">'
+      + '<span class="cart-dot" style="background:'+hexOfTshirt(it.tshirtColor)+'"></span>'
+      + '<span class="cart-dot" style="background:'+hexOfLogo(it.logoColor)+'"></span>'
+      + '<span><b style="color:var(--navy)">'+it.size+'</b> ／ '+escapeHtml(it.tshirtColor)+' × '+escapeHtml(it.logoColor)+' … '+it.qty+'枚</span>'
+      + '</div>';
+  }
+
+  function showConfirmation(order, displayId){
+    document.getElementById('orderForm').style.display='none';
+    document.getElementById('lookupToggle').style.display='none';
+    const card = document.getElementById('confirmCard');
+    card.style.display='block';
+    document.getElementById('confirmId').textContent = displayId + ' ・ ' + fmtDate(order.ts);
+    document.getElementById('confirmDetails').innerHTML =
+      '<div style="margin-bottom:8px;"><b>'+escapeHtml(order.grade)+'</b> ・ '+escapeHtml(order.name)+' 様(合計 '+order.totalQty+'枚)</div>'
+      + order.items.map(itemLineHtml).join('');
+    card.scrollIntoView({behavior:'smooth'});
+  }
+
+  document.getElementById('newOrderBtn').addEventListener('click', ()=>{
+    document.getElementById('grade').value='';
+    document.getElementById('name').value='';
+    cart = []; resetBuilder(); renderCart();
+    errorText.textContent='';
+    document.getElementById('confirmCard').style.display='none';
+    document.getElementById('orderForm').style.display='block';
+    document.getElementById('lookupToggle').style.display='block';
+    submitBtn.disabled=false; submitBtn.textContent='送信';
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  document.getElementById('editMineBtn').addEventListener('click', ()=>{
+    document.getElementById('confirmCard').style.display='none';
+    document.getElementById('orderForm').style.display='block';
+    document.getElementById('lookupToggle').style.display='block';
+    submitBtn.disabled=false; submitBtn.textContent='送信';
+    openLookup();
+    document.getElementById('lookupCard').scrollIntoView({behavior:'smooth'});
+  });
+
+  const lookupToggle = document.getElementById('lookupToggle');
+  const lookupCard = document.getElementById('lookupCard');
+  function openLookup(){ lookupCard.style.display='block'; lookupToggle.textContent='▴ 自分の注文の確認を閉じる'; }
+  lookupToggle.addEventListener('click', ()=>{
+    const showing = lookupCard.style.display !== 'none';
+    if(showing){ lookupCard.style.display='none'; lookupToggle.textContent='▾ 自分の注文をあとで確認する'; }
+    else openLookup();
+  });
+
+  document.getElementById('lookupBtn').addEventListener('click', async ()=>{
+    const g = document.getElementById('lookupGrade').value;
+    const n = document.getElementById('lookupName').value.trim();
+    const result = document.getElementById('lookupResult');
+    if(!n){ result.innerHTML='<div class="cart-empty">氏名を入力してください。</div>'; return; }
+    result.innerHTML='<div class="loading">検索中…</div>';
+    try{
+      const data = await fetchOrdersMap();
+      const mine = Object.values(data).filter(o=>o.grade===g && o.name===n).sort((a,b)=>b.ts-a.ts);
+      if(mine.length===0){ result.innerHTML='<div class="cart-empty">その学年・氏名の注文は見つかりませんでした。登録したとおりに入力してください。</div>'; return; }
+      result.innerHTML = mine.map(o=>(
+        '<div class="order-row">'
+        + '<div class="order-row-head"><b>'+escapeHtml(o.grade)+' '+escapeHtml(o.name)+'</b><span class="cart-sub">'+fmtDate(o.ts)+' 受付</span></div>'
+        + o.items.map(itemLineHtml).join('')
+        + '<div class="cart-sub" style="margin-top:6px;">合計 '+o.totalQty+'枚</div>'
+        + '</div>'
+      )).join('');
+    }catch(err){
+      result.innerHTML = '<div class="cart-empty">通信エラーが発生しました。もう一度お試しください。</div>';
+    }
+  });
+
+  // ---- admin ----
+  const rosterToggle = document.getElementById('rosterToggle');
+  const rosterSection = document.getElementById('rosterSection');
+  const adminGate = document.getElementById('adminGate');
+  const adminContent = document.getElementById('adminContent');
+  let adminUnlocked = false;
+
+  rosterToggle.addEventListener('click', ()=>{
+    const showing = rosterSection.style.display !== 'none';
+    rosterSection.style.display = showing ? 'none' : 'block';
+    rosterToggle.textContent = showing ? '▾ 集計・発注用(先生用)を開く' : '▴ 集計・発注用を閉じる';
+    if(!showing && !adminUnlocked){ adminGate.style.display='block'; adminContent.style.display='none'; document.getElementById('adminPass').focus(); }
+    if(!showing && adminUnlocked){ loadRoster(); }
+  });
+
+  function tryUnlock(){
+    const val = document.getElementById('adminPass').value.trim();
+    const err = document.getElementById('adminGateError');
+    if(val === CONFIG.adminPasscode){
+      adminUnlocked = true;
+      adminGate.style.display='none'; adminContent.style.display='block';
+      err.textContent=''; document.getElementById('adminPass').value='';
+      loadRoster();
+    } else {
+      err.textContent='パスコードが違います。'; err.style.color='var(--danger)';
+    }
+  }
+  document.getElementById('adminPassBtn').addEventListener('click', tryUnlock);
+  document.getElementById('adminPass').addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
+  document.getElementById('adminLockBtn').addEventListener('click', ()=>{
+    adminUnlocked = false;
+    adminContent.style.display='none'; adminGate.style.display='block';
+    rosterSection.style.display='none';
+    rosterToggle.textContent='▾ 集計・発注用(先生用)を開く';
+  });
+  document.getElementById('refreshBtn').addEventListener('click', loadRoster);
+
+  function flattenRows(list){
+    const rows = [];
+    list.forEach(o=>{
+      (o.items||[]).forEach(it=>{
+        rows.push({grade:o.grade, name:o.name, size:it.size, tshirtColor:it.tshirtColor, tshirtColorCode:it.tshirtColorCode||'', logoColor:it.logoColor, qty:it.qty, ts:o.ts});
+      });
+    });
+    return rows;
+  }
+  function sortRows(rows){
+    const gradeOrder = {'1年生':1,'2年生':2};
+    return [...rows].sort((a,b)=>{
+      const g=(gradeOrder[a.grade]||9)-(gradeOrder[b.grade]||9); if(g!==0) return g;
+      const n=a.name.localeCompare(b.name,'ja'); if(n!==0) return n;
+      return CONFIG.sizes.indexOf(a.size)-CONFIG.sizes.indexOf(b.size);
+    });
+  }
+
+  async function loadRoster(){
+    const body = document.getElementById('rosterBody');
+    body.innerHTML = '<div class="loading">読み込み中…</div>';
+    let entries;
+    try{
+      const data = await fetchOrdersMap();
+      entries = Object.entries(data);
+    }catch(err){
+      body.innerHTML = '<div class="empty-state">通信エラーが発生しました。「↻ 最新に更新」でもう一度お試しください。</div>';
+      return;
+    }
+    if(entries.length === 0){ body.innerHTML = '<div class="empty-state">まだ注文がありません。</div>'; return; }
+
+    const list = entries.map(([k,o])=>({...o, _key:k}));
+    list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const totalPeople = new Set(list.map(o=>o.grade+'/'+o.name)).size;
+    const totalQty = list.reduce((s,o)=>s+(o.totalQty||0),0);
+
+    const rows = flattenRows(list);
+    const sizeCounts = {}; const tshirtCounts = {}; const logoCounts = {};
+    rows.forEach(r=>{
+      sizeCounts[r.size]=(sizeCounts[r.size]||0)+r.qty;
+      tshirtCounts[r.tshirtColor]=(tshirtCounts[r.tshirtColor]||0)+r.qty;
+      logoCounts[r.logoColor]=(logoCounts[r.logoColor]||0)+r.qty;
+    });
+    const sortedEntries = obj => Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+
+    let html = '';
+    html += '<div class="stats-grid">'
+      + '<div class="stat-card"><div class="stat-num mono">'+totalPeople+'</div><div class="stat-label">人数</div></div>'
+      + '<div class="stat-card"><div class="stat-num mono">'+list.length+'</div><div class="stat-label">注文件数</div></div>'
+      + '<div class="stat-card"><div class="stat-num mono">'+totalQty+'</div><div class="stat-label">合計枚数</div></div>'
+      + '</div>';
+    html += '<div class="breakdown"><div class="breakdown-title">サイズ別</div>'
+      + CONFIG.sizes.filter(s=>sizeCounts[s]).map(s=>'<div class="breakdown-row"><span>'+s+'</span><span class="mono">'+sizeCounts[s]+'枚</span></div>').join('')+'</div>';
+    html += '<div class="breakdown"><div class="breakdown-title">Tシャツ色別</div>'
+      + sortedEntries(tshirtCounts).map(([k,v])=>'<div class="breakdown-row"><span>'+escapeHtml(k)+'</span><span class="mono">'+v+'枚</span></div>').join('')+'</div>';
+    html += '<div class="breakdown"><div class="breakdown-title">ロゴ色別</div>'
+      + sortedEntries(logoCounts).map(([k,v])=>'<div class="breakdown-row"><span>'+escapeHtml(k)+'</span><span class="mono">'+v+'枚</span></div>').join('')+'</div>';
+
+    html += '<div class="order-list">' + list.map(o=>(
+      '<div class="order-row">'
+      + '<div class="order-row-head"><b>'+escapeHtml(o.grade)+' '+escapeHtml(o.name)+'</b>'
+        + '<button class="delete-link" data-key="'+o._key+'">この人を取消</button></div>'
+      + (o.items||[]).map(itemLineHtml).join('')
+      + '<div class="cart-sub" style="margin-top:4px;">合計 '+o.totalQty+'枚 ・ '+fmtDate(o.ts)+'</div>'
+      + '</div>'
+    )).join('') + '</div>';
+
+    body.innerHTML = html;
+    body.querySelectorAll('.delete-link').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(btn.dataset.confirming==='1'){ await deleteOrder(btn.dataset.key); }
+        else { btn.dataset.confirming='1'; btn.textContent='本当に取消?'; setTimeout(()=>{btn.dataset.confirming='0'; btn.textContent='この人を取消';},2500); }
+      });
+    });
+  }
+
+  async function deleteOrder(key){
+    try{
+      await xhrRequest('DELETE', CONFIG.ordersPath+'/'+key);
+      loadRoster();
+    }catch(err){ showActionStatus('取消に失敗しました。もう一度お試しください。', true); }
+  }
+
+  function showActionStatus(msg, isError){
+    const el = document.getElementById('actionStatus');
+    el.textContent = msg; el.style.color = isError ? 'var(--danger)' : 'var(--ink-soft)';
+    if(!isError) setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; }, 4000);
+  }
+
+  function sortForOutput(rows){ return sortRows(rows); }
+
+  document.getElementById('exportBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('exportBtn'); btn.disabled=true;
+    try{
+      const data = await fetchOrdersMap();
+      const list = Object.values(data);
+      if(list.length===0){ showActionStatus('まだ注文がありません。', true); btn.disabled=false; return; }
+      if(typeof XLSX==='undefined'){ showActionStatus('Excel機能の読み込みに失敗しました。通信環境を確認してください。', true); btn.disabled=false; return; }
+
+      const rows = sortForOutput(flattenRows(list));
+
+      const s1 = rows.map(r=>({
+        '学年': r.grade, '氏名': r.name, 'サイズ': r.size,
+        'Tシャツ色コード': r.tshirtColorCode, 'Tシャツ色': r.tshirtColor,
+        'ロゴ色': r.logoColor, '枚数': r.qty
+      }));
+      const ws1 = XLSX.utils.json_to_sheet(s1);
+      ws1['!cols']=[{wch:7},{wch:12},{wch:6},{wch:12},{wch:12},{wch:14},{wch:6}];
+
+      const aggMap = {};
+      rows.forEach(r=>{
+        const key = r.size+'\u0001'+r.tshirtColor+'\u0001'+r.logoColor;
+        if(!aggMap[key]) aggMap[key]={size:r.size, tshirtColorCode:r.tshirtColorCode, tshirtColor:r.tshirtColor, logoColor:r.logoColor, qty:0};
+        aggMap[key].qty += r.qty;
+      });
+      const aggRows = Object.values(aggMap).sort((a,b)=>{
+        const s=CONFIG.sizes.indexOf(a.size)-CONFIG.sizes.indexOf(b.size); if(s!==0) return s;
+        const t=a.tshirtColor.localeCompare(b.tshirtColor,'ja'); if(t!==0) return t;
+        return a.logoColor.localeCompare(b.logoColor,'ja');
+      });
+      const s2 = aggRows.map(r=>({
+        'サイズ': r.size, 'Tシャツ色コード': r.tshirtColorCode, 'Tシャツ色': r.tshirtColor,
+        'ロゴ色': r.logoColor, '発注枚数': r.qty
+      }));
+      s2.push({'サイズ':'', 'Tシャツ色コード':'', 'Tシャツ色':'', 'ロゴ色':'合計', '発注枚数': rows.reduce((s,r)=>s+r.qty,0)});
+      const ws2 = XLSX.utils.json_to_sheet(s2);
+      ws2['!cols']=[{wch:6},{wch:12},{wch:12},{wch:14},{wch:8}];
+
+      const perPerson = {};
+      list.forEach(o=>{
+        const key = o.grade+'\u0001'+o.name;
+        if(!perPerson[key]) perPerson[key]={grade:o.grade, name:o.name, qty:0};
+        perPerson[key].qty += o.totalQty;
+      });
+      const gradeOrder={'1年生':1,'2年生':2};
+      const ppRows = Object.values(perPerson).sort((a,b)=>{
+        const g=(gradeOrder[a.grade]||9)-(gradeOrder[b.grade]||9); if(g!==0) return g;
+        return a.name.localeCompare(b.name,'ja');
+      });
+      const aoa = [['学年','氏名','枚数','単価','金額','集金済(✓)']];
+      ppRows.forEach((p,idx)=>{
+        const rowNum = idx+2;
+        aoa.push([p.grade, p.name, p.qty, 3600, {t:'n', f:'C'+rowNum+'*D'+rowNum}, '']);
+      });
+      const totalRowNum = ppRows.length+2;
+      aoa.push(['','合計', {t:'n', f:'SUM(C2:C'+(totalRowNum-1)+')'}, '', {t:'n', f:'SUM(E2:E'+(totalRowNum-1)+')'}, '']);
+      const ws3 = XLSX.utils.aoa_to_sheet(aoa);
+      ws3['!cols']=[{wch:7},{wch:12},{wch:6},{wch:8},{wch:10},{wch:10}];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, '注文一覧');
+      XLSX.utils.book_append_sheet(wb, ws2, '発注集計');
+      XLSX.utils.book_append_sheet(wb, ws3, '集金表');
+      XLSX.writeFile(wb, CONFIG.clubName.replace(/[\\/:*?"<>|]/g,'') + '_ロンT注文.xlsx');
+      showActionStatus('ダウンロードしました(単価は集金表で変更できます)。');
+    }catch(err){
+      showActionStatus('出力に失敗しました。もう一度お試しください。', true);
+    }
+    btn.disabled=false;
+  });
+
+  document.getElementById('printBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('printBtn'); btn.disabled=true;
+    try{
+      const data = await fetchOrdersMap();
+      const list = Object.values(data);
+      if(list.length===0){ showActionStatus('まだ注文がありません。', true); btn.disabled=false; return; }
+      const rows = sortForOutput(flattenRows(list));
+      const totalQty = rows.reduce((s,r)=>s+r.qty,0);
+
+      const aggMap = {};
+      rows.forEach(r=>{
+        const key = r.size+'\u0001'+r.tshirtColor+'\u0001'+r.logoColor;
+        if(!aggMap[key]) aggMap[key]={size:r.size, tshirtColor:r.tshirtColor, logoColor:r.logoColor, qty:0};
+        aggMap[key].qty += r.qty;
+      });
+      const aggRows = Object.values(aggMap).sort((a,b)=>CONFIG.sizes.indexOf(a.size)-CONFIG.sizes.indexOf(b.size) || a.tshirtColor.localeCompare(b.tshirtColor,'ja'));
+
+      let html = '';
+      html += '<div class="print-title">'+escapeHtml(CONFIG.clubName)+' '+escapeHtml(CONFIG.formTitle)+'</div>';
+      html += '<div class="print-meta">出力: '+fmtDate(Date.now())+' ／ 合計枚数: '+totalQty+'</div>';
+      html += '<div class="print-h">■ 注文一覧(名簿順)</div>';
+      html += '<table class="print-table"><thead><tr><th>学年</th><th>氏名</th><th>サイズ</th><th>Tシャツ色</th><th>ロゴ色</th><th>枚数</th></tr></thead><tbody>';
+      html += rows.map(r=>'<tr><td>'+escapeHtml(r.grade)+'</td><td>'+escapeHtml(r.name)+'</td><td>'+r.size+'</td><td>'+escapeHtml(r.tshirtColor)+'</td><td>'+escapeHtml(r.logoColor)+'</td><td>'+r.qty+'</td></tr>').join('');
+      html += '</tbody></table>';
+      html += '<div class="print-h">■ 発注集計(サイズ×色ごと)</div>';
+      html += '<table class="print-table"><thead><tr><th>サイズ</th><th>Tシャツ色</th><th>ロゴ色</th><th>発注枚数</th></tr></thead><tbody>';
+      html += aggRows.map(r=>'<tr><td>'+r.size+'</td><td>'+escapeHtml(r.tshirtColor)+'</td><td>'+escapeHtml(r.logoColor)+'</td><td>'+r.qty+'</td></tr>').join('');
+      html += '</tbody></table>';
+
+      document.getElementById('printOnly').innerHTML = html;
+      window.print();
+    }catch(err){
+      showActionStatus('印刷準備に失敗しました。もう一度お試しください。', true);
+    }
+    btn.disabled=false;
+  });
+})();
+</script>
+</body>
+</html>
