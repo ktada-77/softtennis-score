@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部活動 出欠ノート</title>
+<style>
+  :root{
+    --paper:#FBF8EF;
+    --line:#D7E4E0;
+    --navy:#1E3A4C;
+    --navy-soft:#4A6A7C;
+    --sun:#F5B942;
+    --sun-deep:#E29A1F;
+    --coral:#E2634F;
+    --ok:#4F9D74;
+    --card:#FFFFFF;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0/100% 28px,
+      var(--paper);
+    color:var(--navy);
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--navy);
+    color:var(--paper);
+    padding:18px 16px 14px;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+  header h1{
+    margin:0 0 2px;
+    font-size:19px;
+    letter-spacing:0.02em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  header h1 .dot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--sun);
+    display:inline-block;
+  }
+  header p{
+    margin:0;
+    font-size:12px;
+    color:#B9CBD4;
+  }
+  nav{
+    display:flex;
+    gap:6px;
+    padding:10px 16px 0;
+    background:var(--navy);
+  }
+  nav button{
+    flex:1;
+    border:none;
+    background:rgba(255,255,255,0.08);
+    color:#DCE7EB;
+    padding:10px 6px;
+    border-radius:10px 10px 0 0;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  nav button.active{
+    background:var(--paper);
+    color:var(--navy);
+  }
+  main{
+    max-width:640px;
+    margin:0 auto;
+    padding:16px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(30,58,76,0.12);
+    border:1px solid rgba(30,58,76,0.06);
+  }
+  .card h2{
+    margin:0 0 10px;
+    font-size:15px;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  label{
+    display:block;
+    font-size:12px;
+    color:var(--navy-soft);
+    margin:10px 0 4px;
+    font-weight:600;
+  }
+  input[type=text], input[type=date], select, textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    background:#FDFCF8;
+    color:var(--navy);
+    font-family:inherit;
+  }
+  select{ appearance:auto; }
+  textarea{ resize:vertical; min-height:70px; }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--sun-deep); outline-offset:1px;}
+  .row2{display:flex; gap:10px;}
+  .row2 > div{flex:1;}
+  button.primary{
+    margin-top:14px;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:var(--sun-deep);
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button.primary:active{transform:translateY(1px);}
+  button.ghost{
+    border:1.5px solid var(--line);
+    background:transparent;
+    color:var(--navy-soft);
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:12px;
+    cursor:pointer;
+  }
+  button.small-add{
+    width:100%;
+    border:1.5px dashed var(--sun-deep);
+    background:#FFF8EA;
+    color:var(--sun-deep);
+    padding:9px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:8px;
+  }
+  .hint{font-size:12px; color:var(--navy-soft); margin-top:6px; line-height:1.5;}
+  .period-row{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+    position:relative;
+    background:#FDFCF8;
+  }
+  .period-row .rm-period{
+    position:absolute; top:6px; right:8px;
+    border:none; background:none; color:var(--navy-soft);
+    font-size:15px; cursor:pointer;
+  }
+  .cal-nav{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .cal-nav span{ font-size:14px; font-weight:700; color:var(--navy); }
+  .cal-nav button{ padding:7px 10px; font-size:12px; }
+  .quick-actions{
+    display:flex; gap:8px; margin-top:10px;
+  }
+  .quick-actions button{ flex:1; font-size:11px; padding:8px 6px; }
+  .cell.practice-pick{ cursor:pointer; }
+  .cell.practice-pick.selected{
+    background:var(--ok);
+    border-color:var(--ok);
+    color:#fff;
+  }
+  .month-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy-soft);
+    margin:4px 0 8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .month-title::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .dow{
+    text-align:center;
+    font-size:10px;
+    color:var(--navy-soft);
+    font-weight:700;
+    padding-bottom:2px;
+  }
+  .cell{
+    aspect-ratio:1/1;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:#FDFCF8;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    cursor:pointer;
+    position:relative;
+    color:var(--navy);
+    padding:2px;
+  }
+  .cell.empty{visibility:hidden; cursor:default;}
+  .cell.muted{
+    background:transparent;
+    border-color:transparent;
+    color:#C7D3D6;
+    cursor:default;
+  }
+  .cell .num{font-weight:600;}
+  .cell.selected{
+    background:var(--coral);
+    border-color:var(--coral);
+    color:#fff;
+  }
+  .cell .badge{
+    margin-top:1px;
+    font-size:9px;
+    background:var(--coral);
+    color:#fff;
+    border-radius:6px;
+    padding:0 4px;
+    line-height:14px;
+  }
+  .cell.teacher.has-absence{
+    background:#FBE7E2;
+    border-color:var(--coral);
+  }
+  .cell.today{box-shadow:inset 0 0 0 2px var(--sun-deep);}
+  .selected-list{margin-top:12px;}
+  .selected-item{
+    padding:10px;
+    background:#FDF3EE;
+    border:1px solid #F2D9CF;
+    border-radius:10px;
+    margin-bottom:8px;
+  }
+  .selected-item .top-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .selected-item .d{font-weight:700; color:var(--coral); font-size:13px;}
+  .selected-item .rm{
+    border:none; background:none; color:var(--navy-soft);
+    font-size:16px; cursor:pointer; padding:0 4px;
+  }
+  .selected-item .field-row{display:flex; gap:8px;}
+  .selected-item .field-row > div{flex:1;}
+  .selected-item select, .selected-item input{font-size:12px; padding:7px 8px;}
+  .day-panel{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    background:var(--card);
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.2);
+    padding:18px 18px 24px;
+    max-height:65vh;
+    overflow-y:auto;
+    z-index:30;
+    animation:slideup 0.18s ease-out;
+  }
+  @keyframes slideup{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .day-panel h3{margin:0 0 10px; font-size:15px;}
+  .stat-row{
+    display:flex; gap:10px; margin-bottom:14px;
+  }
+  .stat-pill{
+    flex:1; text-align:center; padding:8px 6px; border-radius:10px; font-size:12px; font-weight:700;
+  }
+  .stat-pill.present{ background:#E7F3EC; color:var(--ok); }
+  .stat-pill.absent{ background:#FBE7E2; color:var(--coral); }
+  .stat-pill .n{ display:block; font-size:17px; margin-bottom:1px; }
+  .section-title{
+    font-size:12px; font-weight:700; color:var(--navy-soft);
+    margin:14px 0 8px;
+  }
+  .chip-list{ display:flex; flex-wrap:wrap; gap:6px; }
+  .chip{
+    background:#E7F3EC; color:var(--ok); font-size:12px; font-weight:600;
+    padding:6px 12px; border-radius:20px;
+  }
+  .abs-row{
+    border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .abs-row .abs-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 2px; cursor:pointer;
+  }
+  .abs-row .name{font-weight:700;}
+  .abs-row .arrow{ color:var(--navy-soft); font-size:11px; transition:transform 0.15s; }
+  .abs-row.open .arrow{ transform:rotate(90deg); }
+  .abs-row .meta{
+    display:none;
+    color:var(--navy-soft); font-size:12px;
+    padding:0 2px 10px;
+  }
+  .abs-row.open .meta{ display:block; }
+  .tag{
+    display:inline-block;
+    background:var(--navy);
+    color:#fff;
+    font-size:10px;
+    padding:1px 7px;
+    border-radius:10px;
+    margin-right:5px;
+  }
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,30,36,0.35); z-index:20;
+  }
+  .empty-state{
+    text-align:center; color:var(--navy-soft); font-size:13px; padding:20px 10px;
+  }
+  .legend{display:flex; gap:14px; font-size:11px; color:var(--navy-soft); margin-top:10px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:4px;}
+  .legend .sw{width:10px; height:10px; border-radius:3px; display:inline-block;}
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--navy); color:#fff; padding:10px 18px; border-radius:20px;
+    font-size:13px; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  }
+  .summary-list .s-item{
+    padding:10px 0; border-bottom:1px solid var(--line);
+  }
+  .summary-list .s-item:last-child{border-bottom:none;}
+  .summary-list .s-name{font-weight:700; font-size:13px; margin-bottom:4px;}
+  .summary-list .s-days{font-size:12px; color:var(--navy-soft); line-height:1.7;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="dot"></span><span id="headerTitle">部活動 出欠ノート</span></h1>
+  <p id="headerSub">夏休み期間の参加予定をまとめて確認</p>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="student">生徒用フォーム</button>
+  <button class="tab-btn" data-tab="teacher">先生用カレンダー</button>
+  <button class="tab-btn" data-tab="settings">期間・名簿設定</button>
+</nav>
+
+<main>
+
+  <div id="tab-student" class="tab-content">
+    <div class="card" id="studentNoSettings" style="display:none;">
+      <p class="empty-state">まだ部活の期間が設定されていません。先生に「期間・名簿設定」タブで設定してもらってください。</p>
+    </div>
+    <div id="studentForm" style="display:none;">
+      <div class="card">
+        <h2>👤 名前</h2>
+        <select id="studentNameSelect" style="display:none;"></select>
+        <input type="text" id="studentNameText" placeholder="例）山田 太郎" autocomplete="off" style="display:none;">
+        <p class="hint" id="nameHint"></p>
+      </div>
+      <div class="card">
+        <h2>📅 参加できない日をタップ</h2>
+        <div id="studentCalendar"></div>
+        <p class="hint">色がついていない日は活動期間外です（選択できません）。</p>
+        <div class="selected-list" id="selectedList"></div>
+      </div>
+      <button class="primary" id="submitBtn">この内容で送信する</button>
+      <p class="hint">送信した内容は先生と部員全員が見られる共有データとして保存されます。</p>
+    </div>
+  </div>
+
+  <div id="tab-teacher" class="tab-content" style="display:none;">
+    <div class="card" id="teacherNoSettings" style="display:none;">
+      <p class="empty-state">まだ期間が設定されていません。「期間・名簿設定」タブから設定してください。</p>
+    </div>
+    <div id="teacherView" style="display:none;">
+      <div class="card">
+        <h2>🗓 欠席予定カレンダー</h2>
+        <div id="teacherCalendar"></div>
+        <div class="legend">
+          <span><span class="sw" style="background:#FBE7E2;border:1px solid var(--coral);"></span>誰か欠席あり</span>
+          <span><span class="sw" style="background:#FDFCF8;border:1px solid var(--line);"></span>全員参加予定</span>
+        </div>
+        <button class="ghost" id="refreshBtn" style="margin-top:12px;">最新の回答を再読み込み</button>
+      </div>
+      <div class="card">
+        <h2>📋 生徒ごとの一覧</h2>
+        <div id="summaryList" class="summary-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="tab-content" style="display:none;">
+    <div class="card">
+      <h2>🏷 活動名</h2>
+      <input type="text" id="settingTitle" placeholder="例）バスケットボール部 夏休み練習">
+    </div>
+
+    <div class="card">
+      <h2>🗓 練習がある日をタップして選択</h2>
+      <div class="cal-nav">
+        <button type="button" id="prevMonthBtn" class="ghost">‹ 前の月</button>
+        <span id="calMonthLabel"></span>
+        <button type="button" id="nextMonthBtn" class="ghost">次の月 ›</button>
+      </div>
+      <div id="settingsCalendarGrid"></div>
+      <div class="quick-actions">
+        <button type="button" class="ghost" id="selectWeekdaysBtn">この月の平日をまとめて追加</button>
+        <button type="button" class="ghost" id="clearMonthBtn">この月を全部解除</button>
+      </div>
+      <p class="hint" id="practiceCountHint"></p>
+    </div>
+
+    <div class="card">
+      <h2>👥 部員名簿</h2>
+      <label>1行に1人ずつ入力してください</label>
+      <textarea id="rosterText" placeholder="山田 太郎&#10;佐藤 花子&#10;鈴木 次郎"></textarea>
+      <p class="hint">名簿を入れると、生徒用フォームで名前をプルダウンから選べるようになります。空のままだと自由入力になります。</p>
+    </div>
+
+    <button class="primary" id="saveSettingsBtn">この内容で設定する</button>
+  </div>
+
+</main>
+
+<div id="toastHost"></div>
+
+<script>
+// =====================================================================
+// Firebase Realtime Database (REST API方式・SDK不使用)
+// テニススコアアプリと同じFirebaseプロジェクトに相乗り。
+// パスの先頭を "clubAttendance/" にして、他のツールのデータと混ざらないようにしています。
+// =====================================================================
+const FB_PROXY = 'https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app';
+const BASE_PATH = 'clubAttendance';
+
+function xhrRequest(method, path, data) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const url = `${FB_PROXY}/${path}.json?t=${Date.now()}`;
+    xhr.open(method, url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 10000;
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); } catch(e) { resolve(null); }
+      } else {
+        reject(new Error(`HTTP ${xhr.status}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('network error'));
+    xhr.ontimeout = () => reject(new Error('timeout'));
+    xhr.send(data !== undefined ? JSON.stringify(data) : null);
+  });
+}
+
+const DOW = ['日','月','火','水','木','金','土'];
+const REASON_OPTIONS = ['塾','セミナー','習い事','家族の用事','体調不良','その他'];
+const TIMING_OPTIONS = ['終日','午前','午後'];
+
+function fmtDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function parseDate(s){
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function todayStr(){ return fmtDate(new Date()); }
+function sanitizeKey(name){
+  return name.trim().replace(/[\s\/\\'"\.\#\$\[\]]+/g,'_').slice(0,80);
+}
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function showToast(msg){
+  const host = document.getElementById('toastHost');
+  const t = document.createElement('div');
+  t.className='toast';
+  t.textContent = msg;
+  host.appendChild(t);
+  setTimeout(()=>t.remove(), 2200);
+}
+
+// ---------- Firebase RTDB helpers ----------
+async function getSettings(){
+  try{
+    const data = await xhrRequest('GET', `${BASE_PATH}/settings`);
+    return data || null;
+  }catch(e){ console.error(e); return null; }
+}
+async function saveSettingsData(obj){
+  try{
+    await xhrRequest('PUT', `${BASE_PATH}/settings`, obj);
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+async function getResponse(key){
+  try{
+    const data = await xhrRequest('GET', `${BASE_PATH}/responses/${key}`);
+    return data || null;
+  }catch(e){ return null; }
+}
+async function saveResponse(key, data){
+  try{
+    await xhrRequest('PUT', `${BASE_PATH}/responses/${key}`, data);
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+async function listResponses(){
+  try{
+    const data = await xhrRequest('GET', `${BASE_PATH}/responses`);
+    if(!data) return [];
+    return Object.values(data);
+  }catch(e){ console.error(e); return []; }
+}
+
+// ---------- practice day helpers ----------
+function rangeFromDays(dayStrings){
+  if(!dayStrings || dayStrings.length === 0) return null;
+  const sorted = [...dayStrings].sort();
+  return { start: parseDate(sorted[0]), end: parseDate(sorted[sorted.length-1]) };
+}
+function monthsBetween(start, end){
+  const months = [];
+  let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const last = new Date(end.getFullYear(), end.getMonth(), 1);
+  while(cur <= last){
+    months.push(new Date(cur));
+    cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+  }
+  return months;
+}
+
+function buildCalendarHTML(months, practiceSet, opts){
+  let html = '';
+  months.forEach(monthDate=>{
+    const y = monthDate.getFullYear(), m = monthDate.getMonth();
+    const firstDow = new Date(y,m,1).getDay();
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    html += `<div class="month-block"><div class="month-title">${y}年${m+1}月</div><div class="grid">`;
+    DOW.forEach(d=>{ html += `<div class="dow">${d}</div>`; });
+    for(let i=0;i<firstDow;i++){ html += `<div class="cell empty"></div>`; }
+    for(let day=1; day<=daysInMonth; day++){
+      const dateObj = new Date(y,m,day);
+      const ds = fmtDate(dateObj);
+      const inRange = practiceSet.has(ds);
+      const isToday = ds === todayStr();
+      if(!inRange){
+        html += `<div class="cell muted"><span class="num">${day}</span></div>`;
+        continue;
+      }
+      if(opts.mode === 'student'){
+        const isSel = opts.selectedSet.has(ds);
+        html += `<div class="cell${isSel?' selected':''}${isToday?' today':''}" data-date="${ds}">
+          <span class="num">${day}</span>
+        </div>`;
+      } else {
+        const abs = opts.absenceMap[ds] || [];
+        const has = abs.length > 0;
+        html += `<div class="cell teacher${has?' has-absence':''}${isToday?' today':''}" data-date="${ds}">
+          <span class="num">${day}</span>
+          ${has ? `<span class="badge">${abs.length}人</span>` : ''}
+        </div>`;
+      }
+    }
+    html += `</div></div>`;
+  });
+  return html;
+}
+
+// ---------- state ----------
+let settings = null;
+let selectedDates = {}; // dateStr -> {timing, reason, reasonDetail}
+let currentStudentKey = null;
+let allResponses = [];
+let editingPracticeDays = new Set(); // used in settings tab
+let settingsViewDate = new Date(); // month currently shown in settings picker
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+    document.getElementById('tab-'+btn.dataset.tab).style.display='block';
+    if(btn.dataset.tab === 'teacher') loadTeacherView();
+  });
+});
+
+// ---------- settings tab: practice day picker ----------
+function renderSettingsCalendar(){
+  const y = settingsViewDate.getFullYear(), m = settingsViewDate.getMonth();
+  document.getElementById('calMonthLabel').textContent = `${y}年${m+1}月`;
+
+  const firstDow = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  let html = `<div class="grid">`;
+  DOW.forEach(d=>{ html += `<div class="dow">${d}</div>`; });
+  for(let i=0;i<firstDow;i++){ html += `<div class="cell empty"></div>`; }
+  for(let day=1; day<=daysInMonth; day++){
+    const ds = fmtDate(new Date(y,m,day));
+    const isSel = editingPracticeDays.has(ds);
+    const isToday = ds === todayStr();
+    html += `<div class="cell practice-pick${isSel?' selected':''}${isToday?' today':''}" data-date="${ds}">
+      <span class="num">${day}</span>
+    </div>`;
+  }
+  html += `</div>`;
+  document.getElementById('settingsCalendarGrid').innerHTML = html;
+
+  document.querySelectorAll('#settingsCalendarGrid .cell.practice-pick').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      const ds = cell.dataset.date;
+      if(editingPracticeDays.has(ds)) editingPracticeDays.delete(ds);
+      else editingPracticeDays.add(ds);
+      renderSettingsCalendar();
+    });
+  });
+
+  document.getElementById('practiceCountHint').textContent =
+    `選択中の練習日: 全体で${editingPracticeDays.size}日`;
+}
+
+document.getElementById('prevMonthBtn').addEventListener('click', ()=>{
+  settingsViewDate = new Date(settingsViewDate.getFullYear(), settingsViewDate.getMonth()-1, 1);
+  renderSettingsCalendar();
+});
+document.getElementById('nextMonthBtn').addEventListener('click', ()=>{
+  settingsViewDate = new Date(settingsViewDate.getFullYear(), settingsViewDate.getMonth()+1, 1);
+  renderSettingsCalendar();
+});
+document.getElementById('selectWeekdaysBtn').addEventListener('click', ()=>{
+  const y = settingsViewDate.getFullYear(), m = settingsViewDate.getMonth();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  for(let day=1; day<=daysInMonth; day++){
+    const dateObj = new Date(y,m,day);
+    const dow = dateObj.getDay();
+    if(dow !== 0 && dow !== 6) editingPracticeDays.add(fmtDate(dateObj));
+  }
+  renderSettingsCalendar();
+});
+document.getElementById('clearMonthBtn').addEventListener('click', ()=>{
+  const y = settingsViewDate.getFullYear(), m = settingsViewDate.getMonth();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  for(let day=1; day<=daysInMonth; day++){
+    editingPracticeDays.delete(fmtDate(new Date(y,m,day)));
+  }
+  renderSettingsCalendar();
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('settingTitle').value.trim() || '部活動';
+  const roster = document.getElementById('rosterText').value
+    .split('\n').map(s=>s.trim()).filter(Boolean);
+
+  const practiceDays = [...editingPracticeDays].sort();
+
+  if(practiceDays.length === 0){ showToast('練習がある日をカレンダーから最低1日タップしてください'); return; }
+
+  const obj = { title, roster, practiceDays };
+  const ok = await saveSettingsData(obj);
+  if(ok){
+    showToast('設定を保存しました');
+    settings = obj;
+    applySettingsToUI();
+  } else {
+    showToast('保存に失敗しました。もう一度お試しください');
+  }
+});
+
+function applySettingsToUI(){
+  if(!settings){
+    document.getElementById('studentNoSettings').style.display='block';
+    document.getElementById('studentForm').style.display='none';
+    document.getElementById('teacherNoSettings').style.display='block';
+    document.getElementById('teacherView').style.display='none';
+    editingPracticeDays = new Set();
+    settingsViewDate = new Date();
+    renderSettingsCalendar();
+    return;
+  }
+  document.getElementById('headerTitle').textContent = settings.title;
+  const range = rangeFromDays(settings.practiceDays);
+  document.getElementById('headerSub').textContent = range
+    ? `練習日 ${settings.practiceDays.length}日（${fmtDate(range.start)}〜${fmtDate(range.end)}）`
+    : '';
+
+  document.getElementById('settingTitle').value = settings.title;
+  document.getElementById('rosterText').value = (settings.roster||[]).join('\n');
+  editingPracticeDays = new Set(settings.practiceDays || []);
+  settingsViewDate = range ? new Date(range.start) : new Date();
+  renderSettingsCalendar();
+
+  document.getElementById('studentNoSettings').style.display='none';
+  document.getElementById('studentForm').style.display='block';
+  document.getElementById('teacherNoSettings').style.display='none';
+  document.getElementById('teacherView').style.display='block';
+
+  setupNameField();
+  renderStudentCalendar();
+}
+
+// ---------- student tab: name field ----------
+function setupNameField(){
+  const sel = document.getElementById('studentNameSelect');
+  const txt = document.getElementById('studentNameText');
+  const hint = document.getElementById('nameHint');
+  if(settings.roster && settings.roster.length > 0){
+    sel.style.display = 'block';
+    txt.style.display = 'none';
+    sel.innerHTML = '<option value="">選んでください</option>' +
+      settings.roster.map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join('');
+    hint.textContent = '名簿にない名前の人は先生に伝えてください。';
+    sel.onchange = () => handleNameChosen(sel.value);
+  } else {
+    sel.style.display = 'none';
+    txt.style.display = 'block';
+    hint.textContent = 'まだ名簿が登録されていないので、自分で名前を入力してください。';
+    txt.onblur = () => handleNameChosen(txt.value.trim());
+  }
+}
+
+async function handleNameChosen(name){
+  if(!name) return;
+  const key = sanitizeKey(name);
+  if(key === currentStudentKey) return;
+  currentStudentKey = key;
+  const existing = await getResponse(key);
+  if(existing && existing.days){
+    selectedDates = {...existing.days};
+    showToast(`${name}さんの以前の回答を読み込みました`);
+  } else {
+    selectedDates = {};
+  }
+  renderStudentCalendar();
+  renderSelectedList();
+}
+
+function getCurrentName(){
+  const sel = document.getElementById('studentNameSelect');
+  const txt = document.getElementById('studentNameText');
+  return sel.style.display !== 'none' ? sel.value.trim() : txt.value.trim();
+}
+
+// ---------- student tab: calendar ----------
+function renderStudentCalendar(){
+  if(!settings) return;
+  const range = rangeFromDays(settings.practiceDays);
+  if(!range) return;
+  const months = monthsBetween(range.start, range.end);
+  const practiceSet = new Set(settings.practiceDays);
+  const selectedSet = new Set(Object.keys(selectedDates));
+  document.getElementById('studentCalendar').innerHTML =
+    buildCalendarHTML(months, practiceSet, {mode:'student', selectedSet});
+
+  document.querySelectorAll('#studentCalendar .cell:not(.empty):not(.muted)').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      const ds = cell.dataset.date;
+      if(selectedDates.hasOwnProperty(ds)){
+        delete selectedDates[ds];
+      } else {
+        selectedDates[ds] = {timing:'終日', reason:REASON_OPTIONS[0], reasonDetail:''};
+      }
+      renderStudentCalendar();
+      renderSelectedList();
+    });
+  });
+}
+
+function renderSelectedList(){
+  const wrap = document.getElementById('selectedList');
+  const keys = Object.keys(selectedDates).sort();
+  if(keys.length === 0){
+    wrap.innerHTML = '<p class="hint">参加できない日をカレンダーからタップして選んでください。</p>';
+    return;
+  }
+  wrap.innerHTML = keys.map(ds=>{
+    const d = parseDate(ds);
+    const label = `${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`;
+    const item = selectedDates[ds];
+    const isOther = item.reason === 'その他';
+    return `<div class="selected-item" data-date="${ds}">
+      <div class="top-row">
+        <span class="d">${label}</span>
+        <button class="rm" data-date="${ds}">✕</button>
+      </div>
+      <div class="field-row">
+        <div>
+          <label style="margin-top:0;">時間帯</label>
+          <select class="f-timing" data-date="${ds}">
+            ${TIMING_OPTIONS.map(t=>`<option value="${t}" ${item.timing===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label style="margin-top:0;">理由</label>
+          <select class="f-reason" data-date="${ds}">
+            ${REASON_OPTIONS.map(r=>`<option value="${r}" ${item.reason===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      ${isOther ? `<div style="margin-top:8px;">
+        <input type="text" class="f-detail" data-date="${ds}" placeholder="理由を入力" value="${escapeHTML(item.reasonDetail||'')}">
+      </div>` : ''}
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.f-timing').forEach(el=>el.addEventListener('change', e=>{
+    selectedDates[e.target.dataset.date].timing = e.target.value;
+  }));
+  wrap.querySelectorAll('.f-reason').forEach(el=>el.addEventListener('change', e=>{
+    selectedDates[e.target.dataset.date].reason = e.target.value;
+    renderSelectedList();
+  }));
+  wrap.querySelectorAll('.f-detail').forEach(el=>el.addEventListener('input', e=>{
+    selectedDates[e.target.dataset.date].reasonDetail = e.target.value;
+  }));
+  wrap.querySelectorAll('.rm').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      delete selectedDates[btn.dataset.date];
+      renderStudentCalendar();
+      renderSelectedList();
+    });
+  });
+}
+
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const name = getCurrentName();
+  if(!name){ showToast('名前を入力・選択してください'); return; }
+  const key = sanitizeKey(name);
+  const data = { name, days: selectedDates, updatedAt: new Date().toISOString() };
+  const ok = await saveResponse(key, data);
+  if(ok){
+    showToast('送信しました！ありがとうございます');
+  } else {
+    showToast('送信に失敗しました。もう一度お試しください');
+  }
+});
+
+// ---------- teacher tab ----------
+async function loadTeacherView(){
+  if(!settings) return;
+  allResponses = await listResponses();
+  renderTeacherCalendar();
+  renderSummaryList();
+}
+
+function buildAbsenceMap(){
+  const map = {};
+  allResponses.forEach(r=>{
+    if(!r.days) return;
+    Object.keys(r.days).forEach(ds=>{
+      if(!map[ds]) map[ds] = [];
+      map[ds].push({name:r.name, ...r.days[ds]});
+    });
+  });
+  return map;
+}
+
+function renderTeacherCalendar(){
+  const range = rangeFromDays(settings.practiceDays);
+  if(!range) return;
+  const months = monthsBetween(range.start, range.end);
+  const practiceSet = new Set(settings.practiceDays);
+  const absenceMap = buildAbsenceMap();
+  document.getElementById('teacherCalendar').innerHTML =
+    buildCalendarHTML(months, practiceSet, {mode:'teacher', absenceMap});
+
+  document.querySelectorAll('#teacherCalendar .cell.teacher').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      openDayPanel(cell.dataset.date, absenceMap[cell.dataset.date] || []);
+    });
+  });
+}
+
+function reasonLabel(item){
+  return item.reason === 'その他' && item.reasonDetail ? `その他（${item.reasonDetail}）` : item.reason;
+}
+
+function openDayPanel(ds, list){
+  closeDayPanel();
+  const d = parseDate(ds);
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.id = 'dayOverlay';
+  overlay.addEventListener('click', closeDayPanel);
+
+  const absentNames = new Set(list.map(item=>item.name));
+  const roster = settings.roster || [];
+  const hasRoster = roster.length > 0;
+  const presentNames = hasRoster ? roster.filter(n=>!absentNames.has(n)) : [];
+
+  const panel = document.createElement('div');
+  panel.className = 'day-panel';
+  panel.id = 'dayPanel';
+  const label = `${d.getMonth()+1}月${d.getDate()}日(${DOW[d.getDay()]})`;
+
+  let html = `<h3>${label}</h3>`;
+
+  if(hasRoster){
+    html += `<div class="stat-row">
+      <div class="stat-pill present"><span class="n">${presentNames.length}</span>参加</div>
+      <div class="stat-pill absent"><span class="n">${list.length}</span>不参加</div>
+    </div>`;
+  }
+
+  if(list.length === 0){
+    html += '<p class="empty-state">この日は全員参加予定です。</p>';
+  } else {
+    html += `<div class="section-title">🚫 不参加（タップで理由を見る）</div>`;
+    html += list.map(item=>`
+      <div class="abs-row">
+        <div class="abs-head">
+          <span class="name">${escapeHTML(item.name)}</span>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="meta"><span class="tag">${escapeHTML(item.timing||'終日')}</span>${escapeHTML(reasonLabel(item)||'')}</div>
+      </div>`).join('');
+  }
+
+  if(hasRoster){
+    html += `<div class="section-title">✅ 参加予定</div>`;
+    html += presentNames.length === 0
+      ? '<p class="empty-state">この日の参加予定者はいません。</p>'
+      : `<div class="chip-list">${presentNames.map(n=>`<span class="chip">${escapeHTML(n)}</span>`).join('')}</div>`;
+  } else if(list.length > 0){
+    html += `<p class="hint">名簿が未登録のため、参加予定者は表示できません（設定タブで名簿を登録すると表示されます）。</p>`;
+  }
+
+  panel.innerHTML = html;
+  document.body.appendChild(overlay);
+  document.body.appendChild(panel);
+
+  panel.querySelectorAll('.abs-row .abs-head').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      head.closest('.abs-row').classList.toggle('open');
+    });
+  });
+}
+function closeDayPanel(){
+  const o = document.getElementById('dayOverlay');
+  const p = document.getElementById('dayPanel');
+  if(o) o.remove();
+  if(p) p.remove();
+}
+
+function renderSummaryList(){
+  const wrap = document.getElementById('summaryList');
+  if(allResponses.length === 0){
+    wrap.innerHTML = '<p class="empty-state">まだ回答がありません。</p>';
+    return;
+  }
+  const sorted = [...allResponses].sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+  wrap.innerHTML = sorted.map(r=>{
+    const keys = Object.keys(r.days||{}).sort();
+    const daysLabel = keys.length === 0
+      ? '欠席予定なし'
+      : keys.map(ds=>{
+          const d = parseDate(ds);
+          const item = r.days[ds];
+          return `${d.getMonth()+1}/${d.getDate()}（${escapeHTML(item.timing||'終日')}・${escapeHTML(reasonLabel(item)||'')}）`;
+        }).join('、');
+    return `<div class="s-item">
+      <div class="s-name">${escapeHTML(r.name)}</div>
+      <div class="s-days">${daysLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadTeacherView);
+
+// ---------- init ----------
+(async function init(){
+  settings = await getSettings();
+  applySettingsToUI();
+  renderSelectedList();
+})();
+</script>
+</body>
+</html>
