@@ -434,6 +434,15 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .sl-a{color:var(--a)} .sl-b{color:var(--b);text-align:right}
 .sl-score{font-family:var(--font-num);font-size:28px;font-weight:800;white-space:nowrap}
 
+/* === ⚠️ 未反映試合の警告バナー === */
+.orphan-banner{background:#fff8ec;border:1.5px solid #f0a030;border-radius:12px;padding:13px 14px;margin-bottom:14px;display:flex;align-items:center;gap:11px;animation:up .3s ease}
+.orphan-icon{font-size:22px;flex-shrink:0}
+.orphan-text{flex:1;min-width:0}
+.orphan-title{font-size:13px;font-weight:700;color:#a05a00;margin-bottom:2px}
+.orphan-sub{font-size:10px;color:#c47800;line-height:1.5}
+.orphan-fix-btn{flex-shrink:0;padding:9px 14px;border-radius:8px;border:none;background:#f0a030;color:#fff;font-size:12px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.orphan-fix-btn:active{transform:scale(.95)}
+
 /* === ① トータル戦績サマリーカード === */
 .match-summary-card{background:linear-gradient(135deg,#1a4f8a 0%,#2c6fbd 100%);color:#fff;border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 16px rgba(26,79,138,.2);animation:up .3s ease}
 .ms-summary-head{padding:10px 14px;background:rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
@@ -1518,8 +1527,11 @@ function startMatch() {
   M = {
     courtId: currentCourt,
     teams: {
+      // ⚠️ 学校名が入力されているのに「相手」トグルを押し忘れると、
+      // isOwnA===isOwnB になり戦績集計から除外されてしまうため、
+      // 学校名がある場合は自動的に「Bは相手」として扱う
       a: { name: `${a1}・${a2}`, players: `${a1} / ${a2}`, isOwn: cfg.isOwnA !== false },
-      b: { name: `${b1}・${b2}`, players: `${b1} / ${b2}`, isOwn: cfg.isOwnB !== false, school: bSchool }
+      b: { name: `${b1}・${b2}`, players: `${b1} / ${b2}`, isOwn: bSchool ? false : (cfg.isOwnB !== false), school: bSchool }
     },
     matchGames: cfg.match,
     winGames: Math.ceil(cfg.match / 2),
@@ -2851,6 +2863,12 @@ async function loadDashboard() {
   const matchIds = Object.keys(history).sort((a, b) => b - a);
   listEl.innerHTML = '';
 
+  // ⚠️ 集計から除外されている試合（学校名はあるのに相手判定が未設定）を検出
+  const orphaned = detectOrphanedMatches(history);
+  if (orphaned.length > 0) {
+    listEl.appendChild(buildOrphanedBanner(orphaned));
+  }
+
   // ① サマリーカード（最上部に常に表示）
   const summary = calculateMatchSummary(history);
   if (summary.totalMatches > 0) {
@@ -2868,6 +2886,66 @@ async function loadDashboard() {
       listEl.appendChild(buildHistoryCard(history[mid], mid));
     });
   }
+}
+
+// ⚠️ 学校名は入力されているのに「相手」判定が未設定で、
+// 戦績集計（トータル戦績・全試合の勝敗表示）から漏れている試合を検出する
+function detectOrphanedMatches(history) {
+  const result = [];
+  Object.entries(history).forEach(([mid, d]) => {
+    if (!d || !d.teams || !d.teams.a || !d.teams.b) return;
+    const aIsOwn = d.teams.a.isOwn !== false;
+    const bIsOwn = d.teams.b.isOwn !== false;
+    if (aIsOwn !== bIsOwn) return; // 既に正しく区別できている
+
+    const aSchool = (d.teams.a.school || '').trim();
+    const bSchool = (d.teams.b.school || '').trim();
+    // どちらかに学校名が入っているのに、isOwnが両方同じ（未区別）のケースだけを対象にする
+    if (bSchool) result.push({ mid, ownSide: 'a', oppSide: 'b' });
+    else if (aSchool) result.push({ mid, ownSide: 'b', oppSide: 'a' });
+  });
+  return result;
+}
+
+function buildOrphanedBanner(orphaned) {
+  const wrap = document.createElement('div');
+  wrap.className = 'orphan-banner';
+  wrap.innerHTML = `
+    <div class="orphan-icon">⚠️</div>
+    <div class="orphan-text">
+      <div class="orphan-title">${orphaned.length}件の試合が戦績に反映されていません</div>
+      <div class="orphan-sub">学校名は入力済みですが、「相手」判定が設定されていないためトータル戦績に含まれていません</div>
+    </div>
+    <button class="orphan-fix-btn" onclick="fixOrphanedMatches()">🔧 まとめて直す</button>
+  `;
+  return wrap;
+}
+
+async function fixOrphanedMatches() {
+  const eid = currentEventId || 'default';
+  const history = await xhrRequest('GET', `events/${eid}/history`);
+  if (!history) { alert('データの取得に失敗しました'); return; }
+
+  const orphaned = detectOrphanedMatches(history);
+  if (orphaned.length === 0) { loadDashboard(); return; }
+
+  if (!confirm(`${orphaned.length}件の試合を「自チーム vs 相手」として正しく設定し直します。\n（学校名が入っている側を自動的に「相手」と判定します）\n\nよろしいですか？`)) return;
+
+  let fixed = 0;
+  for (const item of orphaned) {
+    try {
+      const d = history[item.mid];
+      d.teams[item.ownSide].isOwn = true;
+      d.teams[item.oppSide].isOwn = false;
+      await xhrRequest('PUT', `events/${eid}/history/${item.mid}/teams`, d.teams);
+      fixed++;
+    } catch (e) {
+      console.warn('修正失敗:', item.mid, e);
+    }
+  }
+
+  alert(`${fixed}件の試合を修正しました`);
+  loadDashboard();
 }
 
 // ① TAKADA.st 視点の戦績集計
@@ -3260,6 +3338,7 @@ function buildHistoryCard(d, mid) {
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button onclick="editMatchPlayers('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">✏ 選手名</button>
         <button onclick="editMatchSchool('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🏫 学校名</button>
+        <button onclick="swapMatchTeams('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #d99a3a;background:transparent;color:#c47800;cursor:pointer;font-family:var(--font-num);">⇄ 左右入れ替え</button>
         <button onclick="deleteHistoryMatch('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🗑 削除</button>
       </div>
     </div>
@@ -3563,10 +3642,110 @@ async function editMatchSchool(mid) {
     const newSchool = prompt('対戦相手の学校名を入力（空欄でクリア）', current);
     if (newSchool === null) return; // キャンセル
     d.teams.b.school = newSchool.trim();
-    await xhrRequest('PUT', `events/${eid}/history/${mid}/teams/b`, d.teams.b);
+    // ⚠️ 学校名を入力したのに isOwnA===isOwnB のままだと戦績集計から漏れるため、
+    // 学校名が入った場合は自動的にBを「相手」として補正する
+    if (newSchool.trim() && (d.teams.a.isOwn !== false) === (d.teams.b.isOwn !== false)) {
+      d.teams.a.isOwn = true;
+      d.teams.b.isOwn = false;
+      await xhrRequest('PUT', `events/${eid}/history/${mid}/teams`, d.teams);
+    } else {
+      await xhrRequest('PUT', `events/${eid}/history/${mid}/teams/b`, d.teams.b);
+    }
     loadDashboard();
   } catch (e) {
     alert('更新に失敗しました: ' + (e.message || ''));
+  }
+}
+
+// 左右（自チーム/相手）を丸ごと入れ替える
+// teams・gamesWon・winner・stats・gameLog・pointLog の全項目を一貫して反転させる
+async function swapMatchTeams(mid) {
+  if (!confirm('この試合のペアを左右入れ替えます。\n（自チームと相手を間違えて入力した場合の修正用）\n\n戦績・スタッツ・ポイント履歴すべてが入れ替わります。よろしいですか？')) return;
+
+  const eid = currentEventId || 'default';
+  try {
+    const d = await xhrRequest('GET', `events/${eid}/history/${mid}`);
+    if (!d || !d.teams || !d.teams.a || !d.teams.b) { alert('試合データを取得できませんでした'); return; }
+
+    // 1) teams を丸ごと入れ替え（name・isOwn は「実際のチーム」に紐づくためこれで正しく移動する）
+    const teamsA = d.teams.a, teamsB = d.teams.b;
+    d.teams = { a: teamsB, b: teamsA };
+
+    // 1b) school（対戦校名）は「入力欄がBスロット固定」という構造上、
+    //     入れ替え前にどちらに付いていても、入れ替え後は必ず「相手側(isOwn:false)」に付け直す
+    const aOwnAfter = d.teams.a.isOwn !== false;
+    const bOwnAfter = d.teams.b.isOwn !== false;
+    const schoolVal = (d.teams.a.school || d.teams.b.school || '').trim();
+    delete d.teams.a.school;
+    delete d.teams.b.school;
+    if (schoolVal) {
+      if (!aOwnAfter) d.teams.a.school = schoolVal;
+      else if (!bOwnAfter) d.teams.b.school = schoolVal;
+      else d.teams.b.school = schoolVal; // 両方isOwnが同じ場合のフォールバック
+    }
+
+    // 2) gamesWon を入れ替え
+    if (d.gamesWon) {
+      const ga = d.gamesWon.a || 0, gb = d.gamesWon.b || 0;
+      d.gamesWon = { a: gb, b: ga };
+    }
+
+    // 3) winner を反転
+    if (d.winner === 'a') d.winner = 'b';
+    else if (d.winner === 'b') d.winner = 'a';
+
+    // 4) stats を丸ごと入れ替え（ただし players サブオブジェクトのキーは a1/a2⇄b1/b2 に付け替える）
+    if (d.stats) {
+      const statsA = d.stats.a || {};
+      const statsB = d.stats.b || {};
+      function remapPlayers(playersObj, toPrefix) {
+        const out = {};
+        Object.keys(playersObj || {}).forEach(k => {
+          const num = k.slice(1); // '1' or '2'
+          out[toPrefix + num] = playersObj[k];
+        });
+        return out;
+      }
+      d.stats = {
+        a: Object.assign({}, statsB, { players: remapPlayers(statsB.players, 'a') }),
+        b: Object.assign({}, statsA, { players: remapPlayers(statsA.players, 'b') })
+      };
+    }
+
+    // 5) gameLog の各要素の winner を反転
+    if (Array.isArray(d.gameLog)) {
+      d.gameLog = d.gameLog.map(g => ({ ...g, winner: g.winner === 'a' ? 'b' : g.winner === 'b' ? 'a' : g.winner }));
+    }
+
+    // 6) pointLog を反転：winner('a'⇄'b')、player(a1⇄b1,a2⇄b2)、scoreA⇄scoreB、gameA⇄gameB
+    if (Array.isArray(d.pointLog)) {
+      d.pointLog = d.pointLog.map(p => {
+        const np = { ...p };
+        if (p.winner === 'a') np.winner = 'b';
+        else if (p.winner === 'b') np.winner = 'a';
+        if (p.player) {
+          const swapMap = { a1:'b1', a2:'b2', b1:'a1', b2:'a2' };
+          np.player = swapMap[p.player] || p.player;
+        }
+        if (p.scoreA !== undefined || p.scoreB !== undefined) {
+          np.scoreA = p.scoreB || 0;
+          np.scoreB = p.scoreA || 0;
+        }
+        if (p.gameA !== undefined || p.gameB !== undefined) {
+          np.gameA = p.gameB || 0;
+          np.gameB = p.gameA || 0;
+        }
+        return np;
+      });
+    }
+
+    // 7) いいねはチームに紐づかないのでそのまま維持
+
+    await xhrRequest('PUT', `events/${eid}/history/${mid}`, d);
+    alert('入れ替えが完了しました');
+    loadDashboard();
+  } catch (e) {
+    alert('入れ替えに失敗しました: ' + (e.message || ''));
   }
 }
 
