@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ソフトテニス部 チームトレーナー注文フォーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --fabric:#EAF0EC; --card:#FBFCFA; --navy:#1C3A4A; --navy-2:#26576B;
+    --thread:#C25B3A; --mustard:#D9A441; --court:#2E7D5B; --ink:#1E2320;
+    --ink-soft:#5F6B63; --line:#C9D6CD; --danger:#A33A2E; --good:#3F6B4F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--fabric);
+    background-image:radial-gradient(circle at 1px 1px, rgba(28,58,74,0.06) 1px, transparent 0);
+    background-size:22px 22px; color:var(--ink);
+    font-family:'Zen Kaku Gothic New','Noto Sans JP',sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .page{max-width:600px; margin:0 auto; padding:32px 18px 64px;}
+
+  .conn-status{display:none; background:#FCEFE9; border:1px solid var(--thread); color:var(--thread); font-size:12px; padding:8px 12px; border-radius:8px; margin-bottom:16px; text-align:center;}
+
+  .tag-hero{display:flex; justify-content:center; margin-bottom:32px;}
+  .tag{
+    position:relative; background:var(--card); border:2px solid var(--navy); border-radius:14px;
+    padding:24px 32px 20px; transform:rotate(-2deg); transform-origin:top center;
+    box-shadow:0 14px 30px rgba(28,58,74,0.16); animation:swingIn .8s cubic-bezier(.2,.7,.3,1);
+  }
+  .tag::before{content:""; position:absolute; top:-11px; left:50%; width:16px; height:16px; margin-left:-8px; background:var(--fabric); border:2px solid var(--navy); border-radius:50%;}
+  .tag::after{content:""; position:absolute; top:-34px; left:50%; width:2px; height:26px; margin-left:-1px; background:var(--navy); transform:rotate(6deg);}
+  @keyframes swingIn{0%{transform:rotate(-9deg) translateY(-6px); opacity:0;} 60%{transform:rotate(1deg);} 100%{transform:rotate(-2deg); opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .tag{animation:none;} }
+  .tag-eyebrow{font-size:11px; letter-spacing:.16em; color:var(--ink-soft); margin-bottom:2px;}
+  .tag-title{font-size:26px; line-height:1.15; color:var(--navy); font-weight:900;}
+  .tag-sub{margin-top:6px; font-size:14px; font-weight:700;}
+  .tag-meta{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:11.5px; color:var(--ink-soft); display:flex; gap:14px; flex-wrap:wrap;}
+
+  .notice{font-size:12px; color:var(--ink-soft); background:rgba(28,58,74,0.05); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:20px; line-height:1.7;}
+
+  .ticket{position:relative; background:var(--card); border-radius:6px; padding:28px 20px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .ticket::after{content:""; position:absolute; inset:9px; border:1.5px dashed var(--line); border-radius:3px; pointer-events:none;}
+  .section-label{font-size:11px; letter-spacing:.1em; color:var(--thread); font-weight:600; margin:0 0 14px; display:flex; align-items:center; gap:8px;}
+  .section-label::after{content:""; flex:1; height:1px; background:var(--line);}
+  .field{margin-bottom:20px;}
+  .field-label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; font-weight:500;}
+  .req{color:var(--thread);}
+  .hint{font-size:11px; color:var(--ink-soft); margin-top:5px;}
+  .input, .select, .textarea{width:100%; border:1.5px solid var(--navy); border-radius:7px; padding:11px 12px; font-size:15px; font-family:inherit; background:#fff; color:var(--ink);}
+  .textarea{resize:vertical; min-height:110px; line-height:1.6;}
+  .select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231C3A4A' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:34px;}
+  .input:focus-visible, .select:focus-visible, .textarea:focus-visible, .size-chip:focus-visible, button:focus-visible, summary:focus-visible{outline:2.5px solid var(--mustard); outline-offset:2px;}
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:9px;}
+  .size-chip{width:54px; height:54px; border-radius:9px; border:2px solid var(--navy); background:#fff; font-family:'Bebas Neue',sans-serif; font-size:19px; color:var(--navy); cursor:pointer; transition:.15s;}
+  .size-chip:hover{background:rgba(28,58,74,.06);}
+  .size-chip.selected{background:var(--navy); color:#fff;}
+
+  .qty-row{display:flex; align-items:center; gap:14px;}
+  .qty-btn{width:38px; height:38px; border-radius:7px; border:1.5px solid var(--navy); background:#fff; font-size:18px; color:var(--navy); cursor:pointer; font-weight:700;}
+  .qty-btn:hover{background:rgba(28,58,74,.06);}
+  .qty-value{font-family:'Bebas Neue',sans-serif; font-size:24px; min-width:28px; text-align:center;}
+
+  .error-text{color:var(--danger); font-size:12.5px; margin-top:10px; min-height:16px;}
+  .submit-btn{width:100%; margin-top:8px; background:var(--navy); color:#fff; border:none; border-bottom:4px solid var(--thread); border-radius:8px; padding:15px; font-size:16px; font-weight:700; cursor:pointer; transition:.15s;}
+  .submit-btn:hover{background:var(--navy-2);}
+  .submit-btn:active{transform:translateY(2px); border-bottom-width:2px;}
+  .submit-btn:disabled{opacity:.6; cursor:not-allowed;}
+
+  .confirm-card{background:var(--card); border-radius:6px; padding:32px 24px; text-align:center;}
+  .confirm-stamp{display:inline-block; border:3px solid var(--good); color:var(--good); font-family:'Bebas Neue',sans-serif; font-size:20px; padding:6px 18px; border-radius:8px; transform:rotate(-4deg); margin-bottom:16px; letter-spacing:.08em;}
+  .confirm-id{font-size:12px; color:var(--ink-soft); margin-bottom:18px;}
+  .confirm-details{text-align:left; background:#fff; border:1px dashed var(--line); border-radius:8px; padding:14px 16px; font-size:14px; line-height:1.9; margin-bottom:20px;}
+  .confirm-details b{color:var(--navy);}
+  .btn-secondary{width:100%; background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-secondary:hover{background:rgba(28,58,74,.06);}
+
+  .lookup-card{background:var(--card); border-radius:6px; padding:22px 20px; margin-top:14px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .lookup-row{display:flex; gap:8px; margin-top:10px;}
+  .lookup-row .select{flex:0 0 110px;}
+  .lookup-row .input{flex:1;}
+  .lookup-btn{background:var(--court); color:#fff; border:none; border-radius:7px; padding:0 16px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;}
+  .lookup-result{margin-top:14px;}
+
+  .toggle-link{display:block; width:100%; text-align:center; background:none; border:none; color:var(--navy-2); font-size:13px; margin-top:20px; padding:10px; cursor:pointer; text-decoration:underline;}
+
+  .roster-section{margin-top:14px;}
+  .admin-note{font-size:11px; color:var(--ink-soft); margin-bottom:12px; line-height:1.6;}
+  .roster-actions{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center;}
+  .refresh-btn{font-size:11.5px; color:var(--navy-2); background:none; border:none; text-decoration:underline; cursor:pointer;}
+  .action-btn{font-size:11.5px; color:var(--navy-2); background:#fff; border:1px solid var(--line); border-radius:6px; padding:6px 10px; cursor:pointer;}
+  .action-btn:hover{background:rgba(28,58,74,.06);}
+  .action-status{font-size:11.5px; color:var(--ink-soft); margin:-4px 0 10px; min-height:14px;}
+
+  details.roster-edit{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:14px;}
+  details.roster-edit summary{font-size:13px; font-weight:700; color:var(--navy); cursor:pointer;}
+  .roster-edit-body{margin-top:12px;}
+  .roster-edit-body .field{margin-bottom:14px;}
+
+  .stats-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 8px; text-align:center;}
+  .stat-num{font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--navy);}
+  .stat-num.warn{color:var(--thread);}
+  .stat-label{font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+  .breakdown{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:14px; font-size:13px;}
+  .breakdown.warn{border-color:var(--thread); background:#FFF8F4;}
+  .breakdown-title{font-size:11px; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:8px;}
+  .breakdown-row{display:flex; justify-content:space-between; padding:3px 0; gap:10px;}
+  .missing-grade{font-size:12px; font-weight:700; color:var(--navy); margin:8px 0 3px;}
+  .missing-names{font-size:13px; line-height:1.8;}
+  .order-list{display:flex; flex-direction:column; gap:8px;}
+  .order-row{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .order-row b{color:var(--navy);}
+  .order-sub{font-size:11.5px; color:var(--ink-soft);}
+  .delete-link{background:none; border:none; color:var(--danger); font-size:11.5px; cursor:pointer; text-decoration:underline; white-space:nowrap;}
+  .empty-state, .loading{text-align:center; color:var(--ink-soft); font-size:13px; padding:20px 0;}
+  .cart-empty{font-size:12.5px; color:var(--ink-soft); text-align:center; padding:14px; border:1px dashed var(--line); border-radius:8px;}
+
+  footer{text-align:center; font-size:11px; color:var(--ink-soft); margin-top:36px;}
+
+  #printOnly{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printOnly, #printOnly *{visibility:visible;}
+    #printOnly{display:block; position:absolute; top:0; left:0; width:100%; padding:0;}
+    .print-title{font-size:15px; font-weight:700; margin-bottom:3px;}
+    .print-meta{font-size:10px; color:#555; margin-bottom:12px;}
+    .print-h{font-size:12px; font-weight:700; margin:16px 0 5px;}
+    .print-table{width:100%; border-collapse:collapse; font-size:10px; margin-bottom:8px;}
+    .print-table th, .print-table td{border:1px solid #999; padding:3px 5px; text-align:left;}
+    .print-table th{background:#eee;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="conn-status" id="connStatus">⚠ 通信エラー・オフラインかもしれません。もう一度お試しください。</div>
+
+  <div class="tag-hero">
+    <div class="tag">
+      <div class="tag-eyebrow">ORDER FORM · <span id="seasonLabel"></span></div>
+      <div class="tag-title" id="clubNameLabel"></div>
+      <div class="tag-sub" id="formTitleLabel"></div>
+      <div class="tag-meta" id="tagMeta"></div>
+    </div>
+  </div>
+
+  <div class="notice" id="noticeBox"></div>
+
+  <form class="ticket" id="orderForm" onsubmit="return false;">
+    <p class="section-label">注文者 <span class="req">*</span></p>
+    <div class="field">
+      <label class="field-label">学年 <span class="req">*</span></label>
+      <select class="select" id="grade"></select>
+    </div>
+    <div class="field">
+      <label class="field-label">氏名(フルネーム) <span class="req">*</span></label>
+      <input class="input" id="name" placeholder="例: 山田太郎(姓と名)">
+      <div class="hint">※ 名簿と照合するため、必ずフルネームで入力してください。</div>
+    </div>
+
+    <p class="section-label">サイズ <span class="req">*</span></p>
+    <div class="chip-row" id="sizeRow" style="margin-bottom:22px;"></div>
+
+    <p class="section-label">枚数</p>
+    <div class="qty-row" style="margin-bottom:8px;">
+      <button type="button" class="qty-btn" id="qtyMinus">−</button>
+      <div class="qty-value mono" id="qtyValue">1</div>
+      <button type="button" class="qty-btn" id="qtyPlus">+</button>
+    </div>
+
+    <div class="error-text" id="errorText"></div>
+    <button type="button" class="submit-btn" id="submitBtn">送信</button>
+  </form>
+
+  <div class="confirm-card" id="confirmCard" style="display:none;">
+    <div class="confirm-stamp">受付済み</div>
+    <div class="confirm-id mono" id="confirmId"></div>
+    <div class="confirm-details" id="confirmDetails"></div>
+    <button class="btn-secondary" id="backBtn">フォームに戻る</button>
+  </div>
+
+  <button class="toggle-link" id="lookupToggle">▾ 自分の注文をあとで確認する</button>
+  <div class="lookup-card" id="lookupCard" style="display:none;">
+    <div style="font-size:12px; color:var(--ink-soft);">学年と氏名を入れると、自分の注文内容を確認できます。</div>
+    <div class="lookup-row">
+      <select class="select" id="lookupGrade"></select>
+      <input class="input" id="lookupName" placeholder="氏名(フルネーム)">
+      <button class="lookup-btn" id="lookupBtn">確認</button>
+    </div>
+    <div class="lookup-result" id="lookupResult"></div>
+  </div>
+
+  <button class="toggle-link" id="rosterToggle">▾ 集計・発注用(先生用)を開く</button>
+  <div class="roster-section" id="rosterSection" style="display:none;">
+    <div id="adminGate">
+      <div class="admin-note">この画面は先生専用です。パスコードを入力してください。</div>
+      <div class="lookup-row" style="margin-top:0;">
+        <input class="input" id="adminPass" type="password" inputmode="numeric" placeholder="パスコード" style="flex:1;">
+        <button class="lookup-btn" id="adminPassBtn">開く</button>
+      </div>
+      <div class="action-status" id="adminGateError"></div>
+    </div>
+
+    <div id="adminContent" style="display:none;">
+      <div class="roster-actions">
+        <button class="refresh-btn" id="refreshBtn">↻ 最新に更新</button>
+        <button class="action-btn" id="exportBtn">⬇ Excel</button>
+        <button class="action-btn" id="printBtn">🖨 印刷</button>
+        <button class="action-btn" id="adminLockBtn">🔒 閉じる</button>
+      </div>
+      <div class="action-status" id="actionStatus"></div>
+
+      <details class="roster-edit" id="rosterEdit">
+        <summary>部員名簿の登録・変更(未注文者の確認に使います)</summary>
+        <div class="roster-edit-body">
+          <div class="admin-note">学年ごとに、1行に1人ずつフルネームで貼り付けてください。一度登録すれば、次回以降も使えます(スペースの有無は区別しません)。</div>
+          <div id="rosterInputs"></div>
+          <button class="action-btn" id="saveRosterBtn">名簿を保存</button>
+        </div>
+      </details>
+
+      <div id="adminBody"><div class="loading">読み込み中…</div></div>
+    </div>
+  </div>
+
+  <div id="printOnly"></div>
+  <footer id="footerNote"></footer>
+</div>
+
+<script>
+(function(){
+  // ===== 編集ポイント =====
+  const CONFIG = {
+    clubName: "ソフトテニス部",
+    formTitle: "チームトレーナー 注文フォーム",
+    season: "2026",
+    deadlineText: "10月11日(日)まで",
+    priceText: "4,000円",     // フォーム上に表示する価格(空欄にすると非表示)
+    unitPrice: 4000,          // Excel集金表の単価(円)
+    sizes: ["S","M","L","XL","XXL"],
+    grades: ["1年生","2年生"],
+    adminPasscode: "1228",
+    fbProxy: "https://softtennis-score-1d9b6-default-rtdb.asia-southeast1.firebasedatabase.app",
+    ordersPath: "trainerOrders",
+    rosterPath: "clubRoster"
+  };
+
+  // ---- Firebase REST ----
+  function xhrRequest(method, path, data){
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const url = CONFIG.fbProxy + '/' + path + '.json?t=' + Date.now();
+      xhr.open(method, url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.timeout = 10000;
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setConnOk(true);
+          try { resolve(JSON.parse(xhr.responseText)); } catch(e) { resolve(null); }
+        } else {
+          setConnOk(false);
+          reject(new Error('HTTP ' + xhr.status));
+        }
+      };
+      xhr.onerror = () => { setConnOk(false); reject(new Error('network error')); };
+      xhr.ontimeout = () => { setConnOk(false); reject(new Error('timeout')); };
+      xhr.send(data !== undefined ? JSON.stringify(data) : null);
+    });
+  }
+  function setConnOk(ok){ document.getElementById('connStatus').style.display = ok ? 'none' : 'block'; }
+  async function fetchOrders(){ const d = await xhrRequest('GET', CONFIG.ordersPath); return d || {}; }
+  async function fetchRoster(){ const d = await xhrRequest('GET', CONFIG.rosterPath); return (d && typeof d === 'object') ? d : {}; }
+
+  // ---- helpers ----
+  const fmtDate = ts => new Date(ts).toLocaleString('ja-JP', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  const escapeHtml = str => String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const norm = s => String(s || '').normalize('NFKC').replace(/\s+/g, '');
+  const parseNames = text => String(text || '').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const gradeIndex = g => { const i = CONFIG.grades.indexOf(g); return i === -1 ? 99 : i; };
+  function sortOrders(list){
+    return [...list].sort((a,b)=>{
+      const g = gradeIndex(a.grade) - gradeIndex(b.grade); if(g !== 0) return g;
+      return String(a.name).localeCompare(String(b.name), 'ja');
+    });
+  }
+
+  // ---- static labels ----
+  document.getElementById('seasonLabel').textContent = CONFIG.season;
+  document.getElementById('clubNameLabel').textContent = CONFIG.clubName;
+  document.getElementById('formTitleLabel').textContent = CONFIG.formTitle;
+  document.getElementById('footerNote').textContent = CONFIG.clubName + ' · ' + CONFIG.formTitle;
+  document.getElementById('tagMeta').innerHTML =
+    '<span>締切: ' + escapeHtml(CONFIG.deadlineText) + '</span>' +
+    (CONFIG.priceText ? '<span>価格: ' + escapeHtml(CONFIG.priceText) + '</span>' : '');
+  document.getElementById('noticeBox').innerHTML =
+    'チームトレーナーは全員の購入をお願いしています。サイズと枚数を選んで送信してください。<br>' +
+    '※ 内容を間違えたら、同じ学年・氏名でもう一度送信すれば上書きできます(二重には登録されません)。' +
+    (CONFIG.priceText ? '' : '<br>※ 価格は後日お知らせします。');
+
+  function fillGradeSelect(el, withPlaceholder){
+    el.innerHTML = (withPlaceholder ? '<option value="">選択してください</option>' : '') +
+      CONFIG.grades.map(g=>'<option value="'+g+'">'+g+'</option>').join('');
+  }
+  fillGradeSelect(document.getElementById('grade'), true);
+  fillGradeSelect(document.getElementById('lookupGrade'), false);
+
+  // ---- size + qty ----
+  let size = null, qty = 1;
+  const sizeRow = document.getElementById('sizeRow');
+  CONFIG.sizes.forEach(s=>{
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'size-chip'; b.textContent = s;
+    b.addEventListener('click', ()=>{
+      size = s;
+      [...sizeRow.children].forEach(c=>c.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+    sizeRow.appendChild(b);
+  });
+  const qtyValue = document.getElementById('qtyValue');
+  document.getElementById('qtyMinus').addEventListener('click', ()=>{ qty = Math.max(1, qty-1); qtyValue.textContent = qty; });
+  document.getElementById('qtyPlus').addEventListener('click', ()=>{ qty = Math.min(5, qty+1); qtyValue.textContent = qty; });
+
+  // ---- submit ----
+  const errorText = document.getElementById('errorText');
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.addEventListener('click', async ()=>{
+    errorText.textContent = '';
+    const grade = document.getElementById('grade').value;
+    const name = document.getElementById('name').value.trim();
+    if(!grade){ errorText.textContent = '学年を選んでください。'; return; }
+    if(!name){ errorText.textContent = '氏名を入力してください。'; return; }
+    if(!size){ errorText.textContent = 'サイズを選んでください。'; return; }
+
+    const order = { grade: grade, name: name, size: size, qty: qty, ts: Date.now() };
+    submitBtn.disabled = true; submitBtn.textContent = '送信中…';
+    try{
+      const existing = await fetchOrders();
+      const dups = Object.entries(existing).filter(([k,v]) => v.grade === grade && norm(v.name) === norm(name));
+      if(dups.length){
+        const prev = dups.sort((a,b)=>(b[1].ts||0)-(a[1].ts||0))[0][1];
+        submitBtn.disabled = false; submitBtn.textContent = '送信';
+        const ok = window.confirm(
+          '「' + grade + ' ' + name + '」さんの注文はすでに登録されています(' + prev.size + ' × ' + prev.qty + '枚・' + fmtDate(prev.ts) + '受付)。\n\n' +
+          '今回の内容で上書きしますか?\n「OK」= 前の注文を消して置き換え\n「キャンセル」= 送信をやめる'
+        );
+        if(!ok){ return; }
+        submitBtn.disabled = true; submitBtn.textContent = '送信中…';
+        for(const [k] of dups){ await xhrRequest('DELETE', CONFIG.ordersPath + '/' + k); }
+      }
+      await xhrRequest('POST', CONFIG.ordersPath, order);
+      showConfirmation(order);
+    }catch(err){
+      errorText.textContent = '送信に失敗しました。通信環境を確認してもう一度お試しください。';
+      submitBtn.disabled = false; submitBtn.textContent = '送信';
+    }
+  });
+
+  function showConfirmation(order){
+    document.getElementById('orderForm').style.display = 'none';
+    document.getElementById('lookupToggle').style.display = 'none';
+    const card = document.getElementById('confirmCard');
+    card.style.display = 'block';
+    document.getElementById('confirmId').textContent = fmtDate(order.ts) + ' 受付';
+    document.getElementById('confirmDetails').innerHTML =
+      '<div><b>' + escapeHtml(order.grade) + '</b> ・ ' + escapeHtml(order.name) + ' 様</div>' +
+      '<div>サイズ: <b>' + order.size + '</b> ／ 枚数: <b>' + order.qty + '枚</b></div>';
+    card.scrollIntoView({behavior:'smooth'});
+  }
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    document.getElementById('grade').value = '';
+    document.getElementById('name').value = '';
+    size = null; qty = 1; qtyValue.textContent = '1';
+    [...sizeRow.children].forEach(c=>c.classList.remove('selected'));
+    errorText.textContent = '';
+    document.getElementById('confirmCard').style.display = 'none';
+    document.getElementById('orderForm').style.display = 'block';
+    document.getElementById('lookupToggle').style.display = 'block';
+    submitBtn.disabled = false; submitBtn.textContent = '送信';
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  // ---- self lookup ----
+  const lookupToggle = document.getElementById('lookupToggle');
+  const lookupCard = document.getElementById('lookupCard');
+  lookupToggle.addEventListener('click', ()=>{
+    const showing = lookupCard.style.display !== 'none';
+    lookupCard.style.display = showing ? 'none' : 'block';
+    lookupToggle.textContent = showing ? '▾ 自分の注文をあとで確認する' : '▴ 自分の注文の確認を閉じる';
+  });
+  document.getElementById('lookupBtn').addEventListener('click', async ()=>{
+    const g = document.getElementById('lookupGrade').value;
+    const n = document.getElementById('lookupName').value.trim();
+    const result = document.getElementById('lookupResult');
+    if(!n){ result.innerHTML = '<div class="cart-empty">氏名を入力してください。</div>'; return; }
+    result.innerHTML = '<div class="loading">検索中…</div>';
+    try{
+      const data = await fetchOrders();
+      const mine = Object.values(data).filter(o => o.grade === g && norm(o.name) === norm(n)).sort((a,b)=>b.ts-a.ts);
+      if(mine.length === 0){ result.innerHTML = '<div class="cart-empty">その学年・氏名の注文は見つかりませんでした。</div>'; return; }
+      result.innerHTML = mine.map(o =>
+        '<div class="order-row"><div><b>' + escapeHtml(o.grade) + ' ' + escapeHtml(o.name) + '</b>' +
+        '<div class="order-sub">サイズ ' + o.size + ' ／ ' + o.qty + '枚 ・ ' + fmtDate(o.ts) + ' 受付</div></div></div>'
+      ).join('');
+    }catch(err){
+      result.innerHTML = '<div class="cart-empty">通信エラーが発生しました。もう一度お試しください。</div>';
+    }
+  });
+
+  // ================= 先生用 =================
+  const rosterToggle = document.getElementById('rosterToggle');
+  const rosterSection = document.getElementById('rosterSection');
+  const adminGate = document.getElementById('adminGate');
+  const adminContent = document.getElementById('adminContent');
+  let adminUnlocked = false;
+  let lastMissingText = '';
+
+  // roster inputs (one textarea per grade)
+  const rosterInputs = document.getElementById('rosterInputs');
+  CONFIG.grades.forEach((g, i)=>{
+    const wrap = document.createElement('div'); wrap.className = 'field';
+    wrap.innerHTML = '<label class="field-label">' + g + '(1行に1人)</label>' +
+      '<textarea class="textarea" id="rosterText' + i + '" placeholder="山田太郎&#10;佐藤花子"></textarea>';
+    rosterInputs.appendChild(wrap);
+  });
+
+  function showActionStatus(msg, isError){
+    const el = document.getElementById('actionStatus');
+    el.textContent = msg; el.style.color = isError ? 'var(--danger)' : 'var(--ink-soft)';
+    if(!isError) setTimeout(()=>{ if(el.textContent === msg) el.textContent = ''; }, 4000);
+  }
+
+  rosterToggle.addEventListener('click', ()=>{
+    const showing = rosterSection.style.display !== 'none';
+    rosterSection.style.display = showing ? 'none' : 'block';
+    rosterToggle.textContent = showing ? '▾ 集計・発注用(先生用)を開く' : '▴ 集計・発注用を閉じる';
+    if(!showing && !adminUnlocked){ adminGate.style.display = 'block'; adminContent.style.display = 'none'; document.getElementById('adminPass').focus(); }
+    if(!showing && adminUnlocked){ loadAdmin(); }
+  });
+  function tryUnlock(){
+    const val = document.getElementById('adminPass').value.trim();
+    const err = document.getElementById('adminGateError');
+    if(val === CONFIG.adminPasscode){
+      adminUnlocked = true;
+      adminGate.style.display = 'none'; adminContent.style.display = 'block';
+      err.textContent = ''; document.getElementById('adminPass').value = '';
+      loadAdmin();
+    } else {
+      err.textContent = 'パスコードが違います。'; err.style.color = 'var(--danger)';
+    }
+  }
+  document.getElementById('adminPassBtn').addEventListener('click', tryUnlock);
+  document.getElementById('adminPass').addEventListener('keydown', e=>{ if(e.key === 'Enter') tryUnlock(); });
+  document.getElementById('adminLockBtn').addEventListener('click', ()=>{
+    adminUnlocked = false;
+    adminContent.style.display = 'none'; adminGate.style.display = 'block';
+    rosterSection.style.display = 'none';
+    rosterToggle.textContent = '▾ 集計・発注用(先生用)を開く';
+  });
+  document.getElementById('refreshBtn').addEventListener('click', loadAdmin);
+
+  // data + 未注文者の計算
+  async function getAdminData(){
+    const results = await Promise.all([fetchOrders(), fetchRoster()]);
+    const ordersMap = results[0], roster = results[1];
+    const orders = Object.entries(ordersMap).map(([k,o]) => Object.assign({_key:k}, o));
+
+    const orderedSet = {};
+    orders.forEach(o=>{
+      if(!orderedSet[o.grade]) orderedSet[o.grade] = new Set();
+      orderedSet[o.grade].add(norm(o.name));
+    });
+
+    const rosterNames = {}, rosterSets = {}, missing = [], unmatched = [];
+    CONFIG.grades.forEach(g=>{
+      const names = parseNames(roster[g]);
+      rosterNames[g] = names;
+      rosterSets[g] = new Set(names.map(norm));
+      const seen = new Set();
+      names.forEach(n=>{
+        const k = norm(n);
+        if(seen.has(k)) return;
+        seen.add(k);
+        if(!(orderedSet[g] && orderedSet[g].has(k))) missing.push({grade:g, name:n});
+      });
+    });
+    orders.forEach(o=>{
+      if(rosterNames[o.grade] && rosterNames[o.grade].length && !rosterSets[o.grade].has(norm(o.name))) unmatched.push(o);
+    });
+    const rosterCount = CONFIG.grades.reduce((s,g)=> s + rosterSets[g].size, 0);
+    return { orders: orders, roster: roster, missing: missing, unmatched: unmatched, rosterCount: rosterCount };
+  }
+
+  async function loadAdmin(){
+    const body = document.getElementById('adminBody');
+    body.innerHTML = '<div class="loading">読み込み中…</div>';
+    let d;
+    try{ d = await getAdminData(); }
+    catch(err){ body.innerHTML = '<div class="empty-state">通信エラーが発生しました。「↻ 最新に更新」でもう一度お試しください。</div>'; return; }
+
+    CONFIG.grades.forEach((g,i)=>{ document.getElementById('rosterText'+i).value = d.roster[g] || ''; });
+
+    const totalQty = d.orders.reduce((s,o)=> s + (o.qty||0), 0);
+    const peopleOrdered = new Set(d.orders.map(o => o.grade + '/' + norm(o.name))).size;
+    const sizeCounts = {};
+    d.orders.forEach(o=>{ sizeCounts[o.size] = (sizeCounts[o.size]||0) + (o.qty||0); });
+
+    let html = '';
+    html += '<div class="stats-grid">' +
+      '<div class="stat-card"><div class="stat-num mono">' + peopleOrdered + (d.rosterCount ? '<span style="font-size:15px;">/' + d.rosterCount + '</span>' : '') + '</div><div class="stat-label">注文済み(人)</div></div>' +
+      '<div class="stat-card"><div class="stat-num mono ' + (d.missing.length ? 'warn' : '') + '">' + (d.rosterCount ? d.missing.length : '—') + '</div><div class="stat-label">未注文(人)</div></div>' +
+      '<div class="stat-card"><div class="stat-num mono">' + totalQty + '</div><div class="stat-label">合計枚数</div></div>' +
+      '</div>';
+
+    // 未注文者
+    if(d.rosterCount === 0){
+      html += '<div class="breakdown"><div class="breakdown-title">未注文者</div><div class="admin-note" style="margin:0;">部員名簿がまだ登録されていません。上の「部員名簿の登録・変更」から登録すると、未注文者が一覧で分かります。</div></div>';
+      lastMissingText = '';
+    } else if(d.missing.length === 0){
+      html += '<div class="breakdown"><div class="breakdown-title">未注文者</div>名簿の全員の注文が届いています。</div>';
+      lastMissingText = '';
+    } else {
+      let inner = '', copyLines = ['【チームトレーナー 未注文の人】'];
+      CONFIG.grades.forEach(g=>{
+        const names = d.missing.filter(m=>m.grade === g).map(m=>m.name);
+        if(names.length){
+          inner += '<div class="missing-grade">' + g + '(' + names.length + '人)</div><div class="missing-names">' + names.map(escapeHtml).join('、') + '</div>';
+          copyLines.push(g + ': ' + names.join('、'));
+        }
+      });
+      lastMissingText = copyLines.join('\n');
+      html += '<div class="breakdown warn"><div class="breakdown-title">未注文者(' + d.missing.length + '人)</div>' + inner +
+        '<div style="margin-top:10px;"><button class="action-btn" id="copyMissingBtn">📋 未注文者をコピー(連絡用)</button></div></div>';
+    }
+
+    // 名簿にない注文(表記ゆれの確認)
+    if(d.unmatched.length){
+      html += '<div class="breakdown warn"><div class="breakdown-title">名簿と一致しない注文(表記ゆれ・名簿漏れの確認)</div>' +
+        d.unmatched.map(o=>'<div class="breakdown-row"><span>' + escapeHtml(o.grade) + ' ' + escapeHtml(o.name) + '</span><span class="mono">' + o.size + ' × ' + o.qty + '</span></div>').join('') + '</div>';
+    }
+
+    // サイズ別
+    html += '<div class="breakdown"><div class="breakdown-title">サイズ別(発注数)</div>' +
+      (CONFIG.sizes.filter(s=>sizeCounts[s]).map(s=>'<div class="breakdown-row"><span>' + s + '</span><span class="mono">' + sizeCounts[s] + '枚</span></div>').join('') || '<div class="admin-note" style="margin:0;">まだ注文がありません。</div>') + '</div>';
+
+    // 注文一覧
+    const list = [...d.orders].sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(list.length){
+      html += '<div class="order-list">' + list.map(o =>
+        '<div class="order-row"><div><b>' + escapeHtml(o.grade) + ' ' + escapeHtml(o.name) + '</b>' +
+        '<div class="order-sub">' + o.size + ' ／ ' + o.qty + '枚 ・ ' + fmtDate(o.ts) + '</div></div>' +
+        '<button class="delete-link" data-key="' + o._key + '">取消</button></div>'
+      ).join('') + '</div>';
+    }
+    body.innerHTML = html;
+
+    const copyBtn = document.getElementById('copyMissingBtn');
+    if(copyBtn){
+      copyBtn.addEventListener('click', async ()=>{
+        try{ await navigator.clipboard.writeText(lastMissingText); showActionStatus('コピーしました。'); }
+        catch(e){ window.prompt('コピーして使ってください', lastMissingText); }
+      });
+    }
+    body.querySelectorAll('.delete-link').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(btn.dataset.confirming === '1'){ await deleteOrder(btn.dataset.key); }
+        else { btn.dataset.confirming = '1'; btn.textContent = '本当に取消?'; setTimeout(()=>{ btn.dataset.confirming = '0'; btn.textContent = '取消'; }, 2500); }
+      });
+    });
+  }
+
+  async function deleteOrder(key){
+    try{ await xhrRequest('DELETE', CONFIG.ordersPath + '/' + key); loadAdmin(); }
+    catch(err){ showActionStatus('取消に失敗しました。もう一度お試しください。', true); }
+  }
+
+  // 名簿の保存
+  document.getElementById('saveRosterBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('saveRosterBtn'); btn.disabled = true;
+    try{
+      const data = {};
+      CONFIG.grades.forEach((g,i)=>{ data[g] = parseNames(document.getElementById('rosterText'+i).value).join('\n'); });
+      await xhrRequest('PUT', CONFIG.rosterPath, data);
+      showActionStatus('名簿を保存しました。');
+      await loadAdmin();
+    }catch(err){
+      showActionStatus('名簿の保存に失敗しました。もう一度お試しください。', true);
+    }
+    btn.disabled = false;
+  });
+
+  // ---- Excel ----
+  document.getElementById('exportBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('exportBtn'); btn.disabled = true;
+    try{
+      const d = await getAdminData();
+      if(d.orders.length === 0){ showActionStatus('まだ注文がありません。', true); btn.disabled = false; return; }
+      if(typeof XLSX === 'undefined'){ showActionStatus('Excel機能の読み込みに失敗しました。通信環境を確認してください。', true); btn.disabled = false; return; }
+      const sorted = sortOrders(d.orders);
+
+      // 1 注文一覧
+      const ws1 = XLSX.utils.json_to_sheet(sorted.map(o=>({'学年':o.grade, '氏名':o.name, 'サイズ':o.size, '枚数':o.qty})));
+      ws1['!cols'] = [{wch:7},{wch:14},{wch:7},{wch:6}];
+
+      // 2 発注集計(サイズ別)
+      const counts = {};
+      sorted.forEach(o=>{ counts[o.size] = (counts[o.size]||0) + o.qty; });
+      const s2 = CONFIG.sizes.filter(s=>counts[s]).map(s=>({'サイズ':s, '発注枚数':counts[s]}));
+      s2.push({'サイズ':'合計', '発注枚数': sorted.reduce((s,o)=>s+o.qty, 0)});
+      const ws2 = XLSX.utils.json_to_sheet(s2);
+      ws2['!cols'] = [{wch:8},{wch:10}];
+
+      // 3 集金表(単価はH1に1回入力すると全員の金額が計算される)
+      const aoa = [['学年','氏名','枚数','金額','集金済(✓)','','単価(円)→', CONFIG.unitPrice]];
+      sorted.forEach((o,i)=>{
+        const r = i + 2;
+        aoa.push([o.grade, o.name, o.qty, {t:'n', f:'IF($H$1="","",C'+r+'*$H$1)'}, '']);
+      });
+      const last = sorted.length + 1;
+      aoa.push(['', '合計', {t:'n', f:'SUM(C2:C'+last+')'}, {t:'n', f:'SUM(D2:D'+last+')'}, '']);
+      const ws3 = XLSX.utils.aoa_to_sheet(aoa);
+      ws3['!cols'] = [{wch:7},{wch:14},{wch:6},{wch:10},{wch:10},{wch:3},{wch:12},{wch:10}];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, '注文一覧');
+      XLSX.utils.book_append_sheet(wb, ws2, '発注集計');
+      XLSX.utils.book_append_sheet(wb, ws3, '集金表');
+
+      // 4 未注文者(名簿登録がある場合のみ)
+      if(d.rosterCount > 0){
+        const s4 = d.missing.length ? d.missing.map(m=>({'学年':m.grade, '氏名':m.name})) : [{'学年':'', '氏名':'(未注文者なし)'}];
+        const ws4 = XLSX.utils.json_to_sheet(s4);
+        ws4['!cols'] = [{wch:7},{wch:14}];
+        XLSX.utils.book_append_sheet(wb, ws4, '未注文者');
+      }
+      XLSX.writeFile(wb, CONFIG.clubName.replace(/[\\/:*?"<>|]/g,'') + '_トレーナー注文.xlsx');
+      showActionStatus('ダウンロードしました(単価は集金表のH1で変更できます)。');
+    }catch(err){
+      showActionStatus('出力に失敗しました。もう一度お試しください。', true);
+    }
+    btn.disabled = false;
+  });
+
+  // ---- 印刷 ----
+  document.getElementById('printBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('printBtn'); btn.disabled = true;
+    try{
+      const d = await getAdminData();
+      if(d.orders.length === 0){ showActionStatus('まだ注文がありません。', true); btn.disabled = false; return; }
+      const sorted = sortOrders(d.orders);
+      const totalQty = sorted.reduce((s,o)=>s+o.qty, 0);
+      const counts = {};
+      sorted.forEach(o=>{ counts[o.size] = (counts[o.size]||0) + o.qty; });
+
+      let html = '<div class="print-title">' + escapeHtml(CONFIG.clubName) + ' ' + escapeHtml(CONFIG.formTitle) + '</div>';
+      html += '<div class="print-meta">出力: ' + fmtDate(Date.now()) + ' ／ 注文: ' + sorted.length + '人 ／ 合計枚数: ' + totalQty + '</div>';
+
+      html += '<div class="print-h">■ 発注集計(サイズ別)</div><table class="print-table"><thead><tr><th>サイズ</th><th>発注枚数</th></tr></thead><tbody>' +
+        CONFIG.sizes.filter(s=>counts[s]).map(s=>'<tr><td>' + s + '</td><td>' + counts[s] + '</td></tr>').join('') +
+        '<tr><td><b>合計</b></td><td><b>' + totalQty + '</b></td></tr></tbody></table>';
+
+      html += '<div class="print-h">■ 注文一覧・集金チェック</div><table class="print-table"><thead><tr><th>学年</th><th>氏名</th><th>サイズ</th><th>枚数</th><th>集金済</th></tr></thead><tbody>' +
+        sorted.map(o=>'<tr><td>' + escapeHtml(o.grade) + '</td><td>' + escapeHtml(o.name) + '</td><td>' + o.size + '</td><td>' + o.qty + '</td><td></td></tr>').join('') + '</tbody></table>';
+
+      if(d.rosterCount > 0){
+        html += '<div class="print-h">■ 未注文者(' + d.missing.length + '人)</div>';
+        html += d.missing.length
+          ? '<table class="print-table"><thead><tr><th>学年</th><th>氏名</th></tr></thead><tbody>' + d.missing.map(m=>'<tr><td>' + escapeHtml(m.grade) + '</td><td>' + escapeHtml(m.name) + '</td></tr>').join('') + '</tbody></table>'
+          : '<div class="print-meta">なし</div>';
+      }
+      document.getElementById('printOnly').innerHTML = html;
+      window.print();
+    }catch(err){
+      showActionStatus('印刷準備に失敗しました。もう一度お試しください。', true);
+    }
+    btn.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>
