@@ -61,6 +61,8 @@
   .size-chip.selected{background:var(--navy); color:#fff;}
 
   .qty-row{display:flex; align-items:center; gap:14px;}
+  .size-line{display:flex; align-items:center; justify-content:space-between; padding:8px 4px; border-bottom:1px dashed var(--line);}
+  .size-line .sz{font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--navy); min-width:60px;}
   .qty-btn{width:38px; height:38px; border-radius:7px; border:1.5px solid var(--navy); background:#fff; font-size:18px; color:var(--navy); cursor:pointer; font-weight:700;}
   .qty-btn:hover{background:rgba(28,58,74,.06);}
   .qty-value{font-family:'Bebas Neue',sans-serif; font-size:24px; min-width:28px; text-align:center;}
@@ -164,15 +166,10 @@
       <div class="hint">※ 名簿と照合するため、必ずフルネームで入力してください。</div>
     </div>
 
-    <p class="section-label">サイズ <span class="req">*</span></p>
-    <div class="chip-row" id="sizeRow" style="margin-bottom:22px;"></div>
-
-    <p class="section-label">枚数</p>
-    <div class="qty-row" style="margin-bottom:8px;">
-      <button type="button" class="qty-btn" id="qtyMinus">−</button>
-      <div class="qty-value mono" id="qtyValue">1</div>
-      <button type="button" class="qty-btn" id="qtyPlus">+</button>
-    </div>
+    <p class="section-label">サイズと枚数 <span class="req">*</span></p>
+    <div class="hint" style="margin:-6px 0 10px;">ほしいサイズの枚数を選んでください。保護者の方の分など、サイズが違う場合は、それぞれのサイズに枚数を入れてください。</div>
+    <div id="sizeRows" style="margin-bottom:8px;"></div>
+    <div class="hint" id="sizeTotal" style="margin-bottom:14px;">合計 0 枚</div>
 
     <div class="error-text" id="errorText"></div>
     <button type="button" class="submit-btn" id="submitBtn">送信</button>
@@ -290,6 +287,20 @@
     });
   }
 
+  // 同じ人の注文(サイズ違い)を1人にまとめる
+  function groupPeople(list){
+    const m = new Map();
+    list.forEach(o=>{
+      const k = o.grade + '/' + norm(o.name);
+      if(!m.has(k)) m.set(k, {grade:o.grade, name:o.name, qty:0, ts:0, items:[], keys:[]});
+      const g = m.get(k);
+      g.qty += (o.qty||0); g.ts = Math.max(g.ts, o.ts||0); g.items.push(o); if(o._key) g.keys.push(o._key);
+    });
+    const arr = [...m.values()];
+    arr.forEach(g=>{ g.items.sort((a,b)=>CONFIG.sizes.indexOf(a.size)-CONFIG.sizes.indexOf(b.size)); g.text = g.items.map(o=>o.size+'×'+o.qty).join('、'); });
+    return arr;
+  }
+
   // ---- static labels ----
   document.getElementById('seasonLabel').textContent = CONFIG.season;
   document.getElementById('clubNameLabel').textContent = CONFIG.clubName;
@@ -299,7 +310,7 @@
     '<span>締切: ' + escapeHtml(CONFIG.deadlineText) + '</span>' +
     (CONFIG.priceText ? '<span>価格: ' + escapeHtml(CONFIG.priceText) + '</span>' : '');
   document.getElementById('noticeBox').innerHTML =
-    'チームトレーナーは全員の購入をお願いしています。サイズと枚数を選んで送信してください。<br>' +
+    'チームトレーナーは全員の購入をお願いしています。サイズと枚数を選んで送信してください(保護者の方の分もまとめて申し込めます)。<br>' +
     '※ 内容を間違えたら、同じ学年・氏名でもう一度送信すれば上書きできます(二重には登録されません)。' +
     (CONFIG.priceText ? '' : '<br>※ 価格は後日お知らせします。');
 
@@ -310,22 +321,30 @@
   fillGradeSelect(document.getElementById('grade'), true);
   fillGradeSelect(document.getElementById('lookupGrade'), false);
 
-  // ---- size + qty ----
-  let size = null, qty = 1;
-  const sizeRow = document.getElementById('sizeRow');
-  CONFIG.sizes.forEach(s=>{
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'size-chip'; b.textContent = s;
-    b.addEventListener('click', ()=>{
-      size = s;
-      [...sizeRow.children].forEach(c=>c.classList.remove('selected'));
-      b.classList.add('selected');
-    });
-    sizeRow.appendChild(b);
+  // ---- size + qty (サイズごとに枚数を選ぶ) ----
+  const qtys = {};
+  CONFIG.sizes.forEach(z=>{ qtys[z] = 0; });
+  const sizeRows = document.getElementById('sizeRows');
+  const sizeTotal = document.getElementById('sizeTotal');
+  const qtyEls = {};
+  function updateTotal(){
+    const t = CONFIG.sizes.reduce((n,z)=>n+qtys[z],0);
+    sizeTotal.textContent = '合計 ' + t + ' 枚';
+    CONFIG.sizes.forEach(z=>{ qtyEls[z].textContent = qtys[z]; });
+  }
+  CONFIG.sizes.forEach(z=>{
+    const line = document.createElement('div'); line.className = 'size-line';
+    line.innerHTML = '<div class="sz">' + z + '</div>' +
+      '<div class="qty-row"><button type="button" class="qty-btn">−</button>' +
+      '<div class="qty-value mono">0</div>' +
+      '<button type="button" class="qty-btn">+</button></div>';
+    const [minus, plus] = line.querySelectorAll('.qty-btn');
+    qtyEls[z] = line.querySelector('.qty-value');
+    minus.addEventListener('click', ()=>{ qtys[z] = Math.max(0, qtys[z]-1); updateTotal(); });
+    plus.addEventListener('click', ()=>{ qtys[z] = Math.min(5, qtys[z]+1); updateTotal(); });
+    sizeRows.appendChild(line);
   });
-  const qtyValue = document.getElementById('qtyValue');
-  document.getElementById('qtyMinus').addEventListener('click', ()=>{ qty = Math.max(1, qty-1); qtyValue.textContent = qty; });
-  document.getElementById('qtyPlus').addEventListener('click', ()=>{ qty = Math.min(5, qty+1); qtyValue.textContent = qty; });
+  const sizesText = list => list.map(o => o.size + '×' + o.qty).join('、');
 
   // ---- submit ----
   const errorText = document.getElementById('errorText');
@@ -336,33 +355,38 @@
     const name = document.getElementById('name').value.trim();
     if(!grade){ errorText.textContent = '学年を選んでください。'; return; }
     if(!name){ errorText.textContent = '氏名を入力してください。'; return; }
-    if(!size){ errorText.textContent = 'サイズを選んでください。'; return; }
+    const lines = CONFIG.sizes.filter(z=>qtys[z] > 0);
+    if(!lines.length){ errorText.textContent = 'サイズと枚数を選んでください。'; return; }
 
-    const order = { grade: grade, name: name, size: size, qty: qty, ts: Date.now() };
+    const ts = Date.now();
+    const orders = lines.map(z=>({ grade: grade, name: name, size: z, qty: qtys[z], ts: ts }));
     submitBtn.disabled = true; submitBtn.textContent = '送信中…';
     try{
       const existing = await fetchOrders();
       const dups = Object.entries(existing).filter(([k,v]) => v.grade === grade && norm(v.name) === norm(name));
       if(dups.length){
-        const prev = dups.sort((a,b)=>(b[1].ts||0)-(a[1].ts||0))[0][1];
+        const prevList = dups.map(d=>d[1]);
+        const prevTs = Math.max(...prevList.map(v=>v.ts||0));
         submitBtn.disabled = false; submitBtn.textContent = '送信';
         const ok = window.confirm(
-          '「' + grade + ' ' + name + '」さんの注文はすでに登録されています(' + prev.size + ' × ' + prev.qty + '枚・' + fmtDate(prev.ts) + '受付)。\n\n' +
+          '「' + grade + ' ' + name + '」さんの注文はすでに登録されています(' + sizesText(prevList) + '・' + fmtDate(prevTs) + '受付)。\n\n' +
           '今回の内容で上書きしますか?\n「OK」= 前の注文を消して置き換え\n「キャンセル」= 送信をやめる'
         );
         if(!ok){ return; }
         submitBtn.disabled = true; submitBtn.textContent = '送信中…';
         for(const [k] of dups){ await xhrRequest('DELETE', CONFIG.ordersPath + '/' + k); }
       }
-      await xhrRequest('POST', CONFIG.ordersPath, order);
-      showConfirmation(order);
+      for(const o of orders){ await xhrRequest('POST', CONFIG.ordersPath, o); }
+      showConfirmation(orders);
     }catch(err){
       errorText.textContent = '送信に失敗しました。通信環境を確認してもう一度お試しください。';
       submitBtn.disabled = false; submitBtn.textContent = '送信';
     }
   });
 
-  function showConfirmation(order){
+  function showConfirmation(orders){
+    const order = orders[0];
+    const total = orders.reduce((n,o)=>n+o.qty,0);
     document.getElementById('orderForm').style.display = 'none';
     document.getElementById('lookupToggle').style.display = 'none';
     const card = document.getElementById('confirmCard');
@@ -370,14 +394,14 @@
     document.getElementById('confirmId').textContent = fmtDate(order.ts) + ' 受付';
     document.getElementById('confirmDetails').innerHTML =
       '<div><b>' + escapeHtml(order.grade) + '</b> ・ ' + escapeHtml(order.name) + ' 様</div>' +
-      '<div>サイズ: <b>' + order.size + '</b> ／ 枚数: <b>' + order.qty + '枚</b></div>';
+      orders.map(o=>'<div>サイズ: <b>' + o.size + '</b> ／ 枚数: <b>' + o.qty + '枚</b></div>').join('') +
+      (orders.length > 1 ? '<div style="margin-top:4px;">合計: <b>' + total + '枚</b></div>' : '');
     card.scrollIntoView({behavior:'smooth'});
   }
   document.getElementById('backBtn').addEventListener('click', ()=>{
     document.getElementById('grade').value = '';
     document.getElementById('name').value = '';
-    size = null; qty = 1; qtyValue.textContent = '1';
-    [...sizeRow.children].forEach(c=>c.classList.remove('selected'));
+    CONFIG.sizes.forEach(z=>{ qtys[z] = 0; }); updateTotal();
     errorText.textContent = '';
     document.getElementById('confirmCard').style.display = 'none';
     document.getElementById('orderForm').style.display = 'block';
@@ -404,10 +428,11 @@
       const data = await fetchOrders();
       const mine = Object.values(data).filter(o => o.grade === g && norm(o.name) === norm(n)).sort((a,b)=>b.ts-a.ts);
       if(mine.length === 0){ result.innerHTML = '<div class="cart-empty">その学年・氏名の注文は見つかりませんでした。</div>'; return; }
-      result.innerHTML = mine.map(o =>
-        '<div class="order-row"><div><b>' + escapeHtml(o.grade) + ' ' + escapeHtml(o.name) + '</b>' +
-        '<div class="order-sub">サイズ ' + o.size + ' ／ ' + o.qty + '枚 ・ ' + fmtDate(o.ts) + ' 受付</div></div></div>'
-      ).join('');
+      const bySize = [...mine].sort((a,b)=>CONFIG.sizes.indexOf(a.size)-CONFIG.sizes.indexOf(b.size));
+      result.innerHTML =
+        '<div class="order-row"><div><b>' + escapeHtml(mine[0].grade) + ' ' + escapeHtml(mine[0].name) + '</b>' +
+        bySize.map(o=>'<div class="order-sub">サイズ ' + o.size + ' ／ ' + o.qty + '枚</div>').join('') +
+        '<div class="order-sub">' + fmtDate(mine[0].ts) + ' 受付</div></div></div>';
     }catch(err){
       result.innerHTML = '<div class="cart-empty">通信エラーが発生しました。もう一度お試しください。</div>';
     }
@@ -550,12 +575,12 @@
       (CONFIG.sizes.filter(s=>sizeCounts[s]).map(s=>'<div class="breakdown-row"><span>' + s + '</span><span class="mono">' + sizeCounts[s] + '枚</span></div>').join('') || '<div class="admin-note" style="margin:0;">まだ注文がありません。</div>') + '</div>';
 
     // 注文一覧
-    const list = [...d.orders].sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const list = groupPeople(d.orders).sort((a,b)=>(b.ts||0)-(a.ts||0));
     if(list.length){
-      html += '<div class="order-list">' + list.map(o =>
-        '<div class="order-row"><div><b>' + escapeHtml(o.grade) + ' ' + escapeHtml(o.name) + '</b>' +
-        '<div class="order-sub">' + o.size + ' ／ ' + o.qty + '枚 ・ ' + fmtDate(o.ts) + '</div></div>' +
-        '<button class="delete-link" data-key="' + o._key + '">取消</button></div>'
+      html += '<div class="order-list">' + list.map(g =>
+        '<div class="order-row"><div><b>' + escapeHtml(g.grade) + ' ' + escapeHtml(g.name) + '</b>' +
+        '<div class="order-sub">' + escapeHtml(g.text) + '(計' + g.qty + '枚) ・ ' + fmtDate(g.ts) + '</div></div>' +
+        '<button class="delete-link" data-key="' + g.keys.join(',') + '">取消</button></div>'
       ).join('') + '</div>';
     }
     body.innerHTML = html;
@@ -575,8 +600,8 @@
     });
   }
 
-  async function deleteOrder(key){
-    try{ await xhrRequest('DELETE', CONFIG.ordersPath + '/' + key); loadAdmin(); }
+  async function deleteOrder(keys){
+    try{ for(const k of String(keys).split(',')){ await xhrRequest('DELETE', CONFIG.ordersPath + '/' + k); } loadAdmin(); }
     catch(err){ showActionStatus('取消に失敗しました。もう一度お試しください。', true); }
   }
 
@@ -617,15 +642,16 @@
       ws2['!cols'] = [{wch:8},{wch:10}];
 
       // 3 集金表(単価はH1に1回入力すると全員の金額が計算される)
-      const aoa = [['学年','氏名','枚数','金額','集金済(✓)','','単価(円)→', CONFIG.unitPrice]];
-      sorted.forEach((o,i)=>{
+      const people = sortOrders(groupPeople(d.orders));
+      const aoa = [['学年','氏名','枚数','金額','集金済(✓)','サイズ内訳','単価(円)→', CONFIG.unitPrice]];
+      people.forEach((g,i)=>{
         const r = i + 2;
-        aoa.push([o.grade, o.name, o.qty, {t:'n', f:'IF($H$1="","",C'+r+'*$H$1)'}, '']);
+        aoa.push([g.grade, g.name, g.qty, {t:'n', f:'IF($H$1="","",C'+r+'*$H$1)'}, '', g.text]);
       });
-      const last = sorted.length + 1;
+      const last = people.length + 1;
       aoa.push(['', '合計', {t:'n', f:'SUM(C2:C'+last+')'}, {t:'n', f:'SUM(D2:D'+last+')'}, '']);
       const ws3 = XLSX.utils.aoa_to_sheet(aoa);
-      ws3['!cols'] = [{wch:7},{wch:14},{wch:6},{wch:10},{wch:10},{wch:3},{wch:12},{wch:10}];
+      ws3['!cols'] = [{wch:7},{wch:14},{wch:6},{wch:10},{wch:10},{wch:16},{wch:12},{wch:10}];
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws1, '注文一覧');
@@ -659,14 +685,14 @@
       sorted.forEach(o=>{ counts[o.size] = (counts[o.size]||0) + o.qty; });
 
       let html = '<div class="print-title">' + escapeHtml(CONFIG.clubName) + ' ' + escapeHtml(CONFIG.formTitle) + '</div>';
-      html += '<div class="print-meta">出力: ' + fmtDate(Date.now()) + ' ／ 注文: ' + sorted.length + '人 ／ 合計枚数: ' + totalQty + '</div>';
+      html += '<div class="print-meta">出力: ' + fmtDate(Date.now()) + ' ／ 注文: ' + groupPeople(d.orders).length + '人 ／ 合計枚数: ' + totalQty + '</div>';
 
       html += '<div class="print-h">■ 発注集計(サイズ別)</div><table class="print-table"><thead><tr><th>サイズ</th><th>発注枚数</th></tr></thead><tbody>' +
         CONFIG.sizes.filter(s=>counts[s]).map(s=>'<tr><td>' + s + '</td><td>' + counts[s] + '</td></tr>').join('') +
         '<tr><td><b>合計</b></td><td><b>' + totalQty + '</b></td></tr></tbody></table>';
 
-      html += '<div class="print-h">■ 注文一覧・集金チェック</div><table class="print-table"><thead><tr><th>学年</th><th>氏名</th><th>サイズ</th><th>枚数</th><th>集金済</th></tr></thead><tbody>' +
-        sorted.map(o=>'<tr><td>' + escapeHtml(o.grade) + '</td><td>' + escapeHtml(o.name) + '</td><td>' + o.size + '</td><td>' + o.qty + '</td><td></td></tr>').join('') + '</tbody></table>';
+      html += '<div class="print-h">■ 注文一覧・集金チェック</div><table class="print-table"><thead><tr><th>学年</th><th>氏名</th><th>サイズ内訳</th><th>枚数</th><th>集金済</th></tr></thead><tbody>' +
+        sortOrders(groupPeople(d.orders)).map(g=>'<tr><td>' + escapeHtml(g.grade) + '</td><td>' + escapeHtml(g.name) + '</td><td>' + escapeHtml(g.text) + '</td><td>' + g.qty + '</td><td></td></tr>').join('') + '</tbody></table>';
 
       if(d.rosterCount > 0){
         html += '<div class="print-h">■ 未注文者(' + d.missing.length + '人)</div>';
