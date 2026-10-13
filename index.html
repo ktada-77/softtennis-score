@@ -4950,7 +4950,7 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
   });
 
   const metrics = isInd
-    ? [['win','勝率'], ['srv','1stサーブ'], ['pts','ポイント'], ['miss','ミス少']]
+    ? [['srv','1stサーブ'], ['win','勝率'], ['pts','ポイント'], ['miss','ミス少']]
     : [['srv','1stサーブ'], ['pts','ポイント'], ['miss','ミス少']];
   if (!metrics.some(m => m[0] === rankMetric)) rankMetric = metrics[0][0];
 
@@ -5006,7 +5006,7 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
 }
 
 let _rankArgs = null;
-let rankMetric = 'win';
+let rankMetric = 'srv';
 function setRankMetric(m) {
   rankMetric = m;
   if (_rankArgs) renderRankBody(..._rankArgs);
@@ -5625,18 +5625,21 @@ function svTrain(el) {
     miss.forEach(p => {
       let play;
       if (p.miss === 'DF') play = 'ダブルフォルト';
-      else {
-        const sh = p.shotType ? SV_SHOT[p.shotType] : (p.base === 'Re' ? 'レシーブ' : null);
-        if (!sh || !MISS_LBL[p.miss]) return;
-        play = sh + 'の' + MISS_LBL[p.miss];
-      }
-      cnt[play] = (cnt[play] || 0) + 1;
+      else if (p.base === 'Re') play = 'レシーブ';
+      else if (!SV_SHOT[p.shotType]) return;
+      else if (p.shotType === 'Sm') play = 'スマッシュ';
+      else if (p.shotType && (p.base === 'F' || p.base === 'B')) play = (p.base === 'F' ? 'フォア' : 'バック') + SV_SHOT[p.shotType];
+      else if (p.shotType) play = SV_SHOT[p.shotType];
+      else return;
+      if (!cnt[play]) cnt[play] = { n: 0, by: {} };
+      cnt[play].n++;
+      if (MISS_LBL[p.miss]) cnt[play].by[p.miss] = (cnt[play].by[p.miss] || 0) + 1;
     });
-    const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const top = Object.entries(cnt).sort((a, b) => b[1].n - a[1].n).slice(0, 3);
     if (top.length) {
-      const mx = top[0][1];
-      el.appendChild(svNode(`<div style="${SV_CARD}"><div style="font-size:15px;font-weight:700">ミスの多いプレー</div><div style="font-size:12px;color:var(--muted)">ミス${miss.length}本のうち、多い順</div>
-        <div style="display:flex;flex-direction:column;gap:10px">${top.map((t, i) => `<div style="display:flex;align-items:center;gap:10px"><div style="flex:none;width:24px;height:24px;border-radius:12px;background:${i === 0 ? '#b4372a' : 'var(--s2)'};color:${i === 0 ? '#fff' : 'var(--muted)'};font-family:var(--font-num);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">${i + 1}</div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">${t[0]}</div><div style="height:8px;border-radius:4px;background:var(--s2);margin-top:4px"><div style="width:${Math.round(t[1] / mx * 100)}%;height:8px;border-radius:4px;background:${i === 0 ? '#b4372a' : '#cfc8bb'}"></div></div></div><div style="font-family:var(--font-num);font-weight:800;font-size:18px">${t[1]}<span style="font-size:11px">本</span></div></div>`).join('')}</div></div>`));
+      const mx = top[0][1].n;
+      el.appendChild(svNode(`<div style="${SV_CARD}"><div style="font-size:15px;font-weight:700">ミスの多いプレー</div><div style="font-size:12px;color:var(--muted)">ミス${miss.length}本のうち、多い順（打ったプレー別）</div>
+        <div style="display:flex;flex-direction:column;gap:10px">${top.map((t, i) => `<div style="display:flex;align-items:center;gap:10px"><div style="flex:none;width:24px;height:24px;border-radius:12px;background:${i === 0 ? '#b4372a' : 'var(--s2)'};color:${i === 0 ? '#fff' : 'var(--muted)'};font-family:var(--font-num);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">${i + 1}</div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">${t[0]}</div><div style="font-size:11px;color:var(--muted)">${Object.entries(t[1].by).sort((a, b) => b[1] - a[1]).map(e => MISS_LBL[e[0]] + e[1]).join('・')}</div><div style="height:8px;border-radius:4px;background:var(--s2);margin-top:4px"><div style="width:${Math.round(t[1].n / mx * 100)}%;height:8px;border-radius:4px;background:${i === 0 ? '#b4372a' : '#cfc8bb'}"></div></div></div><div style="font-family:var(--font-num);font-weight:800;font-size:18px">${t[1].n}<span style="font-size:11px">本</span></div></div>`).join('')}</div></div>`));
     }
   }
   if (!cards.length) el.appendChild(svNode(`<div class="empty"><div class="empty-icon">🎾</div>はっきりした課題はまだ見つかりません<br><small style="color:var(--muted)">ミスが4本以上たまると表示されます</small></div>`));
