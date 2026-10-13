@@ -609,57 +609,54 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .live-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .live-modal-bg.show{display:flex}
 .live-modal{background:var(--surface);border-radius:14px;width:100%;max-width:560px;box-shadow:0 10px 40px rgba(0,0,0,.3);overflow:hidden;margin:auto 0}
-.live-head{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.live-head{background:var(--ink);color:#fff;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
 .live-head h3{font-size:14px;font-weight:700;margin:0;letter-spacing:.05em}
 .live-close{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:var(--font-num)}
 .live-body{padding:12px}
 
 /* 試合中分析（チェンジサイズ用・B案ベース） */
 .live-modal.lv2{display:flex;flex-direction:column;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
-.live-modal.lv2 .live-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;background:var(--s2)}
-.live-foot{padding:10px 12px;border-top:1px solid var(--border);background:var(--surface)}
-.live-foot-btn{width:100%;min-height:50px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
-.lv2-score{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#fff;border-radius:12px;padding:10px 16px;margin-bottom:10px}
-.lv2-score-lbl{font-family:var(--font-head);font-size:13px;letter-spacing:.12em;opacity:.75}
-.lv2-score-val{font-family:var(--font-num);font-size:28px;font-weight:800;line-height:1}
-.lv2-card{background:var(--surface);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
-.lv2-who{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
-.lv2-cmp{display:flex;flex-direction:column;gap:5px}
-.lv2-cmp-top{display:flex;align-items:baseline;justify-content:space-between}
-.lv2-cmp-v{font-family:var(--font-num);font-size:22px;font-weight:800}
-.lv2-cmp-l{font-size:12px;color:var(--muted)}
-.lv2-bar{display:flex;gap:2px;height:9px}
-.lv2-bar-seg{border-radius:5px}
-.lv2-title{font-size:14px;font-weight:700}
-.lv2-grp{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
-.lv2-grp small{font-size:11px;font-weight:400;color:var(--muted)}
-.lv2-grp-bar{width:4px;height:16px;border-radius:2px;display:inline-block}
-.lv2-pl{display:flex;flex-direction:column;gap:7px}
-.lv2-pname{font-size:15px;font-weight:700}
-.lv2-row{display:flex;gap:8px}
-.lv2-box{flex:1;min-width:0;border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
-.lv2-box-lbl{font-size:11px;font-weight:700}
+.live-modal.lv2 .live-body{padding:8px 10px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;background:var(--s2)}
+.live-foot{padding:8px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.live-foot-btn{width:100%;min-height:46px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.lv2-score{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#fff;border-radius:10px;padding:6px 14px;margin-bottom:8px}
+.lv2-score-lbl{font-family:var(--font-head);font-size:12px;letter-spacing:.12em;opacity:.75}
+.lv2-score-val{font-family:var(--font-num);font-size:22px;font-weight:800;line-height:1}
+.lv2-card{background:var(--surface);border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;flex-direction:column;gap:6px}
+.lv2-who{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
+.lv2-cmp{display:grid;grid-template-columns:30px 1fr 30px;grid-template-areas:"a l b" "a bar b";align-items:center;column-gap:8px;row-gap:2px}
+.lv2-cmp-v{font-family:var(--font-num);font-size:20px;font-weight:800;line-height:1}
+.lv2-cmp-v.r{text-align:right}
+.lv2-cmp-l{grid-area:l;font-size:11px;color:var(--muted);text-align:center;line-height:1.1}
+.lv2-bar{grid-area:bar;display:flex;gap:2px;height:8px}
+.lv2-bar-seg{border-radius:4px}
+.lv2-title{font-size:13px;font-weight:700}
+.lv2-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lv2-col{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lv2-grp{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}
+.lv2-grp-bar{width:4px;height:14px;border-radius:2px;display:inline-block}
+.lv2-pl{display:flex;flex-direction:column;gap:3px;min-width:0}
+.lv2-pname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv2-box{border-radius:8px;padding:4px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.lv2-box-lbl{font-size:10.5px;font-weight:700}
 .lv2-neutral{background:var(--s2)}
 .lv2-neutral .lv2-box-lbl{color:var(--muted)}
 .lv2-good{background:#e8f5e9}
 .lv2-good .lv2-box-lbl{color:#1e6b2e}
 .lv2-bad{background:#fdecea}
 .lv2-bad .lv2-box-lbl{color:#8f2a20}
-.lv2-main{font-size:15px;font-weight:700;line-height:1.3}
-.lv2-none{color:var(--muted)}
-.lv2-n{font-family:var(--font-num);font-size:22px;font-weight:800;line-height:1.1}
-.lv2-n small,.lv2-big small{font-size:12px;font-weight:700}
-.lv2-big{font-family:var(--font-num);font-size:26px;font-weight:800;line-height:1.1}
-.lv2-big small{font-size:13px}
-.lv2-sub{font-size:12px;color:var(--muted)}
-.lv2-hr{height:1px;background:var(--border)}
-.lv2-note{font-size:11px;line-height:1.5;color:var(--muted)}
-.lv2-mrow{display:flex;align-items:center;gap:10px}
-.lv2-sw{width:12px;height:12px;border-radius:3px;flex:none}
-.lv2-mname{width:100px;font-size:13px;flex:none}
-.lv2-mtrack{flex:1;height:16px;background:var(--s2);border-radius:4px;overflow:hidden}
-.lv2-mtrack div{height:16px;border-radius:4px}
-.lv2-mval{width:18px;text-align:right;font-family:var(--font-num);font-size:15px;font-weight:800}
+.lv2-line{display:flex;align-items:baseline;justify-content:space-between;gap:4px}
+.lv2-main{font-size:13px;font-weight:700;line-height:1.25;min-width:0}
+.lv2-none{color:var(--muted);font-weight:400}
+.lv2-n{font-family:var(--font-num);font-size:16px;font-weight:800;line-height:1;white-space:nowrap}
+.lv2-n small,.lv2-big small{font-size:11px;font-weight:700}
+.lv2-big{font-family:var(--font-num);font-size:20px;font-weight:800;line-height:1.1}
+.lv2-sub{font-size:11px;color:var(--muted)}
+.lv2-note{font-size:10.5px;line-height:1.4;color:var(--muted)}
+.lv2-chips{display:flex;gap:6px}
+.lv2-chip{flex:1;border-radius:8px;padding:3px 4px;text-align:center;background:var(--s2);border-top:3px solid var(--muted)}
+.lv2-chip b{display:block;font-family:var(--font-num);font-size:18px;font-weight:800;line-height:1.1}
+.lv2-chip span{font-size:10.5px;color:var(--muted)}
 
 /* STORY */
 .story-dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px;background:var(--s2)}
@@ -1038,7 +1035,7 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 <div class="live-modal-bg" id="live-modal-bg" onclick="closeLiveAnalysis(event)">
   <div class="live-modal lv2" onclick="event.stopPropagation()">
     <div class="live-head">
-      <h3>📊 試合中分析</h3>
+      <h3>📊 試合中分析 <span id="live-score" style="font-family:var(--font-num);margin-left:8px;opacity:.9"></span></h3>
       <button class="live-close" onclick="closeLiveAnalysis()">閉じる</button>
     </div>
     <div class="live-body" id="live-body"></div>
@@ -2873,7 +2870,7 @@ function lvTop(counts, lbl) {
 
 function lvBox(label, top, cls) {
   const body = top
-    ? `<div class="lv2-main">${top.text}</div><div class="lv2-n">${top.each ? '各' : ''}${top.n}<small>本</small></div>`
+    ? `<div class="lv2-line"><span class="lv2-main">${top.text}</span><span class="lv2-n">${top.each ? '各' : ''}${top.n}<small>本</small></span></div>`
     : `<div class="lv2-main lv2-none">なし</div>`;
   return `<div class="lv2-box ${cls}"><div class="lv2-box-lbl">${label}</div>${body}</div>`;
 }
@@ -2915,12 +2912,16 @@ function renderLiveAnalysis() {
       ? `<div class="lv2-bar-seg" style="flex:1;background:var(--border)"></div>`
       : `<div class="lv2-bar-seg" style="flex:${vo} 1 0;background:var(--${own})"></div><div class="lv2-bar-seg" style="flex:${vp} 1 0;background:var(--${opp})"></div>`;
     return `<div class="lv2-cmp">
-      <div class="lv2-cmp-top"><span class="lv2-cmp-v" style="color:var(--${own})">${vo}</span><span class="lv2-cmp-l">${label}</span><span class="lv2-cmp-v" style="color:var(--${opp})">${vp}</span></div>
+      <span class="lv2-cmp-v" style="grid-area:a;color:var(--${own})">${vo}</span>
+      <span class="lv2-cmp-l">${label}</span>
+      <span class="lv2-cmp-v r" style="grid-area:b;color:var(--${opp})">${vp}</span>
       <div class="lv2-bar">${track}</div>
     </div>`;
   };
 
-  let html = `<div class="lv2-score"><span class="lv2-score-lbl">CHANGE SIDES</span><span class="lv2-score-val">${gw[own]} – ${gw[opp]}</span></div>`;
+  const hs = document.getElementById('live-score');
+  if (hs) hs.textContent = `ゲーム ${gw[own]} – ${gw[opp]}`;
+  let html = '';
 
   html += `<div class="lv2-card">
     <div class="lv2-who"><span style="color:var(--${own})">自分たち</span><span style="color:var(--${opp})">相手</span></div>
@@ -2929,7 +2930,7 @@ function renderLiveAnalysis() {
     ${cmpRow(longOwn, longOpp, '4球目以降のポイント')}
   </div>`;
 
-  // ---- 選手ごとの内訳 ----
+  // ---- 選手ごとの内訳（左=自分たち / 右=相手）----
   const ownBlock = (key, name) => {
     const ps = (M.stats && M.stats[own] && M.stats[own].players && M.stats[own].players[key]) || {};
     const tot = ps.srv1tot || 0, inn = ps.srv1in || 0;
@@ -2937,12 +2938,9 @@ function renderLiveAnalysis() {
     const top = lvTop(lvCount(log.filter(p => p.player === key && p.type === 'point' && p.course), p => p.course), LV_COURSE);
     return `<div class="lv2-pl">
       <div class="lv2-pname">${escapeHtml(name)}</div>
-      <div class="lv2-row">
-        <div class="lv2-box lv2-neutral"><div class="lv2-box-lbl">1stサーブ</div>
-          <div class="lv2-big">${rate === null ? '-' : rate + '<small>%</small>'}</div>
-          <div class="lv2-sub">${tot > 0 ? inn + '/' + tot + '本' : '記録なし'}</div></div>
-        ${lvBox('得点のコース', top, 'lv2-good')}
-      </div>
+      <div class="lv2-box lv2-neutral"><div class="lv2-box-lbl">1stサーブ</div>
+        <div class="lv2-line"><span class="lv2-big">${rate === null ? '-' : rate + '<small>%</small>'}</span><span class="lv2-sub">${tot > 0 ? inn + '/' + tot + '本' : '記録なし'}</span></div></div>
+      ${lvBox('得点のコース', top, 'lv2-good')}
     </div>`;
   };
 
@@ -2952,38 +2950,33 @@ function renderLiveAnalysis() {
     const tenTop = lvTop(lvCount(misses, p => p.tenkai), LV_TENKAI);
     return `<div class="lv2-pl">
       <div class="lv2-pname">${escapeHtml(name)}</div>
-      <div class="lv2-row">
-        ${lvBox('失点が多いショット', shotTop, 'lv2-bad')}
-        ${lvBox('失点が多い展開', tenTop, 'lv2-bad')}
-      </div>
+      ${lvBox('失点が多いショット', shotTop, 'lv2-bad')}
+      ${lvBox('失点が多い展開', tenTop, 'lv2-bad')}
     </div>`;
   };
 
   html += `<div class="lv2-card">
-    <div class="lv2-title">選手ごとの内訳</div>
-    <div class="lv2-grp"><span class="lv2-grp-bar" style="background:var(--${own})"></span>自分たち<small>サーブと、得点のコース</small></div>
-    ${ownBlock(own + '1', o1)}
-    <div class="lv2-hr"></div>
-    ${ownBlock(own + '2', o2)}
-    <div class="lv2-hr"></div>
-    <div class="lv2-grp"><span class="lv2-grp-bar" style="background:var(--${opp})"></span>相手<small>失点（ミス）が多いところ</small></div>
-    ${oppBlock(opp + '1', p1)}
-    <div class="lv2-hr"></div>
-    ${oppBlock(opp + '2', p2)}
-    <div class="lv2-note">方向は打った選手から見た向き。失点＝その選手のミス。展開はラリー3球目以降のみ。同数は並べて表示（3つ以上は「ばらばら」）</div>
+    <div class="lv2-cols">
+      <div class="lv2-col">
+        <div class="lv2-grp"><span class="lv2-grp-bar" style="background:var(--${own})"></span>自分たち</div>
+        ${ownBlock(own + '1', o1)}
+        ${ownBlock(own + '2', o2)}
+      </div>
+      <div class="lv2-col">
+        <div class="lv2-grp"><span class="lv2-grp-bar" style="background:var(--${opp})"></span>相手のミス</div>
+        ${oppBlock(opp + '1', p1)}
+        ${oppBlock(opp + '2', p2)}
+      </div>
+    </div>
   </div>`;
 
   // ---- 自分たちのミスの内訳（一番下）----
   const mc = lvCount(log.filter(p => p.type === 'miss' && sideOf(p) === own), p => p.miss);
   const mrows = [['N','ネット','#b4372a'], ['SO','サイドアウト','#c97a00'], ['BO','バックアウト','#2f6db5'], ['T','チップ','#6b665e'], ['DF','ダブルフォルト','#6b665e']]
     .filter(r => ['N','SO','BO'].includes(r[0]) || (mc[r[0]] || 0) > 0);
-  const mmax = Math.max(1, ...mrows.map(r => mc[r[0]] || 0));
-  html += `<div class="lv2-card">
+  html += `<div class="lv2-card" style="margin-bottom:0">
     <div class="lv2-title">自分たちのミスの内訳（${missOwn}本）</div>
-    ${mrows.map(r => {
-      const v = mc[r[0]] || 0;
-      return `<div class="lv2-mrow"><span class="lv2-sw" style="background:${r[2]}"></span><span class="lv2-mname">${r[1]}</span><div class="lv2-mtrack"><div style="width:${Math.round(v / mmax * 100)}%;background:${r[2]}"></div></div><span class="lv2-mval">${v}</span></div>`;
-    }).join('')}
+    <div class="lv2-chips">${mrows.map(r => `<div class="lv2-chip" style="border-top-color:${r[2]}"><b>${mc[r[0]] || 0}</b><span>${r[1]}</span></div>`).join('')}</div>
   </div>`;
 
   body.innerHTML = html;
