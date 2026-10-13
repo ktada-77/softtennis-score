@@ -622,23 +622,23 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .lv2-score{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#fff;border-radius:10px;padding:6px 14px;margin-bottom:8px}
 .lv2-score-lbl{font-family:var(--font-head);font-size:12px;letter-spacing:.12em;opacity:.75}
 .lv2-score-val{font-family:var(--font-num);font-size:22px;font-weight:800;line-height:1}
-.lv2-card{background:var(--surface);border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;flex-direction:column;gap:6px}
+.lv2-card{background:var(--surface);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px}
 .lv2-who{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
-.lv2-cmp{display:grid;grid-template-columns:30px 1fr 30px;grid-template-areas:"a l b" "a bar b";align-items:center;column-gap:8px;row-gap:2px}
-.lv2-cmp-v{font-family:var(--font-num);font-size:20px;font-weight:800;line-height:1}
+.lv2-cmp{display:grid;grid-template-columns:34px 1fr 34px;grid-template-areas:"a l b" "a bar b";align-items:center;column-gap:8px;row-gap:2px}
+.lv2-cmp-v{font-family:var(--font-num);font-size:24px;font-weight:800;line-height:1}
 .lv2-cmp-v.r{text-align:right}
-.lv2-cmp-l{grid-area:l;font-size:11px;color:var(--muted);text-align:center;line-height:1.1}
-.lv2-bar{grid-area:bar;display:flex;gap:2px;height:8px}
+.lv2-cmp-l{grid-area:l;font-size:12px;color:var(--muted);text-align:center;line-height:1.1}
+.lv2-bar{grid-area:bar;display:flex;gap:2px;height:10px}
 .lv2-bar-seg{border-radius:4px}
 .lv2-title{font-size:13px;font-weight:700}
 .lv2-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lv2-col{display:flex;flex-direction:column;gap:5px;min-width:0}
-.lv2-grp{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}
+.lv2-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.lv2-grp{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
 .lv2-grp-bar{width:4px;height:14px;border-radius:2px;display:inline-block}
-.lv2-pl{display:flex;flex-direction:column;gap:3px;min-width:0}
-.lv2-pname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lv2-box{border-radius:8px;padding:4px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
-.lv2-box-lbl{font-size:10.5px;font-weight:700}
+.lv2-pl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lv2-pname{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv2-box{border-radius:10px;padding:5px 9px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.lv2-box-lbl{font-size:11px;font-weight:700}
 .lv2-neutral{background:var(--s2)}
 .lv2-neutral .lv2-box-lbl{color:var(--muted)}
 .lv2-good{background:#e8f5e9}
@@ -646,11 +646,11 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .lv2-bad{background:#fdecea}
 .lv2-bad .lv2-box-lbl{color:#8f2a20}
 .lv2-line{display:flex;align-items:baseline;justify-content:space-between;gap:4px}
-.lv2-main{font-size:13px;font-weight:700;line-height:1.25;min-width:0}
+.lv2-main{font-size:14px;font-weight:700;line-height:1.25;min-width:0}
 .lv2-none{color:var(--muted);font-weight:400}
-.lv2-n{font-family:var(--font-num);font-size:16px;font-weight:800;line-height:1;white-space:nowrap}
+.lv2-n{font-family:var(--font-num);font-size:18px;font-weight:800;line-height:1;white-space:nowrap}
 .lv2-n small,.lv2-big small{font-size:11px;font-weight:700}
-.lv2-big{font-family:var(--font-num);font-size:20px;font-weight:800;line-height:1.1}
+.lv2-big{font-family:var(--font-num);font-size:24px;font-weight:800;line-height:1.1}
 .lv2-sub{font-size:11px;color:var(--muted)}
 .lv2-note{font-size:10.5px;line-height:1.4;color:var(--muted)}
 .lv2-chips{display:flex;gap:6px}
@@ -1055,6 +1055,17 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
   </div>
 </div>
 
+<!-- 選手名簿の整理 -->
+<div class="live-modal-bg" id="roster-bg" onclick="if(event.target===this)closeRosterEdit()">
+  <div class="live-modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="live-head">
+      <h3>👥 選手名簿の整理</h3>
+      <button class="live-close" onclick="closeRosterEdit()">閉じる</button>
+    </div>
+    <div class="live-body" id="roster-body" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- 選手名編集モーダル -->
 <div class="live-modal-bg" id="edit-players-bg" onclick="closeEditPlayers(event)">
   <div class="live-modal" onclick="event.stopPropagation()" style="max-width:440px">
@@ -1409,11 +1420,143 @@ function showPage(p, el) {
   if (p === 'opponent') loadOpponentList();
 }
 
+
+// ============================================================
+// 選手名簿（プルダウン用）。過去の試合の自チーム選手名＋追加分−非表示分
+// 試合データは一切書き換えない。保存先: roster/added, roster/hidden
+// ============================================================
+let _roster = { names: [], added: [], hidden: [], loaded: false };
+
+async function loadRoster() {
+  let added = [], hidden = [];
+  try {
+    const r = await xhrRequest('GET', 'roster');
+    if (r) { added = Array.isArray(r.added) ? r.added.filter(Boolean) : Object.values(r.added || {}); hidden = Array.isArray(r.hidden) ? r.hidden.filter(Boolean) : Object.values(r.hidden || {}); }
+  } catch (e) { console.warn('roster load', e); }
+  const hist = await getAllEventsHistory();
+  const cnt = {};
+  Object.values(hist).forEach(m => {
+    if (!m || !m.teams) return;
+    ['a', 'b'].forEach(t => {
+      const tm = m.teams[t];
+      if (!tm || tm.isOwn === false || !tm.players) return;
+      tm.players.split(' / ').forEach(n => {
+        n = (n || '').trim();
+        if (n && !/^(後衛|前衛)[AB]$/.test(n) && n !== '（削除済み）') cnt[n] = (cnt[n] || 0) + 1;
+      });
+    });
+  });
+  added.forEach(n => { if (!(n in cnt)) cnt[n] = 0; });
+  _roster.added = added; _roster.hidden = hidden;
+  _roster.counts = cnt;
+  _roster.names = Object.keys(cnt).filter(n => !hidden.includes(n)).sort((a, b) => a.localeCompare(b, 'ja'));
+  _roster.loaded = true;
+}
+
+async function saveRoster() {
+  try {
+    await xhrRequest('PUT', 'roster', { added: _roster.added.length ? _roster.added : null, hidden: _roster.hidden.length ? _roster.hidden : null });
+  } catch (e) { alert('名簿の保存に失敗しました: ' + (e.message || '')); }
+}
+
+const NAME_PICK_IDS = { a: ['s-a1', 's-a2'], b: ['s-b1', 's-b2'] };
+
+async function refreshNamePickers() {
+  if (!_roster.loaded) await loadRoster();
+  ['a', 'b'].forEach(t => {
+    const own = t === 'a' ? cfg.isOwnA : cfg.isOwnB;
+    NAME_PICK_IDS[t].forEach(id => {
+      const inp = document.getElementById(id);
+      if (!inp) return;
+      let sel = document.getElementById('pick-' + id);
+      if (!own) {           // 相手は今までどおり手入力
+        if (sel) sel.style.display = 'none';
+        inp.style.display = '';
+        return;
+      }
+      if (!sel) {
+        sel = document.createElement('select');
+        sel.id = 'pick-' + id;
+        sel.style.cssText = 'width:100%;font-family:var(--font-main);font-size:14px;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;color:var(--ink)';
+        sel.onchange = () => onNamePick(id);
+        inp.insertAdjacentElement('afterend', sel);
+      }
+      const cur = inp.value.trim();
+      const names = _roster.names.slice();
+      if (cur && !names.includes(cur)) names.unshift(cur);
+      sel.innerHTML = `<option value="">選手を選ぶ</option>` +
+        names.map(n => `<option value="${escapeHtml(n)}"${n === cur ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('') +
+        `<option value="__new">＋新しい選手</option><option value="__edit">✏ 名簿の整理</option>`;
+      sel.style.display = '';
+      inp.style.display = 'none';
+    });
+  });
+}
+
+async function onNamePick(id) {
+  const sel = document.getElementById('pick-' + id);
+  const inp = document.getElementById(id);
+  let v = sel.value;
+  if (v === '__new') {
+    const n = (prompt('新しい選手の名前') || '').trim();
+    if (!n) { refreshNamePickers(); return; }
+    if (!_roster.names.includes(n)) {
+      _roster.hidden = _roster.hidden.filter(x => x !== n);
+      if (!_roster.added.includes(n)) _roster.added.push(n);
+      _roster.names.push(n);
+      _roster.names.sort((a, b) => a.localeCompare(b, 'ja'));
+      saveRoster();
+    }
+    v = n;
+  } else if (v === '__edit') {
+    refreshNamePickers();
+    openRosterEdit();
+    return;
+  }
+  inp.value = v;
+  if (typeof updateResumeServerLabels === 'function') updateResumeServerLabels();
+  refreshNamePickers();
+}
+
+function openRosterEdit() {
+  document.getElementById('roster-bg').classList.add('show');
+  renderRosterEdit();
+}
+function closeRosterEdit() {
+  document.getElementById('roster-bg').classList.remove('show');
+}
+function renderRosterEdit() {
+  const body = document.getElementById('roster-body');
+  const hid = _roster.hidden;
+  const row = (n, hidden) => `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);background:#fff">
+    <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;${hidden ? 'color:var(--muted);text-decoration:line-through' : ''}">${escapeHtml(n)}</div>
+    <div style="font-size:10px;color:var(--muted)">${(_roster.counts[n] || 0)}試合</div></div>
+    <button onclick="${hidden ? 'rosterRestore' : 'rosterHide'}(${JSON.stringify(n).replace(/"/g, '&quot;')})" style="background:transparent;border:1px solid var(--border);color:${hidden ? 'var(--green)' : 'var(--b)'};padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer">${hidden ? '戻す' : '🗑 消す'}</button></div>`;
+  body.innerHTML = `<div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px">プルダウンに出す名前を整理します。消しても過去の試合データ・集計は変わりません（名簿から隠すだけ）。</div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${_roster.names.map(n => row(n, false)).join('') || '<div style="padding:14px;color:var(--muted);font-size:13px">名前がありません</div>'}</div>
+    ${hid.length ? `<div style="font-size:12px;font-weight:700;margin:14px 0 6px">消した名前</div><div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${hid.map(n => row(n, true)).join('')}</div>` : ''}`;
+}
+function rosterRebuild() {
+  const cnt = _roster.counts;
+  _roster.added.forEach(n => { if (!(n in cnt)) cnt[n] = 0; });
+  _roster.names = Object.keys(cnt).filter(n => !_roster.hidden.includes(n)).sort((a, b) => a.localeCompare(b, 'ja'));
+}
+async function rosterHide(n) {
+  if (!_roster.hidden.includes(n)) _roster.hidden.push(n);
+  _roster.added = _roster.added.filter(x => x !== n);
+  rosterRebuild(); renderRosterEdit(); await saveRoster(); refreshNamePickers();
+}
+async function rosterRestore(n) {
+  _roster.hidden = _roster.hidden.filter(x => x !== n);
+  rosterRebuild(); renderRosterEdit(); await saveRoster(); refreshNamePickers();
+}
+
 function goStep(s) {
   ['court','setup','score'].forEach(x => {
     document.getElementById('step-' + x).style.display = x === s ? '' : 'none';
   });
   if (s === 'court') loadCourts();
+  if (s === 'setup') refreshNamePickers();
 }
 
 // ============================================================
@@ -1499,6 +1642,7 @@ function setTeamType(team, isOwn, btn) {
   else cfg.isOwnB = isOwn;
   btn.closest('.rbtn-row').querySelectorAll('.rbtn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+  refreshNamePickers();
 }
 
 // 途中開始モード切替
@@ -2968,15 +3112,6 @@ function renderLiveAnalysis() {
         ${oppBlock(opp + '2', p2)}
       </div>
     </div>
-  </div>`;
-
-  // ---- 自分たちのミスの内訳（一番下）----
-  const mc = lvCount(log.filter(p => p.type === 'miss' && sideOf(p) === own), p => p.miss);
-  const mrows = [['N','ネット','#b4372a'], ['SO','サイドアウト','#c97a00'], ['BO','バックアウト','#2f6db5'], ['T','チップ','#6b665e'], ['DF','ダブルフォルト','#6b665e']]
-    .filter(r => ['N','SO','BO'].includes(r[0]) || (mc[r[0]] || 0) > 0);
-  html += `<div class="lv2-card" style="margin-bottom:0">
-    <div class="lv2-title">自分たちのミスの内訳（${missOwn}本）</div>
-    <div class="lv2-chips">${mrows.map(r => `<div class="lv2-chip" style="border-top-color:${r[2]}"><b>${mc[r[0]] || 0}</b><span>${r[1]}</span></div>`).join('')}</div>
   </div>`;
 
   body.innerHTML = html;
