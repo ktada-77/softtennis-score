@@ -1425,20 +1425,22 @@ function showPage(p, el) {
 // 選手名簿（プルダウン用）。過去の試合の自チーム選手名＋追加分−非表示分
 // 試合データは一切書き換えない。保存先: roster/added, roster/hidden
 // ============================================================
-let _roster = { names: [], added: [], hidden: [], loaded: false };
+let _roster = { names: [], added: [], hidden: [], schools: [], sAdded: [], sHidden: [], sCounts: {}, loaded: false };
+const _toArr = v => Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {});
 
 async function loadRoster() {
   let added = [], hidden = [];
   try {
     const r = await xhrRequest('GET', 'roster');
-    if (r) { added = Array.isArray(r.added) ? r.added.filter(Boolean) : Object.values(r.added || {}); hidden = Array.isArray(r.hidden) ? r.hidden.filter(Boolean) : Object.values(r.hidden || {}); }
+    if (r) { added = _toArr(r.added); hidden = _toArr(r.hidden); _roster.sAdded = _toArr(r.schoolsAdded); _roster.sHidden = _toArr(r.schoolsHidden); }
   } catch (e) { console.warn('roster load', e); }
   const hist = await getAllEventsHistory();
-  const cnt = {};
+  const cnt = {}, sc = {};
   Object.values(hist).forEach(m => {
     if (!m || !m.teams) return;
     ['a', 'b'].forEach(t => {
       const tm = m.teams[t];
+      if (tm && tm.isOwn === false && (tm.school || '').trim()) { const k = tm.school.trim(); sc[k] = (sc[k] || 0) + 1; }
       if (!tm || tm.isOwn === false || !tm.players) return;
       tm.players.split(' / ').forEach(n => {
         n = (n || '').trim();
@@ -1449,13 +1451,17 @@ async function loadRoster() {
   added.forEach(n => { if (!(n in cnt)) cnt[n] = 0; });
   _roster.added = added; _roster.hidden = hidden;
   _roster.counts = cnt;
+  _roster.sAdded.forEach(n => { if (!(n in sc)) sc[n] = 0; });
+  _roster.sCounts = sc;
   _roster.names = Object.keys(cnt).filter(n => !hidden.includes(n)).sort((a, b) => a.localeCompare(b, 'ja'));
+  rosterRebuild();
   _roster.loaded = true;
 }
 
 async function saveRoster() {
   try {
-    await xhrRequest('PUT', 'roster', { added: _roster.added.length ? _roster.added : null, hidden: _roster.hidden.length ? _roster.hidden : null });
+    const nz = a => a.length ? a : null;
+    await xhrRequest('PUT', 'roster', { added: nz(_roster.added), hidden: nz(_roster.hidden), schoolsAdded: nz(_roster.sAdded), schoolsHidden: nz(_roster.sHidden) });
   } catch (e) { alert('名簿の保存に失敗しました: ' + (e.message || '')); }
 }
 
@@ -1491,6 +1497,45 @@ async function refreshNamePickers() {
       inp.style.display = 'none';
     });
   });
+  // 対戦校（相手チームBの学校名）
+  const si = document.getElementById('s-b-school');
+  if (si) {
+    let ss = document.getElementById('pick-s-b-school');
+    if (!ss) {
+      ss = document.createElement('select');
+      ss.id = 'pick-s-b-school';
+      ss.style.cssText = 'width:100%;font-family:var(--font-main);font-size:14px;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;color:var(--ink)';
+      ss.onchange = onSchoolPick;
+      si.insertAdjacentElement('afterend', ss);
+    }
+    const cur = si.value.trim();
+    const list = _roster.schools.slice();
+    if (cur && !list.includes(cur)) list.unshift(cur);
+    ss.innerHTML = `<option value="">学校を選ぶ（任意）</option>` +
+      list.map(n => `<option value="${escapeHtml(n)}"${n === cur ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('') +
+      `<option value="__new">＋新しい学校</option><option value="__edit">✏ 名簿の整理</option>`;
+    si.style.display = 'none';
+  }
+}
+
+function onSchoolPick() {
+  const ss = document.getElementById('pick-s-b-school');
+  const si = document.getElementById('s-b-school');
+  let v = ss.value;
+  if (v === '__new') {
+    const n = (prompt('新しい学校名（例: ○○高校）') || '').trim();
+    if (!n) { refreshNamePickers(); return; }
+    _roster.sHidden = _roster.sHidden.filter(x => x !== n);
+    if (!_roster.sAdded.includes(n)) _roster.sAdded.push(n);
+    rosterRebuild(); saveRoster();
+    v = n;
+  } else if (v === '__edit') {
+    refreshNamePickers();
+    openRosterEdit();
+    return;
+  }
+  si.value = v;
+  refreshNamePickers();
 }
 
 async function onNamePick(id) {
@@ -1532,18 +1577,37 @@ function renderRosterEdit() {
     <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;${hidden ? 'color:var(--muted);text-decoration:line-through' : ''}">${escapeHtml(n)}</div>
     <div style="font-size:10px;color:var(--muted)">${(_roster.counts[n] || 0)}試合</div></div>
     <button onclick="${hidden ? 'rosterRestore' : 'rosterHide'}(${JSON.stringify(n).replace(/"/g, '&quot;')})" style="background:transparent;border:1px solid var(--border);color:${hidden ? 'var(--green)' : 'var(--b)'};padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer">${hidden ? '戻す' : '🗑 消す'}</button></div>`;
+  const srow = (n, hidden) => `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);background:#fff">
+    <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;${hidden ? 'color:var(--muted);text-decoration:line-through' : ''}">${escapeHtml(n)}</div>
+    <div style="font-size:10px;color:var(--muted)">${(_roster.sCounts[n] || 0)}試合</div></div>
+    <button onclick="${hidden ? 'schoolRestore' : 'schoolHide'}(${JSON.stringify(n).replace(/"/g, '&quot;')})" style="background:transparent;border:1px solid var(--border);color:${hidden ? 'var(--green)' : 'var(--b)'};padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer">${hidden ? '戻す' : '🗑 消す'}</button></div>`;
   body.innerHTML = `<div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px">プルダウンに出す名前を整理します。消しても過去の試合データ・集計は変わりません（名簿から隠すだけ）。</div>
     <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${_roster.names.map(n => row(n, false)).join('') || '<div style="padding:14px;color:var(--muted);font-size:13px">名前がありません</div>'}</div>
-    ${hid.length ? `<div style="font-size:12px;font-weight:700;margin:14px 0 6px">消した名前</div><div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${hid.map(n => row(n, true)).join('')}</div>` : ''}`;
+    ${hid.length ? `<div style="font-size:12px;font-weight:700;margin:14px 0 6px">消した名前</div><div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${hid.map(n => row(n, true)).join('')}</div>` : ''}
+    <div style="font-size:13px;font-weight:700;margin:20px 0 6px">🏫 対戦校</div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${_roster.schools.map(n => srow(n, false)).join('') || '<div style="padding:14px;color:var(--muted);font-size:13px">学校がありません</div>'}</div>
+    ${_roster.sHidden.length ? `<div style="font-size:12px;font-weight:700;margin:14px 0 6px">消した学校</div><div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${_roster.sHidden.map(n => srow(n, true)).join('')}</div>` : ''}`;
 }
 function rosterRebuild() {
   const cnt = _roster.counts;
   _roster.added.forEach(n => { if (!(n in cnt)) cnt[n] = 0; });
   _roster.names = Object.keys(cnt).filter(n => !_roster.hidden.includes(n)).sort((a, b) => a.localeCompare(b, 'ja'));
+  const sc = _roster.sCounts;
+  _roster.sAdded.forEach(n => { if (!(n in sc)) sc[n] = 0; });
+  _roster.schools = Object.keys(sc).filter(n => !_roster.sHidden.includes(n)).sort((a, b) => a.localeCompare(b, 'ja'));
 }
 async function rosterHide(n) {
   if (!_roster.hidden.includes(n)) _roster.hidden.push(n);
   _roster.added = _roster.added.filter(x => x !== n);
+  rosterRebuild(); renderRosterEdit(); await saveRoster(); refreshNamePickers();
+}
+async function schoolHide(n) {
+  if (!_roster.sHidden.includes(n)) _roster.sHidden.push(n);
+  _roster.sAdded = _roster.sAdded.filter(x => x !== n);
+  rosterRebuild(); renderRosterEdit(); await saveRoster(); refreshNamePickers();
+}
+async function schoolRestore(n) {
+  _roster.sHidden = _roster.sHidden.filter(x => x !== n);
   rosterRebuild(); renderRosterEdit(); await saveRoster(); refreshNamePickers();
 }
 async function rosterRestore(n) {
