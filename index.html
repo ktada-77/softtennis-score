@@ -614,6 +614,87 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 .live-close{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:var(--font-num)}
 .live-body{padding:12px}
 
+/* 試合中分析（チェンジサイズ用・B案ベース） */
+.live-modal.lv2{display:flex;flex-direction:column;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
+.live-modal.lv2 .live-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;background:var(--s2)}
+.live-foot{padding:10px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.live-foot-btn{width:100%;min-height:50px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.lv2-score{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#fff;border-radius:12px;padding:10px 16px;margin-bottom:10px}
+.lv2-score-lbl{font-family:var(--font-head);font-size:13px;letter-spacing:.12em;opacity:.75}
+.lv2-score-val{font-family:var(--font-num);font-size:28px;font-weight:800;line-height:1}
+.lv2-card{background:var(--surface);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+.lv2-who{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.lv2-cmp{display:flex;flex-direction:column;gap:5px}
+.lv2-cmp-top{display:flex;align-items:baseline;justify-content:space-between}
+.lv2-cmp-v{font-family:var(--font-num);font-size:22px;font-weight:800}
+.lv2-cmp-l{font-size:12px;color:var(--muted)}
+.lv2-bar{display:flex;gap:2px;height:9px}
+.lv2-bar-seg{border-radius:5px}
+.lv2-title{font-size:14px;font-weight:700}
+.lv2-grp{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.lv2-grp small{font-size:11px;font-weight:400;color:var(--muted)}
+.lv2-grp-bar{width:4px;height:16px;border-radius:2px;display:inline-block}
+.lv2-pl{display:flex;flex-direction:column;gap:7px}
+.lv2-pname{font-size:15px;font-weight:700}
+.lv2-row{display:flex;gap:8px}
+.lv2-box{flex:1;min-width:0;border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
+.lv2-box-lbl{font-size:11px;font-weight:700}
+.lv2-neutral{background:var(--s2)}
+.lv2-neutral .lv2-box-lbl{color:var(--muted)}
+.lv2-good{background:#e8f5e9}
+.lv2-good .lv2-box-lbl{color:#1e6b2e}
+.lv2-bad{background:#fdecea}
+.lv2-bad .lv2-box-lbl{color:#8f2a20}
+.lv2-main{font-size:15px;font-weight:700;line-height:1.3}
+.lv2-none{color:var(--muted)}
+.lv2-n{font-family:var(--font-num);font-size:22px;font-weight:800;line-height:1.1}
+.lv2-n small,.lv2-big small{font-size:12px;font-weight:700}
+.lv2-big{font-family:var(--font-num);font-size:26px;font-weight:800;line-height:1.1}
+.lv2-big small{font-size:13px}
+.lv2-sub{font-size:12px;color:var(--muted)}
+.lv2-hr{height:1px;background:var(--border)}
+.lv2-note{font-size:11px;line-height:1.5;color:var(--muted)}
+.lv2-mrow{display:flex;align-items:center;gap:10px}
+.lv2-sw{width:12px;height:12px;border-radius:3px;flex:none}
+.lv2-mname{width:100px;font-size:13px;flex:none}
+.lv2-mtrack{flex:1;height:16px;background:var(--s2);border-radius:4px;overflow:hidden}
+.lv2-mtrack div{height:16px;border-radius:4px}
+.lv2-mval{width:18px;text-align:right;font-family:var(--font-num);font-size:15px;font-weight:800}
+
+/* STORY */
+.story-dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px;background:var(--s2)}
+.story-dot{width:7px;height:7px;border-radius:4px;background:var(--border);cursor:pointer;transition:all .2s}
+.story-dot.on{width:22px;background:var(--ink)}
+.story-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px 12px 14px;background:var(--s2);flex:1;-webkit-overflow-scrolling:touch}
+.story-card{flex:none;width:calc(100% - 4px);scroll-snap-align:center;box-sizing:border-box;border-radius:18px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:430px}
+.story-card.dark{background:var(--ink);color:#fff}
+.story-card.plain{background:var(--surface);color:var(--ink)}
+.story-tag{font-family:var(--font-head);font-size:12px;letter-spacing:.14em;opacity:.65}
+.story-mid{display:flex;flex-direction:column;gap:12px}
+.story-big{font-family:var(--font-num);font-size:60px;font-weight:800;line-height:1}
+.story-dash{opacity:.5;font-weight:600}
+.story-title{font-size:20px;font-weight:700;line-height:1.5}
+.story-sub{font-size:15px;line-height:1.6;opacity:.85}
+.story-extra{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.story-wl{flex:1;display:flex;gap:2px;height:16px}
+.story-wl div{border-radius:4px}
+.story-wl-n{width:44px;text-align:right;font-family:var(--font-num);font-size:13px;font-weight:700}
+.story-todo{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.5;background:var(--s2);border-radius:10px;padding:10px 12px}
+.story-todo-n{flex:none;width:24px;height:24px;border-radius:12px;background:var(--ink);color:#fff;font-family:var(--font-num);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.story-next{font-size:12px;opacity:.55;text-align:right;min-height:14px}
+
+/* TREND */
+.tr-row{padding:10px 2px;border-bottom:1px solid var(--border)}
+.tr-row:last-of-type{border-bottom:none}
+.tr-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tr-name{font-size:12px;font-weight:700}
+.tr-delta{font-size:11px;font-weight:700}
+.tr-mid{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.tr-val{font-family:var(--font-num);font-size:28px;font-weight:800;line-height:1}
+.tr-val small{font-size:13px;margin-left:2px}
+.tr-note{font-size:10px;color:var(--muted);margin-top:2px}
+.tr-empty{font-size:11px;color:var(--muted);padding:6px 0}
+
 /* 4選手の比較テーブル */
 .live-players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .live-pcard{background:var(--s2);border:1.5px solid var(--border);border-radius:9px;padding:9px 10px}
@@ -955,12 +1036,25 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
 
 <!-- リアルタイム分析モーダル -->
 <div class="live-modal-bg" id="live-modal-bg" onclick="closeLiveAnalysis(event)">
-  <div class="live-modal" onclick="event.stopPropagation()">
+  <div class="live-modal lv2" onclick="event.stopPropagation()">
     <div class="live-head">
       <h3>📊 試合中分析</h3>
       <button class="live-close" onclick="closeLiveAnalysis()">閉じる</button>
     </div>
     <div class="live-body" id="live-body"></div>
+    <div class="live-foot"><button class="live-foot-btn" onclick="closeLiveAnalysis()">閉じて、次のゲームへ</button></div>
+  </div>
+</div>
+
+<!-- STORY（1枚1メッセージ） -->
+<div class="live-modal-bg" id="story-bg" onclick="if(event.target===this)closeStory()">
+  <div class="live-modal lv2" onclick="event.stopPropagation()">
+    <div class="live-head">
+      <h3>📖 STORY</h3>
+      <button class="live-close" onclick="closeStory()">閉じる</button>
+    </div>
+    <div class="story-dots" id="story-dots"></div>
+    <div class="story-track" id="story-track"></div>
   </div>
 </div>
 
@@ -979,6 +1073,19 @@ label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-fam
       <div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 後衛</label><input type="text" id="ep-b1" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:var(--b)">チームB 前衛</label><input type="text" id="ep-b2" style="width:100%;padding:9px;font-size:14px;border:1.5px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <button class="btn green" style="width:100%;padding:11px;font-size:14px;font-weight:700" onclick="saveEditPlayers()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 簡易入力中のサーブ申告モーダル（チェンジサイズ・試合終了時） -->
+<div class="live-modal-bg" id="srv-report-bg" onclick="if(event.target===this)skipSrvReport()">
+  <div class="live-modal" style="max-width:440px">
+    <div class="live-head"><h3>🎾 サーブを教えてください</h3></div>
+    <div class="live-body">
+      <div id="srv-report-lead" style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px"></div>
+      <div id="srv-report-rows"></div>
+      <button class="btn green" style="width:100%;padding:11px;font-size:14px;font-weight:700;margin-top:6px" onclick="submitSrvReport()">記録する</button>
+      <button class="btn" id="srv-report-skip" style="width:100%;padding:10px;font-size:13px;margin-top:8px" onclick="skipSrvReport()">あとで</button>
     </div>
   </div>
 </div>
@@ -1666,7 +1773,7 @@ function renderFlow() {
   if (!M || M.finished) { el.innerHTML = ''; return; }
 
   if (simpleMode) {
-    el.innerHTML = `<div style="padding:10px 0 4px;text-align:center;font-size:12px;color:var(--muted);font-family:var(--font-num);letter-spacing:.1em">簡易入力モード：スコア数字をタップ</div>`;
+    el.innerHTML = `<div style="padding:10px 0 4px;text-align:center;font-size:12px;color:var(--muted);font-family:var(--font-num);letter-spacing:.1em">簡易入力モード：スコア数字をタップ</div>` + srvPendingBanner();
     return;
   }
 
@@ -1681,7 +1788,7 @@ function renderFlow() {
 
   const pName = (p) => p==='a1'?p1A:p==='a2'?p2A:p==='b1'?p1B:p2B;
 
-  let html = '';
+  let html = srvPendingBanner();
   let step = 1;
 
   const currentServerKey = flow.serverKey || getCurrentServer();
@@ -1962,6 +2069,7 @@ function commitFault() {
 function commitPoint(winner, f) {
   if (!M || M.finished) return;
   stk.push(JSON.parse(JSON.stringify(M)));
+  srvBannerAlert = false;
 
   const loser = winner === 'a' ? 'b' : 'a';
   const s = M.stats[winner];
@@ -2049,6 +2157,7 @@ function commitPoint(winner, f) {
 
   M.servePointCount = (M.servePointCount || 0) + 1;
 
+  const gamesBefore = M.gamesWon.a + M.gamesWon.b;
   if (M.isFinal) {
     M.finalPts[winner]++;
     if (M.finalPts[winner] >= 7 && M.finalPts[winner] - M.finalPts[loser] >= 2) winGame(winner);
@@ -2056,6 +2165,10 @@ function commitPoint(winner, f) {
     M.pts[winner]++;
     if (M.pts[winner] >= 4 && M.pts[winner] - M.pts[loser] >= 2) winGame(winner);
   }
+
+  // チェンジサイズ（ゲーム数の合計が奇数になった）で、申告が残っていれば、バナーを目立たせる（入力は止めない）
+  const gamesAfter = M.gamesWon.a + M.gamesWon.b;
+  srvBannerAlert = !M.finished && !simpleMode && gamesAfter > gamesBefore && gamesAfter % 2 === 1 && simplePendingKeys().length > 0;
 
   resetFlow();  // スコア加算後にリセット（次のサーバーを正しく計算するため）
   window.fbSave(currentCourt, M);
@@ -2083,8 +2196,9 @@ async function finishMatch(winner) {
 
   await window.fbSave(currentCourt, M);
 
+  let historyId = null;
   if (navigator.onLine && currentEventId) {
-    const historyId = Date.now(); 
+    historyId = Date.now(); 
     try {
       await xhrRequest('PUT', `events/${currentEventId}/history/${historyId}`, M);
     } catch (e) {
@@ -2093,7 +2207,129 @@ async function finishMatch(winner) {
   }
   const coachTab = document.querySelectorAll('.nav-tab')[1];
   showPage('coach', coachTab);
+
+  // 試合終了時、簡易入力の間のサーブが未申告なら聞く（履歴は先に保存済み。申告があれば上書きする）
+  if (simplePendingKeys().length) {
+    const changed = await promptSimpleServe(true);
+    if (changed) {
+      try {
+        await window.fbSave(currentCourt, M);
+        if (historyId && navigator.onLine && currentEventId) {
+          await xhrRequest('PUT', `events/${currentEventId}/history/${historyId}`, M);
+        }
+      } catch (e) {
+        console.error("サーブ申告の保存に失敗:", e);
+      }
+    }
+  }
 }
+
+// ============================================================
+// 簡易入力中のサーブ申告（生徒の記憶を信頼して、点ごとの記録と同じ集計に合算する）
+//   M.simpleSrv[a1|a2|b1|b2] = 簡易入力の間にそのサーバーが打った点数のうち、まだ申告されていない数
+// ============================================================
+let srvBannerAlert = false;   // チェンジサイズの直後だけバナーを目立たせる
+let srvReportResolve = null;
+let srvReportChanged = false;
+
+function simplePendingKeys() {
+  if (!M || !M.simpleSrv) return [];
+  return ['a1','a2','b1','b2'].filter(k => (M.simpleSrv[k] || 0) > 0 && M.teams[k[0]].isOwn !== false);
+}
+
+function srvPlayerName(k) {
+  const ps = (M.teams[k[0]].players || ' / ').split(' / ');
+  return ps[k[1] === '1' ? 0 : 1] || (k[1] === '1' ? '後衛' : '前衛');
+}
+
+// 点の入力画面の上に出す、小さな申告バナー（入力は止めない。好きなタイミングで「入力する」を押す）
+function srvPendingBanner() {
+  const keys = simplePendingKeys();
+  if (!keys.length) return '';
+  const who = keys.map(k => `${srvPlayerName(k)}${M.simpleSrv[k]}本`).join('・');
+  const hot = srvBannerAlert;
+  const box = hot ? 'background:rgba(192,120,0,.12);border:1.5px solid var(--amber);' : 'background:var(--s2);border:1px solid var(--border);';
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.4;${box}">
+    <div style="flex:1">🎾 ${hot ? '<strong>チェンジサイズ：</strong>' : ''}簡易入力の間のサーブを申告できます（${who}）</div>
+    <button class="btn" style="padding:6px 10px;font-size:12px;white-space:nowrap" onclick="openSrvReport()">入力する</button>
+  </div>`;
+}
+function openSrvReport() { srvBannerAlert = false; promptSimpleServe(false); }
+
+function promptSimpleServe(isEnd) {
+  return new Promise(resolve => {
+    const keys = simplePendingKeys();
+    if (!keys.length) { resolve(false); return; }
+    srvReportResolve = resolve;
+    srvReportChanged = false;
+    document.getElementById('srv-report-lead').textContent = isEnd
+      ? '試合おつかれさまでした。簡易入力の間のサーブを、覚えている範囲で教えてください。'
+      : 'チェンジサイズです。簡易入力で記録できていないサーブを、覚えている範囲で教えてください。';
+    document.getElementById('srv-report-skip').textContent = isEnd ? '入れない' : 'あとで';
+    document.getElementById('srv-report-rows').innerHTML = keys.map(k => {
+      const n = M.simpleSrv[k];
+      const totOpts = Array.from({length: n}, (_, i) => i + 1).map(v => `<option value="${v}"${v === n ? ' selected' : ''}>${v}</option>`).join('');
+      return `<div style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:10px;background:var(--s2)">
+        <div style="font-size:14px;font-weight:700;color:${k[0]==='a'?'var(--a)':'var(--b)'}">${srvPlayerName(k)}
+          <span style="font-size:11px;font-weight:400;color:var(--muted)">簡易入力の間のサーブ ${n}本</span></div>
+        <div style="display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap;font-size:12px">
+          <label>覚えている本数 <select id="sr-tot-${k}" onchange="srvTotChanged('${k}')" style="padding:6px;font-size:14px">${totOpts}</select></label>
+          <label>うち1stが入った本数 <select id="sr-in-${k}" style="padding:6px;font-size:14px"></select></label>
+        </div>
+      </div>`;
+    }).join('');
+    keys.forEach(k => srvTotChanged(k, true));
+    document.getElementById('srv-report-bg').classList.add('show');
+  });
+}
+
+// 「覚えている本数」に合わせて、「1stが入った本数」の選択肢を作り直す（未選択のままなら、その人は申告しない扱い）
+function srvTotChanged(k, first) {
+  const tot = parseInt(document.getElementById('sr-tot-' + k).value, 10) || 0;
+  const sel = document.getElementById('sr-in-' + k);
+  const prev = first ? '' : sel.value;
+  let h = '<option value="">選ぶ</option>';
+  for (let v = 0; v <= tot; v++) h += `<option value="${v}">${v}</option>`;
+  sel.innerHTML = h;
+  if (prev !== '' && parseInt(prev, 10) <= tot) sel.value = prev;
+}
+
+function applySimpleServeReport(k, tot, inn) {
+  const team = k[0];
+  const st = M.stats[team];
+  if (!st.players) st.players = {};
+  if (!st.players[k]) st.players[k] = { pts:0, miss:0, srv1in:0, srv1tot:0, srv2in:0, srv2tot:0, df:0 };
+  st.players[k].srv1tot = (st.players[k].srv1tot || 0) + tot;
+  st.players[k].srv1in  = (st.players[k].srv1in  || 0) + inn;
+  st.srv1tot = (st.srv1tot || 0) + tot;
+  st.srv1in  = (st.srv1in  || 0) + inn;
+  M.srvReported = M.srvReported || { tot:0, in:0 };
+  M.srvReported.tot += tot;
+  M.srvReported.in  += inn;
+  M.simpleSrv[k] = 0;   // 申告した分は完了（覚えていなかった残りは、もう数え直せない）
+}
+
+function closeSrvReport() {
+  document.getElementById('srv-report-bg').classList.remove('show');
+  const r = srvReportResolve; srvReportResolve = null;
+  if (r) r(srvReportChanged);
+}
+
+function submitSrvReport() {
+  if (!M) { closeSrvReport(); return; }
+  simplePendingKeys().forEach(k => {
+    const totEl = document.getElementById('sr-tot-' + k), inEl = document.getElementById('sr-in-' + k);
+    if (!totEl || !inEl || inEl.value === '') return;       // 未選択の人は、あとで聞く
+    const tot = Math.min(parseInt(totEl.value, 10) || 0, M.simpleSrv[k]);
+    const inn = Math.min(parseInt(inEl.value, 10) || 0, tot);
+    if (tot > 0) { applySimpleServeReport(k, tot, inn); srvReportChanged = true; }
+  });
+  if (srvReportChanged) { window.fbSave(currentCourt, M); renderScore(); }
+  closeSrvReport();
+  renderFlow();   // バナーを更新
+}
+
+function skipSrvReport() { closeSrvReport(); renderFlow(); }
 
 function undoPt() {
   if (!stk.length) return;
@@ -2140,6 +2376,15 @@ function updateModeUI() {
 function simpleTap(winner) {
   if (!M || M.finished || !simpleMode) return;
   stk.push(JSON.parse(JSON.stringify(M)));
+  srvBannerAlert = false;
+
+  // 簡易入力の点は、誰のサーブだったかだけ数えておく（後でチェンジサイズ/試合終了時に本人へ聞く）
+  const simpleServer = getCurrentServer();
+  if (simpleServer) {
+    M.simpleSrv = M.simpleSrv || {};
+    M.simpleSrv[simpleServer] = (M.simpleSrv[simpleServer] || 0) + 1;
+  }
+  M.simpleCount = (M.simpleCount || 0) + 1;
 
   M.servePointCount = (M.servePointCount || 0) + 1;
 
@@ -2154,14 +2399,18 @@ function simpleTap(winner) {
   }
   window.fbSave(currentCourt, M);
   renderScore();
+  renderFlow();   // 申告バナーの本数を更新
 }
 
 function toggleServe() {
   if (!M) return;
   stk.push(JSON.parse(JSON.stringify(M)));
   M.serving = M.serving === 'a' ? 'b' : 'a';
+  // サーブ権を変えたら、入力中のサーバーも最新に直す（直さないと次の1本が切替前のサーバーの記録になる）
+  if (flow) flow.serverKey = getCurrentServer();
   window.fbSave(currentCourt, M);
   renderScore();
+  renderFlow();
 }
 
 function endEarly() {
@@ -2588,8 +2837,45 @@ function openLiveAnalysis() {
 }
 
 function closeLiveAnalysis(e) {
-  if (e && e.target.id !== 'live-modal-bg' && !e.target.classList.contains('live-close')) return;
+  if (e && e.target.id !== 'live-modal-bg' && !e.target.classList.contains('live-close') && !e.target.classList.contains('live-foot-btn')) return;
   document.getElementById('live-modal-bg').classList.remove('show');
+}
+
+// ---- 試合中分析（チェンジサイズ用）共通ヘルパー ----
+const LV_COURSE = {C:'クロス', Co:'逆クロス', M:'ミドル', RST:'右ST', LST:'左ST'};
+const LV_TENKAI = {C:'クロス', Co:'逆クロス', RST:'右ST', LST:'左ST'};
+const LV_SHOT = {St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち', Lb:'ロブ', Fo:'フォロー', NT:'ノータッチ', Re:'レシーブ', DF:'ダブルフォルト'};
+
+// 自チーム側('a'|'b')。どちらか一方だけが自チームならそちら。判別できなければ 'a'
+function getOwnSide(m) {
+  const a = m && m.teams && m.teams.a && m.teams.a.isOwn !== false;
+  const b = m && m.teams && m.teams.b && m.teams.b.isOwn !== false;
+  if (b && !a) return 'b';
+  return 'a';
+}
+
+// 件数の集計: list の各要素から keyFn でキーを取り出して数える
+function lvCount(list, keyFn) {
+  const c = {};
+  list.forEach(p => { const k = keyFn(p); if (k) c[k] = (c[k] || 0) + 1; });
+  return c;
+}
+
+// いちばん多いもの。同数が2つなら並べる。3つ以上が同数なら「ばらばら」。無ければ null
+function lvTop(counts, lbl) {
+  const ents = Object.entries(counts).filter(([k, v]) => v > 0 && lbl[k]);
+  if (!ents.length) return null;
+  const max = Math.max(...ents.map(e => e[1]));
+  const tops = ents.filter(e => e[1] === max).map(e => lbl[e[0]]);
+  if (tops.length >= 3) return { text: 'ばらばら', n: max, each: true };
+  return { text: tops.join('・'), n: max, each: tops.length > 1 };
+}
+
+function lvBox(label, top, cls) {
+  const body = top
+    ? `<div class="lv2-main">${top.text}</div><div class="lv2-n">${top.each ? '各' : ''}${top.n}<small>本</small></div>`
+    : `<div class="lv2-main lv2-none">なし</div>`;
+  return `<div class="lv2-box ${cls}"><div class="lv2-box-lbl">${label}</div>${body}</div>`;
 }
 
 function renderLiveAnalysis() {
@@ -2597,204 +2883,110 @@ function renderLiveAnalysis() {
   if (!M) { body.innerHTML = ''; return; }
 
   const log = M.pointLog || [];
-  const [a1n, a2n] = (M.teams.a.players || '後衛A / 前衛A').split(' / ');
-  const [b1n, b2n] = (M.teams.b.players || '後衛B / 前衛B').split(' / ');
-  const pName = {a1:a1n, a2:a2n, b1:b1n, b2:b2n};
+  const own = getOwnSide(M);
+  const opp = own === 'a' ? 'b' : 'a';
+  const pn = (side) => {
+    const [x, y] = (M.teams[side].players || '').split(' / ');
+    return [x || (side === 'a' ? '後衛A' : '後衛B'), y || (side === 'a' ? '前衛A' : '前衛B')];
+  };
+  const [o1, o2] = pn(own);
+  const [p1, p2] = pn(opp);
 
   if (log.length === 0) {
     body.innerHTML = `<div class="live-empty">まだポイントが記録されていません<br><small>簡易入力モードのポイントは分析に含まれません</small></div>`;
     return;
   }
 
-  let html = '';
+  const gw = M.gamesWon || {a:0, b:0};
+  const cp = M.isFinal ? M.finalPts : M.pts;
+  const sideOf = (p) => (p.player || '').charAt(0);
 
-  // === ① 選手別サマリー ===
-  html += renderLivePlayers(log, pName);
+  // ---- 比較（自分たち vs 相手）----
+  const ptsOwn = (M.stats && M.stats[own] && M.stats[own].pts) || 0;
+  const ptsOpp = (M.stats && M.stats[opp] && M.stats[opp].pts) || 0;
+  const missOwn = log.filter(p => p.type === 'miss' && sideOf(p) === own).length;
+  const missOpp = log.filter(p => p.type === 'miss' && sideOf(p) === opp).length;
+  const longOwn = log.filter(p => p.winner === own && ['4','5','6+'].includes(String(p.rally))).length;
+  const longOpp = log.filter(p => p.winner === opp && ['4','5','6+'].includes(String(p.rally))).length;
 
-  // === ② ミス内訳 ===
-  html += renderLiveMiss(log, pName);
+  const cmpRow = (vo, vp, label) => {
+    const sum = vo + vp;
+    const track = sum === 0
+      ? `<div class="lv2-bar-seg" style="flex:1;background:var(--border)"></div>`
+      : `<div class="lv2-bar-seg" style="flex:${vo} 1 0;background:var(--${own})"></div><div class="lv2-bar-seg" style="flex:${vp} 1 0;background:var(--${opp})"></div>`;
+    return `<div class="lv2-cmp">
+      <div class="lv2-cmp-top"><span class="lv2-cmp-v" style="color:var(--${own})">${vo}</span><span class="lv2-cmp-l">${label}</span><span class="lv2-cmp-v" style="color:var(--${opp})">${vp}</span></div>
+      <div class="lv2-bar">${track}</div>
+    </div>`;
+  };
 
-  // === ③ 相手チームの打ったコース傾向 ===
-  html += renderLiveCourse(log, M.teams);
+  let html = `<div class="lv2-score"><span class="lv2-score-lbl">CHANGE SIDES</span><span class="lv2-score-val">${gw[own]} – ${gw[opp]}</span></div>`;
 
-  // === ④ ラリー本数分布 ===
-  html += renderLiveRally(log);
+  html += `<div class="lv2-card">
+    <div class="lv2-who"><span style="color:var(--${own})">自分たち</span><span style="color:var(--${opp})">相手</span></div>
+    ${cmpRow(ptsOwn, ptsOpp, 'ポイント')}
+    ${cmpRow(missOwn, missOpp, 'ミス（少ないほうが良い）')}
+    ${cmpRow(longOwn, longOpp, '4球目以降のポイント')}
+  </div>`;
+
+  // ---- 選手ごとの内訳 ----
+  const ownBlock = (key, name) => {
+    const ps = (M.stats && M.stats[own] && M.stats[own].players && M.stats[own].players[key]) || {};
+    const tot = ps.srv1tot || 0, inn = ps.srv1in || 0;
+    const rate = tot > 0 ? Math.round(inn / tot * 100) : null;
+    const top = lvTop(lvCount(log.filter(p => p.player === key && p.type === 'point' && p.course), p => p.course), LV_COURSE);
+    return `<div class="lv2-pl">
+      <div class="lv2-pname">${escapeHtml(name)}</div>
+      <div class="lv2-row">
+        <div class="lv2-box lv2-neutral"><div class="lv2-box-lbl">1stサーブ</div>
+          <div class="lv2-big">${rate === null ? '-' : rate + '<small>%</small>'}</div>
+          <div class="lv2-sub">${tot > 0 ? inn + '/' + tot + '本' : '記録なし'}</div></div>
+        ${lvBox('得点のコース', top, 'lv2-good')}
+      </div>
+    </div>`;
+  };
+
+  const oppBlock = (key, name) => {
+    const misses = log.filter(p => p.player === key && p.type === 'miss');
+    const shotTop = lvTop(lvCount(misses, p => p.miss === 'DF' ? 'DF' : (p.shotType || (p.base === 'Re' ? 'Re' : null))), LV_SHOT);
+    const tenTop = lvTop(lvCount(misses, p => p.tenkai), LV_TENKAI);
+    return `<div class="lv2-pl">
+      <div class="lv2-pname">${escapeHtml(name)}</div>
+      <div class="lv2-row">
+        ${lvBox('失点が多いショット', shotTop, 'lv2-bad')}
+        ${lvBox('失点が多い展開', tenTop, 'lv2-bad')}
+      </div>
+    </div>`;
+  };
+
+  html += `<div class="lv2-card">
+    <div class="lv2-title">選手ごとの内訳</div>
+    <div class="lv2-grp"><span class="lv2-grp-bar" style="background:var(--${own})"></span>自分たち<small>サーブと、得点のコース</small></div>
+    ${ownBlock(own + '1', o1)}
+    <div class="lv2-hr"></div>
+    ${ownBlock(own + '2', o2)}
+    <div class="lv2-hr"></div>
+    <div class="lv2-grp"><span class="lv2-grp-bar" style="background:var(--${opp})"></span>相手<small>失点（ミス）が多いところ</small></div>
+    ${oppBlock(opp + '1', p1)}
+    <div class="lv2-hr"></div>
+    ${oppBlock(opp + '2', p2)}
+    <div class="lv2-note">方向は打った選手から見た向き。失点＝その選手のミス。展開はラリー3球目以降のみ。同数は並べて表示（3つ以上は「ばらばら」）</div>
+  </div>`;
+
+  // ---- 自分たちのミスの内訳（一番下）----
+  const mc = lvCount(log.filter(p => p.type === 'miss' && sideOf(p) === own), p => p.miss);
+  const mrows = [['N','ネット','#b4372a'], ['SO','サイドアウト','#c97a00'], ['BO','バックアウト','#2f6db5'], ['T','チップ','#6b665e'], ['DF','ダブルフォルト','#6b665e']]
+    .filter(r => ['N','SO','BO'].includes(r[0]) || (mc[r[0]] || 0) > 0);
+  const mmax = Math.max(1, ...mrows.map(r => mc[r[0]] || 0));
+  html += `<div class="lv2-card">
+    <div class="lv2-title">自分たちのミスの内訳（${missOwn}本）</div>
+    ${mrows.map(r => {
+      const v = mc[r[0]] || 0;
+      return `<div class="lv2-mrow"><span class="lv2-sw" style="background:${r[2]}"></span><span class="lv2-mname">${r[1]}</span><div class="lv2-mtrack"><div style="width:${Math.round(v / mmax * 100)}%;background:${r[2]}"></div></div><span class="lv2-mval">${v}</span></div>`;
+    }).join('')}
+  </div>`;
 
   body.innerHTML = html;
-}
-
-function renderLivePlayers(log, pName) {
-  // 各選手の pts / miss / 1stサーブ率 を pointLog から集計
-  const p = {a1:{pts:0,miss:0,srv1i:0,srv1t:0}, a2:{pts:0,miss:0,srv1i:0,srv1t:0},
-             b1:{pts:0,miss:0,srv1i:0,srv1t:0}, b2:{pts:0,miss:0,srv1i:0,srv1t:0}};
-  
-  // pointLogにはserverKeyがないので、stats.players から直接取る
-  const sa = M.stats?.a?.players || {};
-  const sb = M.stats?.b?.players || {};
-  
-  ['a1','a2'].forEach(k => {
-    const ps = sa[k] || {};
-    p[k].pts = ps.pts || 0;
-    p[k].miss = ps.miss || 0;
-    p[k].srv1i = ps.srv1in || 0;
-    p[k].srv1t = ps.srv1tot || 0;
-  });
-  ['b1','b2'].forEach(k => {
-    const ps = sb[k] || {};
-    p[k].pts = ps.pts || 0;
-    p[k].miss = ps.miss || 0;
-    p[k].srv1i = ps.srv1in || 0;
-    p[k].srv1t = ps.srv1tot || 0;
-  });
-
-  const card = (key, name, role, team) => {
-    const d = p[key];
-    const rate = d.srv1t > 0 ? Math.round(d.srv1i/d.srv1t*100) + '%' : '-';
-    const missClass = d.miss >= 3 ? ' highlight' : '';
-    return `<div class="live-pcard team-${team}">
-      <div class="live-pname">${name}<span class="role">${role}</span></div>
-      <div class="live-pstats">
-        <div class="live-pstat"><div class="live-pstat-val">${d.pts}</div><div class="live-pstat-lbl">PT</div></div>
-        <div class="live-pstat${missClass}"><div class="live-pstat-val">${d.miss}</div><div class="live-pstat-lbl">MISS</div></div>
-        <div class="live-pstat"><div class="live-pstat-val">${rate}</div><div class="live-pstat-lbl">1ST</div></div>
-      </div>
-    </div>`;
-  };
-
-  return `<div class="live-sec">
-    <div class="live-sec-head">🎾 SCORE スコア ${M.gamesWon.a}-${M.gamesWon.b}${M.isFinal?' (F)':''}  現在 ${M.isFinal?M.finalPts.a:M.pts.a}-${M.isFinal?M.finalPts.b:M.pts.b}</div>
-    <div class="live-players">
-      ${card('a1', pName.a1, '後衛', 'a')}
-      ${card('b1', pName.b1, '後衛', 'b')}
-      ${card('a2', pName.a2, '前衛', 'a')}
-      ${card('b2', pName.b2, '前衛', 'b')}
-    </div>
-  </div>`;
-}
-
-function renderLiveMiss(log, pName) {
-  // 選手ごとのミス種類集計
-  const missCounts = {a1:{N:0,SO:0,BO:0,T:0,DF:0,Re:0}, a2:{N:0,SO:0,BO:0,T:0,DF:0,Re:0},
-                      b1:{N:0,SO:0,BO:0,T:0,DF:0,Re:0}, b2:{N:0,SO:0,BO:0,T:0,DF:0,Re:0}};
-  
-  log.forEach(p => {
-    if (p.type !== 'miss' || !p.player) return;
-    if (!missCounts[p.player]) return;
-    if (p.miss === 'DF') missCounts[p.player].DF++;
-    else if (p.base === 'Re') {
-      missCounts[p.player].Re++;
-      if (p.miss && missCounts[p.player][p.miss] !== undefined) missCounts[p.player][p.miss]++;
-    } else if (p.miss && missCounts[p.player][p.miss] !== undefined) {
-      missCounts[p.player][p.miss]++;
-    }
-  });
-
-  const missLbl = {N:'N', SO:'SO', BO:'BO', NT:'NT', T:'T', DF:'DF', Re:'Re'};
-  
-  const card = (key, name, team) => {
-    const m = missCounts[key];
-    const total = m.N + m.SO + m.BO + m.T + m.DF;
-    if (total === 0) {
-      return `<div class="live-miss-card team-${team}">
-        <div class="live-miss-name">${name}</div>
-        <div class="live-miss-row" style="color:var(--muted)">ミスなし</div>
-      </div>`;
-    }
-    let chips = '';
-    ['N','SO','BO','NT','T','DF'].forEach(k => {
-      if (m[k] > 0) chips += `<span class="live-miss-chip">${missLbl[k]}<span class="v">${m[k]}</span></span>`;
-    });
-    if (m.Re > 0) chips += `<span class="live-miss-chip" style="background:#fff3e0">Re<span class="v">${m.Re}</span></span>`;
-    return `<div class="live-miss-card team-${team}">
-      <div class="live-miss-name">${name}</div>
-      <div class="live-miss-row">${chips}</div>
-    </div>`;
-  };
-
-  return `<div class="live-sec">
-    <div class="live-sec-head">❌ ミス傾向（N=ネット SO=サイドアウト BO=バックアウト T=チップ）</div>
-    <div class="live-miss-grid">
-      ${card('a1', pName.a1, 'a')}
-      ${card('b1', pName.b1, 'b')}
-      ${card('a2', pName.a2, 'a')}
-      ${card('b2', pName.b2, 'b')}
-    </div>
-  </div>`;
-}
-
-function renderLiveCourse(log, teams) {
-  // 各チームが打ったコースの集計（type=point or miss でcourseがあるもの）
-  // レシーブエース・SA・通常ポイント・通常ミスのコースを集める
-  const courseCount = {a:{C:0,Co:0,M:0,RST:0,LST:0}, b:{C:0,Co:0,M:0,RST:0,LST:0}};
-  
-  log.forEach(p => {
-    if (!p.course || !p.player) return;
-    const team = p.player.startsWith('a') ? 'a' : 'b';
-    if (courseCount[team][p.course] !== undefined) courseCount[team][p.course]++;
-  });
-
-  const heatClass = (v, max) => {
-    if (v === 0) return 'heat-0';
-    const r = v / max;
-    if (r <= 0.25) return 'heat-1';
-    if (r <= 0.5) return 'heat-2';
-    if (r <= 0.75) return 'heat-3';
-    return 'heat-4';
-  };
-
-  const courtHtml = (team, teamName) => {
-    const c = courseCount[team];
-    const max = Math.max(1, c.C, c.Co, c.M, c.RST, c.LST);
-    // 3x2グリッド: 上段[Co, M, C]、下段[LST, _, RST]
-    // ソフトテニスのコース配置を簡易表示
-    const cell = (key, name) => {
-      const v = c[key];
-      return `<div class="live-court-cell ${heatClass(v, max)}">
-        <div class="live-court-cname">${name}</div>
-        <div class="live-court-cval">${v}</div>
-      </div>`;
-    };
-    return `<div class="live-court team-${team}">
-      <div class="live-court-lbl">${teamName}が打った球</div>
-      <div class="live-court-grid">
-        ${cell('Co','逆クロス')}${cell('M','ミドル')}${cell('C','クロス')}
-        ${cell('LST','左ST')}<div></div>${cell('RST','右ST')}
-      </div>
-    </div>`;
-  };
-
-  return `<div class="live-sec">
-    <div class="live-sec-head">🎯 コース傾向（決着ショットのみ）</div>
-    <div class="live-course-wrap">
-      ${courtHtml('a', teams.a.name || 'Aペア')}
-      ${courtHtml('b', teams.b.name || 'Bペア')}
-    </div>
-  </div>`;
-}
-
-function renderLiveRally(log) {
-  // ラリー本数の分布
-  const rally = {'1':0,'2':0,'3':0,'4':0,'5':0,'6+':0};
-  log.forEach(p => {
-    if (p.miss === 'DF') return; // DFはラリー対象外
-    const r = p.rally;
-    if (r && rally[r] !== undefined) rally[r]++;
-  });
-  const max = Math.max(1, ...Object.values(rally));
-  
-  const cols = Object.keys(rally).map(k => {
-    const v = rally[k];
-    const h = v === 0 ? 0 : Math.max(15, Math.round(v / max * 55));
-    return `<div class="live-rally-col">
-      <div class="live-rally-bar ${v===0?'empty':''}" style="height:${h}px">${v>0?v:''}</div>
-      <div class="live-rally-lbl">${k}${k==='6+'?'':'本'}</div>
-    </div>`;
-  }).join('');
-
-  return `<div class="live-sec">
-    <div class="live-sec-head">📈 ラリー本数分布（何球目で決着したか）</div>
-    <div class="live-rally-wrap">${cols}</div>
-  </div>`;
 }
 
 // ============================================================
@@ -3329,6 +3521,7 @@ async function shareExportText() {
 }
 
 function buildHistoryCard(d, mid) {
+  _storyCache[mid] = d;
   const wrap = document.createElement('div');
   wrap.className = 'ms-card';
 
@@ -3364,6 +3557,7 @@ function buildHistoryCard(d, mid) {
     <div class="ms-head">
       <span class="ms-court-label">${isResultOnly ? '📝 結果のみ' : '終了'}: ${timeStr} (${d.matchGames}Gマッチ)</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${(!isResultOnly && d.pointLog && d.pointLog.length) ? `<button onclick="openStory('${mid}')" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--green);background:#e8f5e9;color:var(--green);cursor:pointer;font-family:var(--font-num);font-weight:700;">📖 STORY</button>` : ''}
         <button onclick="editMatchPlayers('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">✏ 選手名</button>
         <button onclick="editMatchSchool('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-num);">🏫 学校名</button>
         <button onclick="swapMatchTeams('${mid}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid #d99a3a;background:transparent;color:#c47800;cursor:pointer;font-family:var(--font-num);">⇄ 左右入れ替え</button>
@@ -4171,6 +4365,176 @@ function closeMatchHistory(e) {
 }
 
 // ============================================================
+// STORY（1枚1メッセージ）— 試合ごとに、横にめくって読む
+// ============================================================
+let _storyCache = {};
+
+function buildStoryCards(d) {
+  const log = d.pointLog || [];
+  const own = getOwnSide(d);
+  const opp = own === 'a' ? 'b' : 'a';
+  const sideOf = (p) => (p.player || '').charAt(0);
+  const gw = d.gamesWon || {a:0, b:0};
+  const won = d.winner ? d.winner === own : (gw[own] > gw[opp]);
+  const nm = (side, i) => ((d.teams && d.teams[side] && d.teams[side].players) || '').split(' / ')[i] || (i === 0 ? '後衛' : '前衛');
+  const cards = [];
+  const suggestions = [];
+
+  // ---- 1) 結果と流れ ----
+  let diff = 0, peakIdx = -1, maxDrop = 0, dropFrom = -1, dropTo = -1;
+  const diffs = [];
+  log.forEach((p, i) => {
+    diff += p.winner === own ? 1 : -1;
+    diffs.push(diff);
+    if (peakIdx < 0 || diff > diffs[peakIdx]) peakIdx = i;
+    if (diffs[peakIdx] - diff > maxDrop) { maxDrop = diffs[peakIdx] - diff; dropFrom = peakIdx; dropTo = i; }
+  });
+  const gNo = (p) => (p.gameA || 0) + (p.gameB || 0) + 1;
+  let flowText;
+  if (maxDrop >= 4 && dropFrom >= 0) {
+    const g1 = gNo(log[dropFrom]), g2 = gNo(log[dropTo]);
+    flowText = `第${g1 === g2 ? g1 : g1 + '〜' + g2}ゲームのあたりで、${maxDrop}ポイント分の差を落とした`;
+    suggestions.push(`リードしたあとの、気持ちの持ち方を決めておく（${maxDrop}ポイント差が縮んだ場面を、本人と振り返る）`);
+  } else {
+    flowText = '大きく崩れる場面はなく、安定した試合だった';
+  }
+  cards.push({
+    kind: 'dark', tag: '1 / 5　今日の試合',
+    big: `${gw[own] || 0} <span class="story-dash">–</span> ${gw[opp] || 0}`,
+    title: `${won ? '勝ち' : '負け'}。${flowText}`
+  });
+
+  // ---- 2) ミス ----
+  const ownMiss = log.filter(p => p.type === 'miss' && sideOf(p) === own);
+  if (ownMiss.length === 0) {
+    cards.push({ kind: 'plain', tag: '2 / 5　ミス', title: 'ミスは0本。ミスなくプレーできた', sub: 'この調子を続けよう' });
+  } else {
+    const mc = lvCount(ownMiss, p => p.miss);
+    const top = lvTop(mc, PH_MISS_LBL);
+    let title, sub = '';
+    if (top && !top.each) {
+      title = `ミス${ownMiss.length}本のうち、${top.n}本が${top.text}`;
+      const k = Object.keys(mc).find(x => PH_MISS_LBL[x] === top.text);
+      sub = ({N:'次は、ネットの上を高く通す意識で', SO:'次は、ラインの内側を狙う意識で', BO:'次は、深く打ちすぎない意識で', T:'次は、球をよく見て足を動かす意識で', DF:'次は、2ndサーブの打ち方を決めておく'})[k] || '';
+      if (top.n >= 3 || top.n / ownMiss.length >= 0.5) {
+        const pr = ({N:'ネットを越える高さを意識した、ラリー練習', SO:'ラインの内側を狙う、コース練習', BO:'打点をひきつけて、深さを調整する練習', T:'足を動かして球に入る、フットワーク練習', DF:'2ndサーブを確実に入れる練習'})[k];
+        if (pr) suggestions.push(pr);
+      }
+    } else {
+      title = `ミス${ownMiss.length}本。種類はばらけていた`;
+    }
+    const rows = ['N','SO','BO','T','DF'].filter(k => mc[k]).map(k => {
+      const col = ({N:'#b4372a', SO:'#c97a00', BO:'#2f6db5'})[k] || '#6b665e';
+      return `<div class="lv2-mrow"><span class="lv2-sw" style="background:${col}"></span><span class="lv2-mname">${PH_MISS_LBL[k]}</span><div class="lv2-mtrack"><div style="width:${Math.round(mc[k] / ownMiss.length * 100)}%;background:${col}"></div></div><span class="lv2-mval">${mc[k]}</span></div>`;
+    }).join('');
+    cards.push({ kind: 'plain', tag: '2 / 5　ミス', title, sub, extra: rows });
+  }
+
+  // ---- 3) 展開（得意／苦手）----
+  const byTen = {};
+  Object.keys(LV_TENKAI).forEach(k => byTen[k] = {w: 0, l: 0});
+  log.forEach(p => { if (p.tenkai && byTen[p.tenkai]) { if (p.winner === own) byTen[p.tenkai].w++; else byTen[p.tenkai].l++; } });
+  const tenTotal = Object.values(byTen).reduce((a, v) => a + v.w + v.l, 0);
+  if (tenTotal < 4) {
+    cards.push({ kind: 'plain', tag: '3 / 5　展開', title: '展開のデータが、まだ少ない', sub: 'ラリー3球目以降のポイントで展開を入力すると、得意と苦手が見えてくる' });
+  } else {
+    let worst = null, best = null;
+    Object.keys(byTen).forEach(k => {
+      const t = byTen[k].w + byTen[k].l;
+      if (t < 3) return;
+      const r = byTen[k].w / t;
+      if (r <= 0.4 && (!worst || r < worst.r || (r === worst.r && byTen[k].l > byTen[worst.k].l))) worst = { k, r, t };
+      if (r >= 0.6 && (!best || r > best.r)) best = { k, r, t };
+    });
+    let title, sub = '';
+    if (worst) {
+      title = `${LV_TENKAI[worst.k]}展開で、${byTen[worst.k].l}本失点している`;
+      sub = best ? `一方、${LV_TENKAI[best.k]}展開は${best.t}本中${byTen[best.k].w}本取れている` : '';
+      suggestions.push(`${LV_TENKAI[worst.k]}に球が来る形から始める、ラリー練習`);
+    } else if (best) {
+      title = `${LV_TENKAI[best.k]}展開は、${best.t}本中${byTen[best.k].w}本取れている`;
+      sub = 'この展開なら、勝負しにいける';
+    } else {
+      title = '展開による、大きな差はなかった';
+    }
+    const rows = Object.keys(byTen).map(k => {
+      const v = byTen[k];
+      return `<div class="lv2-mrow"><span class="lv2-mname" style="width:70px">${LV_TENKAI[k]}</span><div class="story-wl"><div style="flex:${v.w || 0} 1 0;background:#28823a"></div><div style="flex:${v.l || 0} 1 0;background:#b4372a"></div></div><span class="story-wl-n">${v.w}:${v.l}</span></div>`;
+    }).join('');
+    cards.push({ kind: 'plain', tag: '3 / 5　展開', title, sub, extra: rows + `<div class="lv2-note">緑＝得点、赤＝失点（ラリー3球目以降のポイント）</div>` });
+  }
+
+  // ---- 4) 相手の傾向 ----
+  const oppWin = log.filter(p => p.type === 'point' && sideOf(p) === opp && p.course);
+  const oppTop = lvTop(lvCount(oppWin, p => p.course), LV_COURSE);
+  const oppMiss = log.filter(p => p.type === 'miss' && sideOf(p) === opp && p.miss !== 'DF');
+  const oppMissTop = lvTop(lvCount(oppMiss, p => p.shotType || (p.base === 'Re' ? 'Re' : null)), LV_SHOT);
+  if (oppWin.length >= 4 && oppTop && !oppTop.each) {
+    cards.push({ kind: 'plain', tag: '4 / 5　相手', title: `相手が決めた球は、${oppTop.text}が${oppTop.n}本でいちばん多い`,
+      sub: `${oppTop.text}に動ける位置で、構えておく` + (oppMissTop && !oppMissTop.each && oppMissTop.n >= 2 ? `。相手のミスは、${oppMissTop.text}が多い` : '') });
+  } else if (oppMissTop && !oppMissTop.each && oppMissTop.n >= 3) {
+    cards.push({ kind: 'plain', tag: '4 / 5　相手', title: `相手のミスは、${oppMissTop.text}が${oppMissTop.n}本でいちばん多い`, sub: 'その球を打たせる展開を、作ってみよう' });
+  } else {
+    cards.push({ kind: 'plain', tag: '4 / 5　相手', title: '相手の傾向を言えるほどの、データがまだない', sub: '次の試合も記録すると、見えてくる' });
+  }
+
+  // ---- 5) 次の練習 ----
+  const lowSrv = [0, 1].map(i => {
+    const key = own + (i + 1);
+    const ps = (d.stats && d.stats[own] && d.stats[own].players && d.stats[own].players[key]) || {};
+    return { name: nm(own, i), tot: ps.srv1tot || 0, rate: (ps.srv1tot || 0) > 0 ? (ps.srv1in || 0) / ps.srv1tot : 1 };
+  }).filter(x => x.tot >= 4 && x.rate < 0.6);
+  lowSrv.forEach(x => suggestions.push(`${x.name}：1stサーブを入れる練習（今回は${Math.round(x.rate * 100)}%）`));
+  const picks = suggestions.slice(0, 3);
+  cards.push({ kind: 'plain', tag: '5 / 5　次の練習',
+    title: picks.length ? '次の練習で、取り組むこと（案）' : '今回は、はっきりした課題は見つからなかった',
+    sub: picks.length ? '' : 'いまの練習を続けて、データをためていこう',
+    extra: picks.map((t, i) => `<div class="story-todo"><span class="story-todo-n">${i + 1}</span><span>${escapeHtml(t)}</span></div>`).join('') +
+      (picks.length ? `<div class="lv2-note">データからの案です。何に取り組むかは、本人と先生で決めてください</div>` : '') });
+
+  return cards;
+}
+
+function openStory(mid) {
+  const d = _storyCache[mid];
+  if (!d) { alert('試合データが見つかりません'); return; }
+  const cards = buildStoryCards(d);
+  const track = document.getElementById('story-track');
+  track.innerHTML = cards.map(c => `<div class="story-card ${c.kind}">
+      <div class="story-tag">${c.tag}</div>
+      <div class="story-mid">
+        ${c.big ? `<div class="story-big">${c.big}</div>` : ''}
+        <div class="story-title">${escapeHtml(c.title).replace(/&lt;/g,'<')}</div>
+        ${c.sub ? `<div class="story-sub">${escapeHtml(c.sub)}</div>` : ''}
+        ${c.extra ? `<div class="story-extra">${c.extra}</div>` : ''}
+      </div>
+      <div class="story-next">${c.tag.startsWith('5') ? '' : 'よこにスワイプ →'}</div>
+    </div>`).join('');
+  const dots = document.getElementById('story-dots');
+  dots.innerHTML = cards.map((c, i) => `<span class="story-dot${i === 0 ? ' on' : ''}" onclick="storyGo(${i})"></span>`).join('');
+  track.scrollLeft = 0;
+  track.onscroll = () => {
+    const first = track.querySelector('.story-card');
+    if (!first) return;
+    const step = first.getBoundingClientRect().width + 10;
+    const idx = Math.max(0, Math.min(cards.length - 1, Math.round(track.scrollLeft / step)));
+    dots.querySelectorAll('.story-dot').forEach((el, i) => el.classList.toggle('on', i === idx));
+  };
+  document.getElementById('story-bg').classList.add('show');
+}
+
+function storyGo(i) {
+  const track = document.getElementById('story-track');
+  const first = track.querySelector('.story-card');
+  if (!first) return;
+  track.scrollTo({ left: i * (first.getBoundingClientRect().width + 10), behavior: 'smooth' });
+}
+
+function closeStory() {
+  document.getElementById('story-bg').classList.remove('show');
+}
+
+// ============================================================
 // 一言コメント
 // ============================================================
 function openMatchComment() {
@@ -4345,6 +4709,7 @@ async function loadRanking() {
 
   renderRankBody(individuals, pairs, playerWinLoss);
 }
+
 
 function setRankMode(mode, el) {
   rankMode = mode;
@@ -4831,7 +5196,9 @@ async function loadAllPlayerMatchesForGrowth(name) {
       playerKey,
       won,
       eventId: d.eventId || compositeId.substring(0, compositeId.indexOf('_')),
-      isResultOnly: d.resultOnly === true
+      isResultOnly: d.resultOnly === true,
+      startTime: d.startTime || '',
+      sortKey: (d.startTime || '') + '|' + compositeId
     };
     
     statsPlayerAllMatches.push(entry);
@@ -4934,6 +5301,11 @@ function renderStatsDetail() {
   // 📊 成長の記録（全期間 vs 今日のイベント）
   if (statsPlayerAllMatches && statsPlayerAllMatches.length > 0) {
     el.appendChild(buildGrowthCard(statsPlayerName, statsPlayerAllMatches, statsPlayerCurrentEventMatches));
+  }
+
+  // 📈 推移（直近8試合）
+  if (statsPlayerAllMatches && statsPlayerAllMatches.length > 0) {
+    el.appendChild(buildTrendCard(statsPlayerAllMatches));
   }
 
   if (missPoints.length === 0) {
@@ -5270,6 +5642,78 @@ function buildGrowthCard(playerName, allMatches, currentMatches) {
   return card;
 }
 
+// 📈 推移（直近8試合）— 試合ごとの変化をミニ折れ線で見る
+function buildTrendCard(allMatches) {
+  const card = document.createElement('div');
+  card.className = 'stats-card';
+  const ms = allMatches.filter(m => !m.isResultOnly)
+    .slice().sort((a, b) => (a.sortKey || '') < (b.sortKey || '') ? -1 : 1)
+    .slice(-8);
+
+  if (ms.length < 3) {
+    card.innerHTML = `<div class="stats-card-head">📈 推移（直近8試合）</div>
+      <div class="stats-card-body"><div style="padding:14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7">
+        3試合以上の詳細データがたまると、変化が見えるようになります（いま${ms.length}試合）</div></div>`;
+    return card;
+  }
+
+  const LONG = ['4', '5', '6+'];
+  const metrics = [
+    { name: '1stサーブ入る率', unit: '%', better: 'up', note: '',
+      val: m => { const ps = m.playerStats || {}; return (ps.srv1tot || 0) > 0 ? ps.srv1in / ps.srv1tot * 100 : null; } },
+    { name: 'ミス（1試合あたり）', unit: '本', better: 'down', note: '下がるほど良い',
+      val: m => { const ps = m.playerStats || {}; return typeof ps.miss === 'number' ? ps.miss : null; } },
+    { name: '獲得ポイント（1試合あたり）', unit: '本', better: 'up', note: '',
+      val: m => { const ps = m.playerStats || {}; return typeof ps.pts === 'number' ? ps.pts : null; } },
+    { name: '4球目以降のミス', unit: '本', better: 'down', note: '下がるほど良い',
+      val: m => (m.pointLog && m.pointLog.length)
+        ? m.pointLog.filter(p => p.type === 'miss' && p.player === m.playerKey && LONG.includes(String(p.rally))).length : null }
+  ];
+
+  const rowHtml = (mt) => {
+    const vals = ms.map(mt.val).filter(v => v !== null && !isNaN(v));
+    if (vals.length < 3) {
+      return `<div class="tr-row"><div class="tr-top"><span class="tr-name">${mt.name}</span></div>
+        <div class="tr-empty">この項目は、データがまだ足りません</div></div>`;
+    }
+    const W = 120, H = 36, P = 4;
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const span = hi - lo || 1;
+    const pts = vals.map((v, i) => [
+      Math.round((P + i * (W - 2 * P) / (vals.length - 1)) * 10) / 10,
+      Math.round((H - P - (hi === lo ? 0.5 : (v - lo) / span) * (H - 2 * P)) * 10) / 10
+    ]);
+    const last = vals[vals.length - 1], first = vals[0];
+    const dv = last - first;
+    const fmt = (v) => mt.unit === '%' ? Math.round(v) : Math.round(v * 10) / 10;
+    let dtxt, dcol;
+    if (Math.abs(dv) < 0.05) { dtxt = '変化なし'; dcol = 'var(--muted)'; }
+    else {
+      const good = mt.better === 'up' ? dv > 0 : dv < 0;
+      dtxt = `${vals.length - 1}試合前から ${dv > 0 ? '+' : '−'}${fmt(Math.abs(dv))}${mt.unit === '%' ? '' : ''}`;
+      dcol = good ? 'var(--green)' : 'var(--b)';
+    }
+    return `<div class="tr-row">
+      <div class="tr-top"><span class="tr-name">${mt.name}</span><span class="tr-delta" style="color:${dcol}">${dtxt}</span></div>
+      <div class="tr-mid">
+        <div class="tr-val">${fmt(last)}<small>${mt.unit}</small></div>
+        <svg width="140" height="40" viewBox="0 0 ${W} ${H}" role="img" aria-label="${mt.name}の推移">
+          <polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--a)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="3.5" fill="var(--a)" stroke="#fff" stroke-width="2"/>
+        </svg>
+      </div>
+      ${mt.note ? `<div class="tr-note">${mt.note}</div>` : ''}
+    </div>`;
+  };
+
+  card.innerHTML = `<div class="stats-card-head">📈 推移（直近${ms.length}試合）</div>
+    <div class="stats-card-body">
+      ${metrics.map(rowHtml).join('')}
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">左が古い試合、右が新しい試合です。試合数が少ないうちは、線がでこぼこになります。</div>
+    </div>`;
+  return card;
+}
+
 // ⑤ スコア状況別ミス（アップ/オール/ダウン）
 function buildChart5_ScoreContext(points) {
   const ctx = { up: 0, tie: 0, down: 0 }; // up=アップ(リード), tie=オール(同点), down=ダウン(ビハインド)
@@ -5337,8 +5781,8 @@ function buildChart1_ShotMiss(points) {
   const shotTypes = ['St','S','V','LV','Hv','Sm','Tp','Re','DF'];
   const shotLabels = {St:'ストローク',S:'スライス',V:'ボレー',LV:'ローボレー',Hv:'ハイボレー',Sm:'スマッシュ',Tp:'トップ打ち',Re:'レシーブ',DF:'ダブルフォルト'};
   const missTypes = ['N','SO','BO','NT','T','DF'];
-  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',T:'チップ',DF:'DF'};
-  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',T:'#8b6cc0',DF:'#888888'};
+  const missLabels = {N:'ネット',SO:'サイドアウト',BO:'バックアウト',NT:'ノータッチ',T:'チップ',DF:'DF'};
+  const missColors = {N:'#e85454',SO:'#f0a030',BO:'#5080d0',NT:'#2e9e8f',T:'#8b6cc0',DF:'#888888'};
 
   const data = {};
   shotTypes.forEach(s => { data[s] = {}; missTypes.forEach(m => data[s][m] = 0); });
@@ -5365,7 +5809,7 @@ function buildChart1_ShotMiss(points) {
   card.className = 'stats-card';
 
   let legendHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">`;
-  missTypes.forEach(m => {
+  missTypes.filter(m => activeShots.some(sh => data[sh][m] > 0)).forEach(m => {
     legendHtml += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-num)"><div style="width:12px;height:12px;border-radius:2px;background:${missColors[m]}"></div>${missLabels[m]}</div>`;
   });
   legendHtml += `</div>`;
