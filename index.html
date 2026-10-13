@@ -1583,7 +1583,7 @@ function resetFlow() {
   flow = {
     serverKey: getCurrentServer(),
     serve: null, rally: null, player: null, type: null, base: null,
-    shotType: null, course: null, isWinner: null, miss: null, winner: null
+    shotType: null, course: null, tenkai: null, isWinner: null, miss: null, winner: null
   };
 }
 
@@ -1639,6 +1639,26 @@ function setServeRally(key, val) {
     // サーブだけ選んだ、ラリーはまだ → 再描画して選択状態を反映
     renderFlow();
   }
+}
+
+// ============================================================
+// 展開（ラリーの方向）: 決着打の直前に来た球の方向（自分から見た方向、courseと同じ見方）。ラリー3球目以降のみ・必須（再タップで解除）
+// 値: 'C' クロス / 'Co' 逆クロス / 'RST' 右ST / 'LST' 左ST
+// ============================================================
+const TENKAI_LBL = { C:'クロス', Co:'逆クロス', RST:'右ST', LST:'左ST' };
+function setTenkai(val) {
+  flow.tenkai = (flow.tenkai === val) ? null : val;
+  renderFlow();
+}
+function buildTenkaiStep(num) {
+  const sel = flow.tenkai;
+  const label = sel ? '展開（直前の球・自分から見た方向）' : '<strong>展開（直前の球・自分から見た方向）を選んでください</strong>';
+  let h = `<div class="flow-step"><div class="step-label"><span class="${sel?'step-num done':'step-num'}">${num}</span>${label}</div>
+    <div class="choice-grid" style="grid-template-columns:repeat(4,1fr)">`;
+  Object.keys(TENKAI_LBL).forEach(k => {
+    h += `<button class="choice-btn${sel===k?' selected':''}" onclick="setTenkai('${k}')">${TENKAI_LBL[k]}</button>`;
+  });
+  return h + `</div></div>`;
 }
 
 function renderFlow() {
@@ -1842,8 +1862,11 @@ function renderFlow() {
     ], 'course', flow.course);
     if (!flow.course) { el.innerHTML = html; return; }
 
+    html += buildTenkaiStep(step++);  // 必須（ラリー3球目以降）
+    if (!flow.tenkai) { el.innerHTML = html; return; }
+
     flow.winner = flow.player.startsWith('a') ? 'a' : 'b';
-    html += buildSummary([flow.serve, `${flow.rally}球`, pName(flow.player), flow.base, flow.shotType, flow.course]);
+    html += buildSummary([flow.serve, `${flow.rally}球`, pName(flow.player), flow.base, flow.shotType, flow.course, flow.tenkai ? '展開:'+TENKAI_LBL[flow.tenkai] : null]);
     html += `<button class="confirm-btn" onclick="commitCurrentFlow()">✔ 確定してポイント追加</button>`;
     el.innerHTML = html; return;
   }
@@ -1875,6 +1898,9 @@ function renderFlow() {
     ], 'course', flow.course);
     if (!flow.course) { el.innerHTML = html; return; }
 
+    html += buildTenkaiStep(step++);  // 必須（ラリー3球目以降）
+    if (!flow.tenkai) { el.innerHTML = html; return; }
+
     // ミスの種類
     html += buildStep(step++, 'ミスの種類', flow.miss !== null, [
       { val:'N',  label:'N ネット',       cls:'choice-miss' },
@@ -1885,7 +1911,7 @@ function renderFlow() {
     if (!flow.miss) { el.innerHTML = html; return; }
 
     flow.winner = flow.player.startsWith('a') ? 'b' : 'a';
-    html += buildSummary([flow.serve, `${flow.rally}球`, pName(flow.player), flow.base, flow.shotType, flow.course, flow.miss, `→${flow.winner==='a'?tA:tB}ポイント`]);
+    html += buildSummary([flow.serve, `${flow.rally}球`, pName(flow.player), flow.base, flow.shotType, flow.course, flow.tenkai ? '展開:'+TENKAI_LBL[flow.tenkai] : null, flow.miss, `→${flow.winner==='a'?tA:tB}ポイント`]);
     html += `<button class="confirm-btn" onclick="commitCurrentFlow()">✔ 確定してポイント追加</button>`;
     el.innerHTML = html; return;
   }
@@ -2015,6 +2041,8 @@ function commitPoint(winner, f) {
   M.pointLog.push({
     winner, serve: f.serve, rally: f.rally, player: f.player, type: f.type,
     base: f.base, shotType: f.shotType, course: f.course, miss: f.miss,
+    serverKey: serverKey || null,  // そのポイントのサーバー(a1/a2/b1/b2)。過去データはundefined/null
+    tenkai: (f.rally && f.rally !== '1' && f.rally !== '2') ? (f.tenkai || null) : null,  // 展開(C/Co/RST/LST)。ラリー3球目以降のみ・必須入力。過去データはundefined/null
     scoreA: cp.a + (winner === 'a' ? 1 : 0), scoreB: cp.b + (winner === 'b' ? 1 : 0),
     gameA: M.gamesWon.a, gameB: M.gamesWon.b
   });
