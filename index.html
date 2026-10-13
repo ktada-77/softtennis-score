@@ -4925,43 +4925,90 @@ function renderRankBody(individuals, pairs, playerWinLoss) {
     return entries.length ? entries.join('・') : '';
   };
   
-  if (rankMode === 'individual') {
-    const names = Object.keys(individuals);
-    if (!names.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>個人データがありません</div>'; return; }
+  _rankArgs = [individuals, pairs, playerWinLoss];
+  const isInd = rankMode === 'individual';
+  const src = isInd ? individuals : pairs;
+  const names = Object.keys(src);
+  if (!names.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">🎾</div>${isInd ? '個人' : 'ペア'}データがありません</div>`; return; }
 
-    // ③ 上位3名まで表示
-    const byPts = names.map(n => ({name:n, ...individuals[n]})).sort((a,b) => (b.pts||0) - (a.pts||0)).slice(0,3);
-    const bySrv = names.map(n => ({name:n, ...individuals[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot)).slice(0,3);
-
-    // ⑤ 勝率ランキング（上位6名）
-    const wlNames = Object.keys(playerWinLoss).filter(n => playerWinLoss[n].total > 0);
-    const byWinRate = wlNames.map(n => ({
+  // 1人（1組）ぶんのデータ
+  const rows = names.map(n => {
+    const x = src[n];
+    const wl = isInd ? playerWinLoss[n] : null;
+    return {
       name: n,
-      wins: playerWinLoss[n].wins,
-      total: playerWinLoss[n].total,
-      rate: Math.round(playerWinLoss[n].wins / playerWinLoss[n].total * 100)
-    })).sort((a,b) => b.rate - a.rate || b.wins - a.wins).slice(0, 6);
+      pts: x.pts || 0,
+      miss: x.miss || 0,
+      srv1in: x.srv1in || 0,
+      srv1tot: x.srv1tot || 0,
+      srvRate: x.srv1tot > 0 ? Math.round(x.srv1in / x.srv1tot * 100) : null,
+      wins: wl ? wl.wins : 0,
+      total: wl ? wl.total : 0,
+      winRate: wl && wl.total > 0 ? Math.round(wl.wins / wl.total * 100) : null
+    };
+  });
 
-    el.innerHTML = [
-      buildRankSection('🏆 ポイント獲得数', byPts, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPts[0]?.pts||1),
-      buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100),
-      buildRankSection('📊 プレーヤー勝率', byWinRate, x => ({val:x.rate+'%', unit:'', sub:`${x.wins}勝/${x.total}試合`}), 100)
-    ].join('');
+  const metrics = isInd
+    ? [['win','勝率'], ['srv','1stサーブ'], ['pts','ポイント'], ['miss','ミス少']]
+    : [['srv','1stサーブ'], ['pts','ポイント'], ['miss','ミス少']];
+  if (!metrics.some(m => m[0] === rankMetric)) rankMetric = metrics[0][0];
 
-  } else {
-    const pnames = Object.keys(pairs);
-    if (!pnames.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎾</div>ペアデータがありません</div>'; return; }
+  // 並べ替え（データなしの人は一番下）
+  let list = rows.slice();
+  if (rankMetric === 'win') list = list.filter(r => r.winRate !== null).sort((a,b) => b.winRate - a.winRate || b.wins - a.wins);
+  else if (rankMetric === 'srv') list.sort((a,b) => (b.srvRate === null ? -1 : b.srvRate) - (a.srvRate === null ? -1 : a.srvRate) || b.srv1tot - a.srv1tot);
+  else if (rankMetric === 'pts') list.sort((a,b) => b.pts - a.pts);
+  else list.sort((a,b) => a.miss - b.miss || b.pts - a.pts);
 
-    // ③ 上位3名まで
-    const byPtsP = pnames.map(n => ({name:n, ...pairs[n]})).sort((a,b) => (b.pts||0) - (a.pts||0)).slice(0,3);
-    const bySrv = pnames.map(n => ({name:n, ...pairs[n]})).filter(x => x.srv1tot >= 1).sort((a,b) => pct(b.srv1in,b.srv1tot) - pct(a.srv1in,a.srv1tot)).slice(0,3);
-    // ④ ミスランキング削除
+  const maxPts = Math.max(1, ...rows.map(r => r.pts));
+  const maxMiss = Math.max(1, ...rows.map(r => r.miss));
+  const medalBg = ['#f4d56a','#d9d9d6','#e8c9a5'], medalFg = ['#4a3800','#2f2f2d','#4a2c0a'];
 
-    el.innerHTML = [
-      buildRankSection('🏆 ポイント獲得数', byPtsP, x => ({val:x.pts||0, unit:'pt', sub:formatPtBreakdown(x.ptBreakdown)}), byPtsP[0]?.pts||1),
-      buildRankSection('🎾 1stサーブ成功率', bySrv, x => ({val:pct(x.srv1in,x.srv1tot)+'%', unit:'', sub:`${x.srv1in}/${x.srv1tot}本`}), 100)
-    ].join('');
-  }
+  const big = (r) => {
+    if (rankMetric === 'win') return { v: r.winRate + '<span style="font-size:15px">%</span>', sub: `${r.wins}勝 / ${r.total}試合`, w: r.winRate };
+    if (rankMetric === 'srv') return r.srvRate === null
+      ? { v: '-', sub: 'サーブの記録なし', w: 0 }
+      : { v: r.srvRate + '<span style="font-size:15px">%</span>', sub: `サーブ ${r.srv1in} / ${r.srv1tot}本`, w: r.srvRate };
+    if (rankMetric === 'pts') return { v: r.pts + '<span style="font-size:15px">pt</span>', sub: isInd ? `${r.total}試合` : '', w: Math.round(r.pts / maxPts * 100) };
+    return { v: r.miss + '<span style="font-size:15px">本</span>', sub: isInd ? `${r.total}試合` : '少ないほど上位', w: Math.round((1 - r.miss / maxMiss) * 100) };
+  };
+  const mini = (r) => {
+    const items = [];
+    if (isInd && rankMetric !== 'win') items.push(['勝率', r.winRate === null ? '-' : r.winRate + '%']);
+    if (rankMetric !== 'srv') items.push(['1stサーブ', r.srvRate === null ? '-' : r.srvRate + '%']);
+    if (rankMetric !== 'pts') items.push(['ポイント', r.pts]);
+    if (rankMetric !== 'miss') items.push(['ミス', r.miss]);
+    return items.slice(0, 3).map(i => `<div>${i[0]} <strong style="color:var(--ink);font-size:14px">${i[1]}</strong></div>`).join('');
+  };
+
+  const filterLabel = '';
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(${metrics.length}, minmax(0, 1fr));gap:6px;margin-bottom:12px">
+      ${metrics.map(m => `<button onclick="setRankMetric('${m[0]}')" style="min-height:44px;border-radius:10px;border:1.5px solid ${rankMetric === m[0] ? 'var(--ink)' : 'var(--border)'};background:${rankMetric === m[0] ? 'var(--ink)' : 'var(--surface)'};color:${rankMetric === m[0] ? '#fff' : 'var(--ink)'};font-size:12px;font-weight:${rankMetric === m[0] ? 700 : 400};font-family:inherit;cursor:pointer">${m[1]}</button>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">全員を表示します（${list.length}${isInd ? '名' : '組'}）。${rankMetric === 'miss' ? 'ミスは少ないほど上位です。' : ''}${rankMetric === 'srv' ? 'サーブの本数は、詳細入力した試合の分だけです。' : ''}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${list.map((r, i) => {
+        const b = big(r);
+        const medal = i < 3 ? `background:${medalBg[i]};color:${medalFg[i]}` : 'background:var(--s2);color:var(--muted)';
+        return `<div style="background:var(--surface);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="flex:none;width:32px;height:32px;border-radius:16px;${medal};font-family:var(--font-num);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center">${i + 1}</div>
+            <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:700">${escapeHtml(r.name)}</div><div style="font-size:12px;color:var(--muted)">${b.sub}</div></div>
+            <div style="font-family:var(--font-num);font-weight:800;font-size:30px;line-height:1">${b.v}</div>
+          </div>
+          <div style="height:8px;border-radius:4px;background:var(--s2)"><div style="width:${b.w}%;height:8px;border-radius:4px;background:var(--green)"></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px;font-size:12px;color:var(--muted)">${mini(r)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+let _rankArgs = null;
+let rankMetric = 'win';
+function setRankMetric(m) {
+  rankMetric = m;
+  if (_rankArgs) renderRankBody(..._rankArgs);
 }
 
 function buildRankSection(title, list, valFn, maxVal) {
@@ -5407,6 +5454,244 @@ async function loadAllPlayerMatchesForGrowth(name) {
   }
 }
 
+
+// ============================================================
+// 個人スタッツ：表示の切り替え（詳細 / ダッシュ / 練習 / 展開別）
+// ============================================================
+let statsView = 'detail';
+let statsDashTab = 'miss';
+let statsCourtScope = 'sel';
+let _weeklyMenu = {};   // 選手名 → ['メニュー名', ...]
+
+const SV_TENKAI = { C:'クロス', Co:'逆クロス', RST:'右ストレート', LST:'左ストレート' };
+const SV_COURSE = { C:'クロス', Co:'逆クロス', M:'ミドル', RST:'右ST', LST:'左ST' };
+const SV_SHOT = { St:'ストローク', S:'スライス', V:'ボレー', LV:'ローボレー', Hv:'ハイボレー', Sm:'スマッシュ', Tp:'トップ打ち', Lb:'ロブ', Fo:'フォロー', NT:'ノータッチ' };
+
+function setStatsView(v) { statsView = v; renderStatsDetail(); }
+
+// 選んでいる試合（プルダウンに連動）
+function svSelection() {
+  const fv = document.getElementById('stats-match-filter').value;
+  if (fv === 'all') return statsPlayerMatches;
+  const m = statsPlayerMatches[parseInt(fv)];
+  return m ? [m] : [];
+}
+
+// 試合群 → この選手の得点・ミス
+function svCollect(matches) {
+  const pts = [], miss = [];
+  matches.forEach(m => (m.pointLog || []).forEach(p => {
+    if (p.player !== m.playerKey) return;
+    if (p.type === 'point') pts.push(p);
+    else if (p.type === 'miss') miss.push(p);
+  }));
+  return { pts, miss };
+}
+
+function svScene(p) {
+  const a = p.player.startsWith('a');
+  const my = a ? (p.scoreA || 0) : (p.scoreB || 0), op = a ? (p.scoreB || 0) : (p.scoreA || 0);
+  return my > op ? 'up' : my === op ? 'tie' : 'down';
+}
+const SV_SCENE_LBL = { up:'リード中', tie:'オール', down:'ビハインド' };
+
+function svTenkai(pts, miss) {
+  const t = {};
+  Object.keys(SV_TENKAI).forEach(k => t[k] = { w: 0, l: 0, lMiss: [] });
+  pts.forEach(p => { if (p.tenkai && t[p.tenkai]) t[p.tenkai].w++; });
+  miss.forEach(p => { if (p.tenkai && t[p.tenkai]) { t[p.tenkai].l++; t[p.tenkai].lMiss.push(p); } });
+  return t;
+}
+
+function svNode(html) { const d = document.createElement('div'); d.innerHTML = html; return d; }
+const SV_CARD = 'background:var(--surface);border-radius:14px;padding:14px 16px;margin-bottom:12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px';
+
+function svBar() {
+  const items = [['detail','詳細'], ['dash','ダッシュ'], ['train','練習'], ['court','展開別']];
+  return svNode(`<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:12px">${items.map(i => {
+    const on = statsView === i[0];
+    return `<button onclick="setStatsView('${i[0]}')" style="min-height:44px;border-radius:10px;border:1.5px solid ${on ? 'var(--ink)' : 'var(--border)'};background:${on ? 'var(--ink)' : 'var(--surface)'};color:${on ? '#fff' : 'var(--ink)'};font-size:13px;font-weight:${on ? 700 : 400};font-family:inherit;cursor:pointer">${i[1]}</button>`;
+  }).join('')}</div>`);
+}
+
+// ---------- 案1 ダッシュボード ----------
+function svDashboard(el) {
+  const sel = svSelection();
+  const { pts, miss } = svCollect(sel);
+  const single = sel.length === 1;
+  let wins = 0, i1 = 0, t1 = 0;
+  sel.forEach(m => { if (m.winner && m.winner === m.ownTeamKey) wins++; i1 += m.playerStats.srv1in || 0; t1 += m.playerStats.srv1tot || 0; });
+  const winRate = sel.length ? Math.round(wins / sel.length * 100) : 0;
+  const sRate = t1 > 0 ? Math.round(i1 / t1 * 100) : null;
+
+  // ミス：1試合なら「平均との差」、全体なら1試合あたり
+  let missVal, missLbl, missSub = '';
+  const detail = (statsPlayerAllMatches || []).filter(m => !m.isResultOnly && (m.pointLog || []).length);
+  const avgOf = (arr) => arr.length ? arr.reduce((s, m) => s + (m.pointLog || []).filter(p => p.type === 'miss' && p.player === m.playerKey).length, 0) / arr.length : null;
+  if (single) {
+    missLbl = 'この試合のミス'; missVal = miss.length;
+    const avg = avgOf(detail);
+    if (avg !== null && detail.length >= 2) {
+      const d = Math.round(avg - miss.length);
+      missSub = d > 0 ? `<span style="color:#1e6b2e;font-weight:700">平均より${d}本少ない</span>` : d < 0 ? `<span style="color:#8f2a20;font-weight:700">平均より${-d}本多い</span>` : `<span style="color:var(--muted)">平均どおり</span>`;
+    }
+  } else {
+    missLbl = 'ミス / 試合'; const n = sel.filter(m => (m.pointLog || []).length).length;
+    missVal = n ? (miss.length / n).toFixed(1) : '-';
+    missSub = `<span style="color:var(--muted)">合計${miss.length}本</span>`;
+  }
+  const tile = (l, v, u, s) => `<div style="background:var(--surface);border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;gap:2px;border:1px solid var(--border)"><div style="font-size:11px;color:var(--muted)">${l}</div><div style="font-family:var(--font-num);font-weight:800;font-size:26px;line-height:1.1">${v}<span style="font-size:13px">${u}</span></div><div style="font-size:11px;color:var(--muted)">${s}</div></div>`;
+  el.appendChild(svNode(`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px">
+    ${tile('勝率', sel.length ? winRate : '-', '%', `${wins}勝 / ${sel.length}試合`)}
+    ${tile('1stサーブ', sRate === null ? '-' : sRate, '%', t1 ? `${i1} / ${t1}本` : '記録なし')}
+    ${tile(missLbl, missVal, single ? '本' : '本', missSub)}
+  </div>`));
+
+  // 気づき
+  const notes = [];
+  const combo = {};
+  pts.forEach(p => { if (p.shotType && p.course) { const k = p.shotType + '|' + p.course; combo[k] = (combo[k] || 0) + 1; } });
+  const topC = Object.entries(combo).sort((a, b) => b[1] - a[1])[0];
+  if (topC && topC[1] >= 3) {
+    const [sh, co] = topC[0].split('|');
+    notes.push(['強み', '#e6f2e8', '#1e6b2e', `${SV_COURSE[co]}への${SV_SHOT[sh] || sh}で<strong>${topC[1]}本</strong>得点。最も多い得点パターン`]);
+  }
+  if (miss.length >= 4) {
+    const sc = { up: 0, tie: 0, down: 0 }; miss.forEach(p => sc[svScene(p)]++);
+    const [k, v] = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
+    if (v >= 3 && v / miss.length >= 0.4) notes.push(['課題', '#f8e6e3', '#8f2a20', `${SV_SCENE_LBL[k]}の場面で、ミス${miss.length}本のうち<strong>${v}本</strong>が集中`]);
+    const long = miss.filter(p => ['4','5','6+'].includes(String(p.rally))).length;
+    if (long >= 3 && long / miss.length >= 0.5) notes.push(['展開', '#e4ecf6', '#1f4f8a', `4球目以降のラリーで、ミスが<strong>${long}本</strong>。長くなると崩れやすい`]);
+  }
+  el.appendChild(svNode(`<div style="${SV_CARD}"><div style="font-size:14px;font-weight:700">気づき</div>${notes.length ? notes.map(n => `<div style="display:flex;gap:10px;align-items:flex-start"><span style="flex:none;min-width:44px;text-align:center;padding:3px 0;border-radius:6px;background:${n[1]};color:${n[2]};font-size:11px;font-weight:700">${n[0]}</span><div style="font-size:14px;line-height:1.55">${n[3]}</div></div>`).join('') : '<div style="font-size:13px;color:var(--muted)">データが集まると、強みと課題がここに出ます</div>'}</div>`));
+
+  // 下段タブ
+  const tabs = [['miss','ミスの種類'], ['course','コース'], ['rally','ラリー']];
+  el.appendChild(svNode(`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px">${tabs.map(t => {
+    const on = statsDashTab === t[0];
+    return `<button onclick="statsDashTab='${t[0]}';renderStatsDetail()" style="min-height:40px;border-radius:10px;border:1.5px solid ${on ? 'var(--ink)' : 'var(--border)'};background:${on ? 'var(--ink)' : 'var(--surface)'};color:${on ? '#fff' : 'var(--ink)'};font-size:12px;font-weight:${on ? 700 : 400};font-family:inherit;cursor:pointer">${t[1]}</button>`;
+  }).join('')}</div>`));
+  if (statsDashTab === 'course') {
+    const cc = {}; pts.forEach(p => { if (p.course) cc[p.course] = (cc[p.course] || 0) + 1; });
+    const mx = Math.max(1, ...Object.values(cc));
+    const cell = (k) => { const v = cc[k] || 0; return `<div style="border-radius:10px;padding:12px 4px;text-align:center;background:rgba(40,130,58,${v ? (0.12 + 0.58 * v / mx).toFixed(2) : 0.05})"><div style="font-size:12px">${SV_COURSE[k]}</div><div style="font-family:var(--font-num);font-weight:800;font-size:22px">${v}</div></div>`; };
+    el.appendChild(svNode(`<div style="${SV_CARD}"><div style="font-size:12px;color:var(--muted)">決着ショットを打ったコース（自分から見て）</div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">${cell('Co')}${cell('M')}${cell('C')}${cell('LST')}<div></div>${cell('RST')}</div></div>`));
+  } else if (!miss.length) {
+    el.appendChild(svNode('<div class="empty"><div class="empty-icon">✨</div>ミスのデータがありません（素晴らしい！）</div>'));
+  } else if (statsDashTab === 'rally') {
+    el.appendChild(buildChart3_RallyHist(miss));
+  } else {
+    el.appendChild(buildChart1_ShotMiss(miss));
+  }
+}
+
+// ---------- 案3 練習への示唆 ----------
+async function svLoadMenu(name) {
+  try { const r = await xhrRequest('GET', 'weeklyMenu/' + encodeURIComponent(name)); _weeklyMenu[name] = r ? _toArr(r) : []; }
+  catch (e) { _weeklyMenu[name] = _weeklyMenu[name] || []; }
+}
+async function svToggleMenu(label) {
+  const n = statsPlayerName; const cur = _weeklyMenu[n] || [];
+  _weeklyMenu[n] = cur.includes(label) ? cur.filter(x => x !== label) : cur.concat(label);
+  renderStatsDetail();
+  try { await xhrRequest('PUT', 'weeklyMenu/' + encodeURIComponent(n), _weeklyMenu[n].length ? _weeklyMenu[n] : null); }
+  catch (e) { alert('メニューの保存に失敗しました'); }
+}
+
+function svTrain(el) {
+  const name = statsPlayerName;
+  if (!(name in _weeklyMenu)) { _weeklyMenu[name] = []; svLoadMenu(name).then(() => { if (statsView === 'train' && statsPlayerName === name) renderStatsDetail(); }); }
+  const menu = _weeklyMenu[name] || [];
+  const { pts, miss } = svCollect(svSelection());
+  const cards = [];
+
+  // ① 場面
+  if (miss.length >= 4) {
+    const sc = { up: 0, tie: 0, down: 0 }; miss.forEach(p => sc[svScene(p)]++);
+    const [k, v] = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
+    if (v >= 3 && v / miss.length >= 0.4) {
+      const ttl = { down: 'ビハインドの場面でミスが増える', tie: 'オール（同点）の場面でミスが増える', up: 'リード中にミスが増える' }[k];
+      const idea = { down: '0-3、1-4など、負けている状態からゲームを始める練習', tie: '3-3、4-4など、同点の状態からゲームを始める練習', up: '3-0、4-1など、リードした状態から同じ入り方を続ける練習' }[k];
+      const lbl = { down: 'ビハインドからのゲーム練習', tie: 'オールからのゲーム練習', up: 'リードからのゲーム練習' }[k];
+      cards.push({ ttl, sub: `場面ごとのミス（${miss.length}本中）`, rows: ['up','tie','down'].map(q => [SV_SCENE_LBL[q], sc[q], q === k]), max: Math.max(1, ...Object.values(sc)), idea, lbl });
+    }
+  }
+  // ② ラリー
+  if (miss.length >= 4) {
+    const withR = miss.filter(p => p.rally);
+    const long = withR.filter(p => ['4','5','6+'].includes(String(p.rally))).length;
+    const short = withR.length - long;
+    if (long >= 3 && long / withR.length >= 0.5) cards.push({ ttl: '長いラリーで崩れやすい', sub: `何球目でミスが出たか（${withR.length}本中）`, rows: [['3球目まで', short, false], ['4球目以降', long, true]], max: Math.max(1, short, long), idea: '4球目以降を想定した、ラリーを続ける練習（まず10本続ける）', lbl: '4球目以降のラリー練習' });
+    else if (short >= 3 && short / withR.length >= 0.6) cards.push({ ttl: '3球目までの早い段階でミスが出る', sub: `何球目でミスが出たか（${withR.length}本中）`, rows: [['3球目まで', short, true], ['4球目以降', long, false]], max: Math.max(1, short, long), idea: 'サーブ・レシーブ・3球目の確率を上げる練習（連続で入れる）', lbl: 'サーブ・レシーブの確率練習' });
+  }
+  // ③ 展開
+  const tk = svTenkai(pts, miss);
+  const worst = Object.entries(tk).filter(([k, v]) => v.w + v.l >= 4 && v.l / (v.w + v.l) >= 0.6).sort((a, b) => (b[1].l / (b[1].w + b[1].l)) - (a[1].l / (a[1].w + a[1].l)) || b[1].l - a[1].l)[0];
+  if (worst) {
+    const [k] = worst;
+    cards.push({ ttl: `${SV_TENKAI[k]}展開で失点が多い`, sub: '展開ごとの得点と失点（直前の球の方向）', tenkai: tk, hl: k, idea: `${SV_TENKAI[k]}に球が来る展開から始める、ラリー練習`, lbl: `${SV_TENKAI[k]}展開のラリー練習` });
+  }
+
+  el.appendChild(svNode(`<div style="margin-bottom:12px"><div style="font-family:var(--font-head);font-size:22px;letter-spacing:.06em">TRAINING</div><div style="font-size:12px;color:var(--muted)">選んだ試合のデータから、次の練習で取り組むこと</div></div>`));
+  if (!cards.length) el.appendChild(svNode(`<div class="empty"><div class="empty-icon">🎾</div>はっきりした課題はまだ見つかりません<br><small style="color:var(--muted)">ミスが4本以上たまると表示されます</small></div>`));
+  cards.forEach((c, i) => {
+    let body = '';
+    if (c.rows) {
+      body = c.rows.map(r => `<div style="display:flex;align-items:center;gap:10px"><div style="width:72px;font-size:12px;${r[2] ? 'font-weight:700' : ''}">${r[0]}</div><div style="flex:1;height:16px;background:var(--s2);border-radius:4px;overflow:hidden"><div style="width:${Math.round(r[1] / c.max * 100)}%;height:16px;border-radius:4px;background:${r[2] ? '#b4372a' : '#cfc8bb'}"></div></div><div style="width:20px;text-align:right;font-family:var(--font-num);font-weight:800;font-size:14px">${r[1]}</div></div>`).join('');
+    } else {
+      body = Object.keys(SV_TENKAI).map(k => { const v = c.tenkai[k], t = Math.max(1, v.w + v.l); return `<div style="display:flex;align-items:center;gap:10px"><div style="width:72px;font-size:12px;${k === c.hl ? 'font-weight:700' : ''}">${SV_TENKAI[k]}</div><div style="flex:1;display:flex;gap:2px;height:14px"><div style="flex:${v.w} 1 0;background:#28823a;border-radius:4px"></div><div style="flex:${v.l} 1 0;background:#b4372a;border-radius:4px"></div></div><div style="width:34px;text-align:right;font-family:var(--font-num);font-size:12px;font-weight:700">${v.w}:${v.l}</div></div>`; }).join('') +
+        `<div style="display:flex;gap:12px;font-size:11px;color:var(--muted)"><span><span style="display:inline-block;width:10px;height:10px;background:#28823a;border-radius:2px"></span> 得点</span><span><span style="display:inline-block;width:10px;height:10px;background:#b4372a;border-radius:2px"></span> 失点</span></div>`;
+    }
+    const added = menu.includes(c.lbl);
+    el.appendChild(svNode(`<div style="${SV_CARD}">
+      <div style="display:flex;align-items:center;gap:10px"><div style="flex:none;width:26px;height:26px;border-radius:13px;background:var(--ink);color:#fff;font-family:var(--font-num);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center">${i + 1}</div><div style="font-size:15px;font-weight:700">${c.ttl}</div></div>
+      <div style="font-size:12px;color:var(--muted)">${c.sub}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${body}</div>
+      <div style="background:var(--s2);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;font-weight:700;color:#1e6b2e">練習のアイデア</div>
+        <div style="font-size:14px;line-height:1.5">${c.idea}</div>
+        <button onclick="svToggleMenu(${JSON.stringify(c.lbl).replace(/"/g, '&quot;')})" style="min-height:44px;border-radius:10px;border:1.5px solid var(--green);background:${added ? 'var(--green)' : 'var(--surface)'};color:${added ? '#fff' : '#1e6b2e'};font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">${added ? '✓ 今週のメニューに追加済み（タップで外す）' : '今週のメニューに追加'}</button>
+      </div></div>`));
+  });
+  el.appendChild(svNode(`<div style="background:var(--ink);color:#fff;border-radius:14px;padding:14px 16px"><div style="font-size:12px;opacity:.75;margin-bottom:6px">${escapeHtml(name)} の今週のメニュー（${menu.length}件）</div>${menu.length ? menu.map(m => `<div style="font-size:14px;line-height:1.7">・${escapeHtml(m)}</div>`).join('') : '<div style="font-size:13px;opacity:.7">「今週のメニューに追加」を押すと、ここに並びます</div>'}</div>`));
+}
+
+// ---------- 案4 展開別 ----------
+function svCourt(el) {
+  const sel = statsCourtScope === 'all' ? (statsPlayerAllMatches || []).filter(m => !m.isResultOnly)
+    : statsCourtScope === 'today' ? (statsPlayerCurrentEventMatches || []).filter(m => !m.isResultOnly)
+    : svSelection();
+  const { pts, miss } = svCollect(sel);
+  const tk = svTenkai(pts, miss);
+  const scopes = [['sel','選択中'], ['today','今日'], ['all','全期間']];
+  el.appendChild(svNode(`<div style="margin-bottom:10px"><div style="font-size:22px;font-weight:700">展開別</div><div style="font-size:12px;color:var(--muted)">ラリーの方向ごとの、得点と失点</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px">${scopes.map(t => { const on = statsCourtScope === t[0]; return `<button onclick="statsCourtScope='${t[0]}';renderStatsDetail()" style="min-height:40px;border-radius:10px;border:1.5px solid ${on ? 'var(--ink)' : 'var(--border)'};background:${on ? 'var(--ink)' : 'var(--surface)'};color:${on ? '#fff' : 'var(--ink)'};font-size:12px;font-weight:${on ? 700 : 400};font-family:inherit;cursor:pointer">${t[1]}</button>`; }).join('')}</div>`));
+  const arrow = { C: [12,44,30,10], Co: [30,44,12,10], RST: [30,44,30,10], LST: [12,44,12,10] };
+  const icon = (k) => { const a = arrow[k]; return `<svg width="42" height="54" viewBox="0 0 42 54" style="flex:none"><rect x="1" y="1" width="40" height="52" fill="#fff" stroke="#6b665e"/><line x1="21" y1="1" x2="21" y2="53" stroke="#c9c3b8"/><line x1="1" y1="27" x2="41" y2="27" stroke="#c9c3b8"/><line x1="${a[0] + 3}" y1="${a[1]}" x2="${a[2] + 3}" y2="${a[3] + 4}" stroke="#1f4f8a" stroke-width="2.5"/><circle cx="${a[2] + 3}" cy="${a[3] + 2}" r="3.5" fill="#1f4f8a"/></svg>`; };
+  let total = 0;
+  const cards = Object.keys(SV_TENKAI).map(k => {
+    const v = tk[k], t = v.w + v.l; total += t;
+    const pc = t ? Math.round(v.w / t * 100) : null;
+    const badge = t >= 3 && pc >= 60 ? '<span style="padding:2px 8px;border-radius:10px;background:#e6f2e8;color:#1e6b2e;font-size:11px;font-weight:700">得意</span>' : t >= 3 && pc <= 40 ? '<span style="padding:2px 8px;border-radius:10px;background:#f8e6e3;color:#8f2a20;font-size:11px;font-weight:700">苦手</span>' : '';
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">${icon(k)}<div><div style="font-size:14px;font-weight:700">${SV_TENKAI[k]}</div><div style="font-family:var(--font-num);font-weight:800;font-size:24px">${pc === null ? '-' : pc}<span style="font-size:13px">${pc === null ? '' : '%'}</span></div></div></div>
+      <div style="display:flex;gap:2px;height:10px">${t ? `<div style="flex:${v.w} 1 0;background:#28823a;border-radius:5px"></div><div style="flex:${v.l} 1 0;background:#b4372a;border-radius:5px"></div>` : '<div style="flex:1;background:var(--s2);border-radius:5px"></div>'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted)"><span>得点${v.w} ／ 失点${v.l}</span>${badge}</div></div>`;
+  });
+  el.appendChild(svNode(`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px">${cards.join('')}</div>
+    <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:12px"><span><span style="display:inline-block;width:10px;height:10px;background:#28823a;border-radius:2px"></span> 得点</span><span><span style="display:inline-block;width:10px;height:10px;background:#b4372a;border-radius:2px"></span> 失点</span><span>％は得点の割合</span></div>`));
+
+  // よく崩れる場面
+  const wk = Object.entries(tk).filter(([k, v]) => v.l >= 3 && v.l >= v.w).sort((a, b) => (b[1].l / (b[1].w + b[1].l)) - (a[1].l / (a[1].w + a[1].l)) || b[1].l - a[1].l)[0];
+  if (wk) {
+    const [k, v] = wk; const sc = { up: 0, tie: 0, down: 0 }; v.lMiss.forEach(p => sc[svScene(p)]++);
+    const [sk, sv] = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
+    el.appendChild(svNode(`<div style="${SV_CARD}"><div style="font-size:14px;font-weight:700">この展開で、よく崩れる場面</div><div style="font-size:14px;line-height:1.7">${SV_TENKAI[k]}展開の失点${v.l}本のうち、<strong>${sv}本</strong>は${SV_SCENE_LBL[sk]}の場面。${SV_TENKAI[k]}に球が来たときの、返し方を決めておきたい</div></div>`));
+  }
+  el.appendChild(svNode(`<div style="font-size:11px;color:var(--muted);line-height:1.6">展開は、決着打の1球前の球の方向です（自分から見た方向）。ラリー3球目以降の${total}ポイントが対象です。</div>`));
+  if (!total) el.appendChild(svNode('<div class="empty"><div class="empty-icon">🎾</div>展開のデータがまだありません</div>'));
+}
+
 function renderStatsDetail() {
   const el = document.getElementById('stats-charts');
   const filterVal = document.getElementById('stats-match-filter').value;
@@ -5452,6 +5737,10 @@ function renderStatsDetail() {
   }
   
   el.innerHTML = '';
+  el.appendChild(svBar());
+  if (statsView === 'dash') { svDashboard(el); return; }
+  if (statsView === 'train') { svTrain(el); return; }
+  if (statsView === 'court') { svCourt(el); return; }
   
   // サーブ統計サマリー（カード形式）
   const srv1rate = srv1tot > 0 ? Math.round(srv1in / srv1tot * 100) : 0;
